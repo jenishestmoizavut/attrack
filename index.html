@@ -910,6 +910,16 @@ div.popup-dot { display:none !important; }
   padding: 6px 20px 10px;
   border-bottom: 1px solid var(--border);
 }
+/* ---------- Day View Mobile Order Fix ---------- */
+@media (max-width: 900px) {
+  #dayView .day-lectures {
+    order: 1;   /* show first */
+  }
+
+  #dayView .day-calendar {
+    order: 2;   /* show after lectures */
+  }
+}
 
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1110,7 +1120,7 @@ Attrack by Jenish
 </div>
     <div id="dayView" class="view">
       <div class="grid">
-        <div>
+        <div class="day-calendar">
 
           <div class="card">
             <h3>Calendar 🗓️</h3>
@@ -1128,7 +1138,7 @@ Attrack by Jenish
             </div>
           </div>
         </div>
-
+		<div class="day-lectures">
         <div class="card">
           <h3>Lectures & attendance ✅</h3>
 
@@ -2406,5 +2416,6 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
