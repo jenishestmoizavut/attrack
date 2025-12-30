@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attrack by Jenish</title>
+<link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+:root{
+  --bg: #f4f6ff;
+  --bg-soft: #fafbff;
+  --card-bg: #ffffff;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-soft: #4b5563;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+
+body.dark{
+  --bg: #020617;
+  --bg-soft: #020617;
+  --card-bg: #0b1120;
+  --border: #1f2937;
+  --text: #e5e7eb;
+  --text-soft: #cbd5f5;
+  --muted: #9ca3af;
+  --accent: #6366f1;
+  --accent-soft: #111827;
+  --danger: #ef4444;
+  --danger-soft: #7f1d1d;
+  --shadow: 0 4px 18px rgba(15,23,42,0.9);
+}
+
+/* ---------------- Global / theme variables ---------------- */
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--bg-soft);
+}
+html.dark {
+  scrollbar-color: var(--accent) #020617;
+}
+/* WebKit scrollbar — must be on html */
+html::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html::-webkit-scrollbar-track {
+  background: var(--bg-soft);
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+/* Dark mode (NOW WORKS) */
+html.dark::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+html.dark::-webkit-scrollbar-thumb {
+  background: #6366f1;
+}
+
+/* -------- View switching (IMPORTANT FIX) -------- */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+/* ---------------- Daily View – Lectures panel polish ---------------- */
+
+/* Soften the section title */
+#dayView h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-bottom: 10px;
+}
+
+/* Make the "Showing lectures for" line calmer */
+#selectedDateLabel {
+  font-size: 0.78rem;          /* ⬅ smaller */
+  font-weight: 500;            /* ⬅ not bold */
+  color: var(--muted);         /* ⬅ less contrast */
+  letter-spacing: 0.15px;
+}
+
+/* Reduce visual shouting of dropdown label */
+.filter-row span {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+/* Give toolbar breathing room */
+.toolbar {
+  margin-top: 10px;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+/* Slightly relax button appearance */
+.toolbar .btn {
+  font-size: 0.75rem;
+  padding: 5px 9px;
+  opacity: 0.92;
+}
+
+/* Make table feel less boxed-in */
+table {
+  margin-top: 8px;
+}
+
+/* Reduce table density */
+th, td {
+  padding: 6px 6px;   /* ⬅ was tight */
+}
+
+/* Calm header row */
+th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Make inputs feel lighter */
+td input,
+td select {
+  background: var(--bg);
+}
+
+/* Reduce visual dominance of action column */
+td .btn.small {
+  opacity: 0.85;
+}
+td .btn.small:hover {
+  opacity: 1;
+}
+
+/* Add subtle separation below toolbar */
+.toolbar::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: var(--border);
+  margin-top: 10px;
+}
+
+/* ---------------- Timetable input polish ---------------- */
+
+.timetable-table td {
+  padding: 6px 4px;
+  background: transparent;
+}
+
+.timetable-table input[type="number"] {
+  width: 42px;
+  height: 26px;
+  text-align: center;
+
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+
+  outline: none;
+  transition: 
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Hover = subtle affordance */
+.timetable-table input[type="number"]:hover {
+  border-color: var(--text-soft);
+}
+
+/* Focus = clear but calm */
+.timetable-table input[type="number"]:focus {
+  border-color: var(--accent);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 1px rgba(79,70,229,0.25);
+}
+
+/* Remove browser spinner noise */
+.timetable-table input::-webkit-outer-spin-button,
+.timetable-table input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.timetable-table input[type="number"] {
+  appearance: textfield;
+}
+
+/* ---------------- Base layout ---------------- */
+body{
+  margin:0;
+  padding:16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+h1,h2,h3 { margin:0 0 8px; }
+
+.app{
+  margin:0 auto;
+  background: var(--card-bg);
+  border-radius:16px;
+  padding:16px 20px 24px;
+  box-shadow: var(--shadow);
+  border:1px solid var(--border);
+}
+
+/* ---------------- Header (compact single-row) ---------------- */
+.header{
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 16px;
+  margin-bottom:8px;
+  border-bottom:1px solid var(--border);
+  border-radius:12px;
+  background:transparent;
+  box-shadow:none;
+}
+
+.title-block{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+
+.title{
+  font-size:1.12rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  line-height:1;
+}
+
+.badge{
+  font-size:0.75rem;
+  padding:2px 8px;
+  border-radius:999px;
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+
+/* greeting (cheer) */
+.cheer{
+  font-size:0.88rem;
+  color:var(--text-soft);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:56vw;
+}
+.cheer span{ font-weight:600; }
+
+/* right-hand summary */
+.summary{
+  text-align:right;
+  font-size:0.92rem;
+  min-width:230px;
+  max-width:42%;
+}
+.summary-main{ font-weight:700; font-size:1rem; color:var(--accent); }
+.summary-sub{ font-size:0.8rem; color:var(--muted); }
+
+/* ---------------- Nav ---------------- */
+.nav{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+  padding-bottom:6px;
+  align-items:center;
+  border-bottom:1px solid transparent;
+}
+.nav-btn{
+  border-radius:999px;
+  border:none;
+  padding:5px 10px;
+  font-size:0.8rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:transparent;
+  color:var(--muted);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.05s ease;
+}
+.nav-btn.active{ background:var(--accent-soft); color:var(--accent); transform:translateY(-0.5px); }
+.nav-spacer{ flex:1; }
+
+.dark-toggle{
+  border-radius:999px;
+  border:1px solid var(--border);
+  padding:4px 9px;
+  font-size:0.8rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:var(--bg-soft);
+  color:var(--text-soft);
+}
+
+/* ---------------- Grid & cards ---------------- */
+.grid{
+  display:grid;
+  grid-template-columns: minmax(260px,320px) 1fr;
+  gap:16px;
+  margin-bottom:12px;
+}
+@media (max-width:900px){ .grid{ grid-template-columns:1fr; } .summary{ text-align:left; max-width:100%; } .cheer{ max-width:100%; white-space:normal; } .header{ flex-wrap:wrap; } }
+
+.card{
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--bg-soft);
+  padding:14px;                 /* ⬅ more breathing room */
+}
+
+.card h3{
+  font-size:1rem;               /* ⬅ clear hierarchy */
+  font-weight:600;
+  line-height:1.25;
+  margin-bottom:8px;            /* ⬅ separates content */
+}
+
+/* ---------------- Inputs, buttons ---------------- */
+.field{ margin-bottom:8px; display:flex; flex-direction:column; gap:4px; }
+.field label{ font-size:0.8rem; color:var(--text-soft); }
+
+input[type="text"], input[type="date"], select{
+  padding:6px 8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-size:0.85rem;
+  outline:none;
+  background:var(--card-bg);
+  color:var(--text);
+}
+input[type="text"]:focus, input[type="date"]:focus, select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px rgba(79,70,229,0.25);
+}
+
+.subjects-list{ display:flex; flex-direction:column; gap:4px; max-height:180px; overflow-y:auto; padding-right:4px; }
+.subject-row{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.subject-row input{ flex:1; min-width:140px; }
+
+.btn{
+  border-radius:999px;
+  border:none;
+  padding:6px 10px;
+  font-size:0.8rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:var(--accent);
+  color:#fff;
+  transition: background 0.15s ease, transform 0.05s ease, opacity 0.1s ease;
+}
+	 .mobile-only-hero .btn {
+  font-family: inherit;
+  font-weight: 600;              /* calmer */
+  text-transform: none;          /* 🔥 key fix */
+  letter-spacing: 0;             /* 🔥 key fix */
+
+  font-size: 1rem;               /* matches app hierarchy */
+  line-height: 1.2;
+
+  background: var(--accent);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(79, 70, 229, 0.25);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+
+.mobile-only-hero .btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+}
+
+.btn.secondary{ background:#e5e7eb; color:#111827; }
+body.dark .btn.secondary{ background:#111827; color:#e5e7eb; }
+.btn.danger{ background:var(--danger); }
+.btn.small{ padding:4px 7px; font-size:0.75rem; border-radius:999px; }
+.btn:hover{ background:#4338ca; transform:translateY(-0.5px); }
+.btn.secondary:hover{ background:#d1d5db; }
+body.dark .btn.secondary:hover{ background:#1f2937; }
+.btn.danger:hover{ background:#991b1b; }
+.btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+
+/* ---------------- Calendar ---------------- */
+.calendar{ margin-top:4px; border-radius:12px; border:1px solid var(--border); background:var(--card-bg); padding:8px; }
+.cal-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:0.8rem; }
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; font-size:0.75rem; }
+.cal-dow{ text-align:center; font-weight:600; color:var(--muted); }
+.cal-cell{ height:26px; border-radius:8px; text-align:center; line-height:26px; cursor:pointer; position:relative; border:1px solid transparent; }
+.cal-cell.disabled{ cursor:default; color:#9ca3af; }
+.cal-cell.has-lectures::after{ content:""; position:absolute; bottom:3px; left:50%; width:6px; height:6px; border-radius:999px; transform:translateX(-50%); background:#22c55e; }
+.cal-cell.selected{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.cal-cell.today{ border-color:var(--text-soft); }
+
+/* ---------------- Tables & small UI ---------------- */
+.toolbar{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px; font-size:0.8rem;}
+.toolbar span{ color:var(--text-soft); }
+table{ width:100%; border-collapse:collapse; font-size:0.8rem; margin-top:4px; }
+th,td{ border:1px solid var(--border); padding:4px; text-align:left; vertical-align:middle; }
+th{ background:var(--accent-soft); font-weight:600; color:var(--text-soft); }
+td input[type="text"], td input[type="date"], td select{ width:100%; box-sizing:border-box; font-size:0.78rem; padding:3px 4px; }
+td .center{ text-align:center; }
+
+.tag{ font-size:0.7rem; padding:1px 6px; border-radius:999px; background:var(--danger-soft); color:var(--danger); }
+.lectures-empty, .hint{ font-size:0.75rem; color:var(--muted); margin-top:4px; }
+
+/* ---------------- Home & stats ---------------- */
+.home-grid{ display:grid; grid-template-columns: minmax(220px,1.2fr) minmax(260px,1.8fr); gap:12px; }
+@media (max-width:900px){ .home-grid{ grid-template-columns:1fr; } }
+
+.pill{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:0.85rem; margin-top:4px; }
+#overallPillText{ font-weight:700; margin-left:4px; }
+
+.subject-stats-list{ display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; padding-right:4px; }
+.subject-stat-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:0.8rem; padding:6px 8px; border-radius:8px; background:var(--card-bg); border:1px solid var(--border); }
+.subject-stat-name{ font-weight:600; width:90px; flex-shrink:0; }
+.subject-stat-bar{ flex:1; margin:0 8px; height:6px; border-radius:999px; background:var(--bg-soft); overflow:hidden; }
+.subject-stat-bar-inner{ height:100%; border-radius:999px; background:#22c55e; }
+.subject-stat-meta{ font-size:0.75rem; color:var(--muted); white-space:nowrap; }
+
+/* ---------------- Timetable ---------------- */
+.timetable-table{ width:100%; border-collapse:collapse; font-size:0.78rem; margin-top:4px; }
+.timetable-table th, .timetable-table td{ border:1px solid var(--border); padding:4px 6px; text-align:center; }
+.timetable-table th{ background:var(--accent-soft); }
+
+/* ---------------- Footer ---------------- */
+.footer{ margin-top:16px; font-size:0.7rem; color:var(--muted); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; }
+.version-badge{ padding:2px 8px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:0.7rem; }
+.footer-credit{ text-align:right; opacity:0.9; }
+/* ---- Tutorial reminder tooltip ---- */
+.tutorial-reminder {
+  position: absolute;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  box-shadow: var(--shadow);
+  z-index: 1600;
+  max-width: 200px;
+}
+
+.tutorial-reminder::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent var(--card-bg) transparent transparent;
+}
+
+/* ---------------- Tutorial modal styles ---------------- */
+#targetSetupBackdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1300;
+  padding:20px;
+}
+#targetSetupModal{
+  width:min(460px,95%);
+  background:var(--card-bg);
+  color:var(--text);
+  border-radius:12px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  padding:18px;
+  font-size:0.92rem;
+}
+#tutorialModal h2{ margin-top:0; font-size:1.1rem; }
+#tutorialModal ol{ padding-left:1.1rem; margin:8px 0 12px 0; }
+.tutorial-step{ margin-bottom:8px; }
+#tutorialActions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap; }
+#tutorialModal .btn{ font-size:0.85rem; padding:7px 10px; }
+#tutorialDismissCheckbox{ margin-right:8px; transform:translateY(1px); }
+#tutorialFooterNote{ margin-top:8px; color:var(--muted); font-size:0.82rem; }
+@media (max-width:700px){ #tutorialModal{ padding:12px; font-size:0.9rem; } }
+
+/* ---------------- Compact header helpers & stray-popup fix ---------------- */
+/* Make header act as a single horizontal bar and keep nav below */
+.header{ padding:10px 12px; margin-bottom:8px; border-radius:10px; }
+.title{ font-size:1.08rem; }
+.cheer{ font-size:0.88rem; max-width:56vw; }
+
+/* Hide any accidental empty modal element or stray popup */
+#tutorialModalBackdrop[style*="display:flex"] > #tutorialModal:empty,
+div.popup-dot { display:none !important; }
+
+/* Slightly lighter modal backdrop if shown */
+#tutorialModalBackdrop{ background:rgba(2,6,23,0.45); }
+#tutorialModal{ max-width:760px; margin:0 12px; }
+
+/* Responsive tweaks */
+@media (max-width:900px){
+  .header{ flex-wrap:wrap; }
+  .cheer{ max-width:100%; white-space:normal; }
+  .summary{ width:100%; text-align:left; margin-top:6px; }
+}
+/* ---------------- Guided tutorial spotlight ---------------- */
+
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.6);
+  z-index: 1500;
+}
+
+.tour-spotlight {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 9999px rgba(2, 6, 23, 0.6),
+    0 0 0 3px var(--accent);
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 1501;
+}
+
+.tour-tooltip {
+  position: absolute;
+  max-width: 260px;
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+  font-size: 0.82rem;
+  z-index: 1502;
+}
+
+.tour-tooltip h4 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+
+.tour-tooltip button {
+  margin-top: 8px;
+}
+@media (max-width: 768px) {
+  .tour-tooltip {
+    border-radius: 14px;
+    font-size: 0.85rem;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.35);
+  }
+}
+.share-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.share-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* ---------- Mobile quick fix: sticky footer ---------- */
+@media (max-width: 768px) {
+  .footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+
+    padding: 8px 10px;
+    margin-top: 12px;
+  }
+
+  /* prevent content from hiding behind footer */
+  .app {
+    padding-bottom: 70px;
+}
+}
+@media (max-width: 768px) {
+  .footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    padding: 8px 10px;
+  }
+
+  .footer-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer-actions .share-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer-actions .version-badge {
+    width: 100%;
+    text-align: center;
+  }
+
+  .app {
+    padding-bottom: 80px;
+  }
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    padding: 8px 10px;
+  }
+
+  .footer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-actions .share-btn,
+  .footer-actions .version-badge {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .app {
+    padding-bottom: 90px; /* prevents footer overlap */
+  }
+}
+
+/* Mobile-Specific Vibe Fixes */
+@media (max-width: 600px) {
+  .app-container {
+    flex-direction: column; /* Stack vertically instead of side-by-side */
+    height: auto;
+    padding-bottom: 80px; /* Make room for the bottom nav */
+  }
+
+  .sidebar {
+    width: 100% !important;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    flex-direction: row; /* Turn the vertical menu into a horizontal row */
+    justify-content: space-around;
+    padding: 10px 5px;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    background: var(--card-bg);
+  }
+
+  .sidebar-nav {
+    flex-direction: row !important; /* Icons sit side-by-side */
+    width: 100%;
+    gap: 5px;
+  }
+
+  .nav-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 5px;
+    font-size: 12px;
+  }
+
+  /* Hide the title/logo in the sidebar on mobile to save space */
+  .sidebar h2 { display: none; }
+
+  /* Make the main content take the full screen width */
+  .main-content {
+    padding: 15px;
+  }
+}
+@media (max-width: 600px) {
+  /* This prevents the horizontal scroll 'Wideness' */
+  html, body {
+    overflow-x: hidden; 
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box; /* Crucial: includes padding in the width calculation */
+    padding: 15px !important;
+  }
+
+  /* Fix the tables from stretching the screen */
+  .table-container {
+    overflow-x: auto; /* Allows only the table to scroll, not the whole app */
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Make the bottom buttons bigger for thumbs */
+  .nav-btn {
+    height: 100%;
+    font-size: 13px !important; /* Slightly bigger text */
+    font-weight: 600;
+  }
+}
+@media (min-width: 601px) {
+  .mobile-only-hero { display: none; }
+}
+	  .mobile-only-hero {
+  margin-bottom: 24px;
+}
+
+.mobile-only-hero .btn:active {
+  transform: scale(0.97);
+}
+
+	  @media (max-width: 600px) {
+  /* 1. Add space between the main sections */
+  .card, .stats-grid, .view, .view-header {
+    margin-bottom: 24px !important; 
+    gap: 15px !important;
+  }
+
+  /* 2. Make the Subject Stats look like clean cards, not a tight list */
+  .subject-stat-row {
+    background: var(--bg-soft);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+
+  /* 3. Fix the "Squashed" Table problem */
+  /* This turns each row into its own little 'chunk' instead of a tight line */
+  #lecturesTableBody tr {
+    display: block;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    padding: 10px;
+  }
+
+  #lecturesTableBody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
+    padding: 8px 5px;
+  }
+
+  /* Add labels so you know what each row in the 'chunk' is */
+  #lecturesTableBody td::before {
+    content: attr(data-label); /* We will add this in the HTML next */
+    font-weight: bold;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+}
+@media (max-width: 600px) {
+  .sidebar {
+    background: rgba(var(--card-bg-rgb), 0.8);
+    backdrop-filter: blur(10px);
+    padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhones with notches */
+  }
+  .nav-btn {
+    flex-direction: column; /* Icon above text */
+    gap: 2px;
+  }
+}
+	  /* ---------- Mobile Typography Fix ---------- */
+@media (max-width: 768px) {
+
+  body {
+    font-size: 15.5px;          /* ⬅ was effectively ~14 */
+    line-height: 1.55;          /* ⬅ improves readability */
+  }
+
+  h1, h2, h3 {
+    line-height: 1.25;
+    font-weight: 700;
+  }
+
+  .card h3 {
+    font-size: 1rem;            /* was visually too small */
+    font-weight: 600;
+  }
+
+  .btn {
+    font-size: 0.9rem;          /* slightly calmer */
+    font-weight: 600;           /* less shouty */
+  }
+
+  .summary-main {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .summary-sub {
+    font-size: 0.85rem;
+  }
+
+  .hint,
+  .lectures-empty {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+}
+@media (max-width: 768px){
+  .card{
+    padding:16px;               /* ⬅ mobile comfort */
+  }
+
+  .card h3{
+    font-size:1.05rem;          /* ⬅ section headers feel real */
+  }
+}
+
+/* ---------- FINAL mobile hero fix ---------- */
+@media (max-width: 768px) {
+  .mobile-only-hero {
+    margin-bottom: 24px;
+  }
+
+  .mobile-only-hero .btn {
+    /* Font Polish */
+    font-size: 1.05rem !important;  /* Force slightly larger text */
+    font-weight: 700 !important;    /* Make it bold */
+    letter-spacing: 0.5px;
+    text-transform: none;           /* Keep it standard case (not all caps) */
+    
+    /* Box Polish */
+    height: 54px;                   /* Taller button for easier tapping */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  }
+
+  .mobile-only-hero .btn:active {
+    transform: scale(0.98);
+  }
+}
+/* ---------- Header full-bleed fix (FINAL override) ---------- */
+.header {
+  margin: -16px -20px 8px;          /* cancel .app padding */
+  padding: 12px 20px;               /* restore inner spacing */
+  border-radius: 16px 16px 0 0;     /* match .app corners */
+}
+/* ---------- Nav full-bleed to match header ---------- */
+.nav {
+  margin: 0 -20px 12px;
+  padding: 6px 20px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+  </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  // Set the worker source immediately
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ----------------- Header + Nav (REPLACED) ----------------- -->
+    <div class="header">
+      <div class="title-block">
+        <div class="title">
+          📚 Attrack by Jenish
+          <span class="badge">Student-first UI</span>
+        </div>
+        <div id="cheerMessage" class="cheer">
+          Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊
+        </div>
+      </div>
+
+      <div class="summary" aria-live="polite">
+        <div class="summary-main" id="summaryMain">0 / 0 lectures tracked</div>
+        <div class="summary-sub" id="summarySub">Set your start date and add lectures to begin.</div>
+      </div>
+    </div>
+
+<div class="nav" role="navigation" aria-label="Main navigation">
+  <button class="nav-btn" data-view="homeView" type="button">🏠 Home</button>
+  
+  <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
+  
+ <!-- <button class="nav-btn" data-view="timetableView" type="button">🗓 Timetable</button>-->
+  <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
+
+  <button id="showTutorialNavBtn" class="nav-btn" type="button">🎓 Show tutorial</button>
+  <div class="nav-spacer"></div>
+  <button id="darkToggle" class="dark-toggle" type="button">
+    <span id="darkIcon">🌙</span>
+    <span id="darkLabel">Dark mode</span>
+  </button>
+</div>
+
+
+    <!-- ----------------- end Header + Nav ----------------- -->
+
+    <!-- Tutorial modal (hidden by default) -->
+    <div id="tutorialModalBackdrop" aria-hidden="true" style="display:none;">
+      <div id="tutorialModal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+        <h2 id="tutorialTitle">Welcome to Attrack — quick tutorial</h2>
+
+        <p class="hint">Let’s set this up once. You won’t need to think about attendance daily.</p>
+
+        <div id="tutorialFooterNote">Tip: To see this tutorial again later, click <strong>Show tutorial</strong> in the top nav.</div>
+
+        <div id="tutorialActions">
+          <label style="display:inline-flex;align-items:center;margin-right:auto;">
+            <input id="tutorialDismissCheckbox" type="checkbox" />
+            Don't show this again
+          </label>
+          <button id="tutorialCloseBtn" class="btn small">Got it</button>
+          <button id="tutorialOpenDayBtn" class="btn small secondary">Open Daily view</button>
+        </div>
+      </div>
+    </div>
+<!-- Target Attendance Setup Modal -->
+<div id="targetSetupBackdrop" style="display:none;" aria-hidden="true">
+  <div id="targetSetupModal" role="dialog" aria-modal="true" aria-labelledby="targetSetupTitle">
+    <h2 id="targetSetupTitle">Welcome — set your attendance target</h2>
+
+    <p class="hint">
+      Tell Attrack the attendance percentage you want to aim for.
+      This will personalize the warnings and suggestions.
+    </p>
+
+    <div class="field" style="margin-top:12px;">
+      <label for="targetAttendanceInput">Target attendance (%)</label>
+      <input id="targetAttendanceInput" type="number" min="50" max="100" step="1" value="75" />
+    </div>
+
+    <div class="hint" style="margin-top:6px;">
+      You can change this later from settings.
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; margin-top:14px; gap:8px;">
+      <button id="saveTargetAttendanceBtn" class="btn small">Continue</button>
+    </div>
+  </div>
+</div>
+
+
+    <!-- HOME VIEW -->
+    <div id="homeView" class="view active">
+
+      <div class="home-grid">
+        <div class="card">
+          <h3>Welcome back 👋</h3>
+          <div class="field">
+            <label for="studentName">Your name</label>
+            <input id="studentName" type="text" placeholder="e.g. Jenish, Chill Math Nerd 😄" />
+          </div>
+          <div class="field">
+            <label for="startDate">Start tracking from</label>
+            <input id="startDate" type="date" />
+          </div>
+                  <div class="hint" style="margin-top:8px;">
+            Set your semester start date (dd-mm-yyyy in text).  
+            You can also load any single future day from the Daily view.
+          </div>
+<div id="finalAttendanceSummary"></div>
+
+</div>
+        <div class="card">
+          <h3>Subject overview 📊</h3>
+          <div class="subject-stats-list" id="subjectStatsList"></div>
+
+          <div class="hint" style="margin-top:8px;">
+            These stats are based on all generated + manual lectures since your start date.  
+            You can tweak lectures in the Daily view.
+          </div>
+        </div>
+      </div>
+    </div>
+<div class="card" style="display:none">  
+<h3>Import Attendance (SAP PDF) 📥</h3>
+  <div class="field">
+    <label for="sapPdfInput">Upload SAP Attendance PDF</label>
+  </div>
+  <button id="importPdfBtn" class="btn small" type="button">Process & Import</button>
+  <div id="importStatus" class="hint" style="margin-top:8px;"></div>
+  
+  <div id="importPreview" style="display:none; margin-top:10px; padding:10px; background:var(--bg-soft); border-radius:8px; max-height:150px; overflow-y:auto; font-size:0.75rem;"></div>
+</div>
+    <!-- DAILY VIEW -->
+<div class="mobile-only-hero">
+<button
+  class="btn"
+  style="width: 100%; height: 56px;"
+  onclick="document.getElementById('loadDayBtn').click()"
+>
+  ⚡ Load today’s lectures
+</button></div>
+<!-- SETUP VIEW -->
+
+<!-- SETUP VIEW -->
+<div id="setupView" class="view">
+  <div class="card">
+    <h3>Setup</h3>
+    <div class="hint">
+      Set up how your attendance works. You usually do this once.
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <h3>Attendance rules 🎯</h3>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px;">
+      <div>
+        <div style="font-size:0.8rem; color:var(--muted);">Attendance target</div>
+        <div id="setupTargetValue" style="font-size:1.05rem; font-weight:700;">
+          Target: 75%
+        </div>
+      </div>
+      <button id="changeTargetBtn" class="btn small secondary" type="button">Change</button>
+    </div>
+  </div>
+          <div class="card" style="margin-bottom:8px;">
+            <h3>Subjects 🧠</h3>
+            <div class="subjects-list" id="subjectsList"></div>
+            <button class="btn small secondary" id="addSubjectBtn" type="button" style="margin-top:8px;">+ Add a subject</button>
+            <div class="hint" style="margin-top:8px;">
+              These start with your timetable, but you can rename them or add new ones.
+            </div>
+          </div>
+      <div class="card">
+        <h3>Your timetable editor 🗓</h3>
+        <div class="hint">
+          Set how many lectures of each subject happen on each day.  
+          Changing this will auto-regenerate lectures (old manual + special ones stay).
+        </div>
+        <div style="overflow-x:auto; margin-top:6px;">
+          <table class="timetable-table">
+            <thead>
+              <tr>
+                <th style="text-align:left;">Subject</th>
+                <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+              </tr>
+            </thead>
+            <tbody id="timetableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+</div>
+    <div id="dayView" class="view">
+      <div class="grid">
+        <div>
+
+          <div class="card">
+            <h3>Calendar 🗓️</h3>
+            <div class="calendar">
+              <div class="cal-header">
+                <button class="btn small secondary" id="prevMonthBtn" type="button">◀</button>
+                <div id="monthLabel"></div>
+                <button class="btn small secondary" id="nextMonthBtn" type="button">▶</button>
+              </div>
+              <div class="cal-grid" id="calGrid"></div>
+            </div>
+            <div class="hint" style="margin-top:8px;">
+              Tap on a date to see or edit the lectures for that day. Green dots = days with lectures.  
+              For future days, use “Load lectures of this day” below.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Lectures & attendance ✅</h3>
+
+          <div class="filter-row">
+            <span id="selectedDateLabel"></span>
+            <span style="flex:1;"></span>
+            <span>Filter subject:</span>
+            <select id="subjectFilter">
+              <option value="">All</option>
+            </select>
+          </div>
+
+          <div class="toolbar">
+            <button class="btn small secondary" id="loadDayBtn" type="button">Load lectures of this day</button>
+            <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
+            <button class="btn small secondary" id="addSpecialLectureBtn" type="button">+ Add Extras</button>
+            <button class="btn small" id="markAllAttendedBtn" type="button">Mark all attended</button>
+            <button class="btn small secondary" id="markAllAbsentBtn" type="button">Mark all absent</button>
+<button class="btn small danger" id="markHolidayBtn" type="button">
+  🏖️ Holiday
+</button>
+
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 98px;">Date</th>
+                <th style="width: 120px;">Subject</th>
+                <th>Lecture title / note</th>
+                <th style="width: 70px;">Special</th>
+                <th style="width: 80px;">Attended?</th>
+                <th style="width: 60px;">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="lecturesTableBody"></tbody>
+          </table>
+          <div id="lecturesEmpty" class="lectures-empty"></div>
+          <div class="hint" style="margin-top:8px;">
+When you add or load lectures, they’re marked attended by default.
+            “All attended” / “All absent” flips the whole day in one click.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMETABLE VIEW -->
+    <div id="timetableView" class="view">
+    </div>
+
+   <div class="footer">
+  <div class="footer-actions">
+    <span class="version-badge">Attrack v1.0 (Dec 2025)</span>
+
+    <button id="exportAttendanceBtn" class="share-btn">
+  📊 Export attendance
+</button>
+
+<button id="shareAppBtn" class="share-btn">
+  📤 Share Attrack
+</button>
+
+
+    <span id="shareStatus"
+          style="display:none; font-size:0.7rem; color:#16a34a;">
+      Link copied!
+    </span>
+  </div>
+<input
+  type="file"
+  id="sapPdfInput"
+  accept="application/pdf"
+  hidden
+/>
+
+  <div class="footer-credit">
+© 2025 Attrack.
+Source code is not licensed for reuse or redistribution. 
+  Made with 💻 by Jenish, ChatGPT &amp; Gemini
+  </div>
+</div>
+
+  </div>
+
+<script>
+  (function () {
+    const STORAGE_KEY = "attrack_v1";
+    const THEME_KEY   = "attrack_theme";
+    const VIEW_KEY    = "attrack_lastView";
+const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
+  const NOTIF_ASKED_KEY = "attrack_notif_permission_asked";
+
+
+    // ---------------- Export Attendance (CSV) ----------------
+    function exportAttendanceCSV() {
+      if (!state || !Array.isArray(state.lectures) || state.lectures.length === 0) {
+        alert("No attendance data to export yet.");
+        return;
+      }
+
+      const subjectMap = {};
+      state.subjects.forEach(s => {
+        subjectMap[s.id] = s.name || "Unknown";
+      });
+
+      const headers = ["Date", "Subject", "Lecture Title", "Attended", "Special", "Auto Generated"];
+      const rows = state.lectures.slice().sort((a, b) => (a.date > b.date ? 1 : -1)).map(lec => [
+        lec.date || "",
+        subjectMap[lec.subjectId] || "",
+        (lec.title || "").replace(/"/g, '""'),
+        lec.attended ? "Yes" : "No",
+        lec.isSpecial ? "Yes" : "No",
+        lec.autoGenerated ? "Yes" : "No"
+      ]);
+
+      let csv = headers.join(",") + "\n";
+      rows.forEach(r => { csv += r.map(v => `"${v}"`).join(",") + "\n"; });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Attrack_Attendance_${state.studentName || "Student"}_${toISODate(new Date())}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+// Target attendance UI handlers
+const saveTargetBtn = document.getElementById("saveTargetAttendanceBtn");
+const targetInput = document.getElementById("targetAttendanceInput");
+
+if (saveTargetBtn) {
+  saveTargetBtn.addEventListener("click", () => {
+    let val = parseInt(targetInput.value, 10);
+    if (isNaN(val) || val < 50) val = 50;
+    if (val > 100) val = 100;
+    // store decimal like "0.75"
+    localStorage.setItem(TARGET_KEY, (val / 100).toString());
+    document.getElementById("targetSetupBackdrop").style.display = "none";
+    // Optional: re-render summary so new target affects messages
+    renderSummary();
+  });
+}
+
+    const exportBtn = document.getElementById("exportAttendanceBtn");
+    if (exportBtn) exportBtn.addEventListener("click", exportAttendanceCSV);
+
+    // Defensive cleanup
+    (function removeAccidentalTextNodes() {
+      try {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        const toRemove = [];
+        while (walker.nextNode()) {
+          const t = walker.currentNode.nodeValue && walker.currentNode.nodeValue.trim();
+          if (t === "<" || t === "..." || t === "…") toRemove.push(walker.currentNode);
+        }
+        toRemove.forEach(n => n.parentNode && n.parentNode.removeChild(n));
+      } catch (e) { }
+    })();
+
+    // Helpers
+    function toISODate(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+function shouldSendDailyReminder() {
+  if (!("Notification" in window)) return false;
+  if (Notification.permission !== "granted") return false;
+
+  const now = new Date();
+  if (now.getHours() < 20) return false; // before 8 PM
+
+  const todayISO = toISODate(now);
+  const last = localStorage.getItem("attrack_last_reminder_date");
+  if (last === todayISO) return false;
+
+  const todays = state.lectures.filter(l => l.date === todayISO);
+  if (todays.length === 0) return false;
+
+  // If any lecture still untouched → remind
+  const needsUpdate = todays.some(l => l.attended === undefined);
+  return needsUpdate;
+}
+function sendDailyReminder() {
+  navigator.serviceWorker.getRegistration().then(reg => {
+    if (!reg) return;
+
+    reg.showNotification("Update today’s attendance 📋", {
+      body: "Just a gentle reminder to mark today’s lectures in Attrack.",
+      icon: "./icon-192.png",
+      badge: "./icon-192.png",
+      tag: "attrack-daily-reminder",
+      renotify: false
+    });
+
+    localStorage.setItem(
+      "attrack_last_reminder_date",
+      toISODate(new Date())
+    );
+  });
+}
+
+    function parseISO(dateStr) {
+      const parts = dateStr ? dateStr.split("-") : null;
+      if (!parts || parts.length !== 3) return new Date();
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    }
+    function formatDisplayDate(iso) {
+      const [y, m, d] = iso.split("-");
+      return `${d}-${m}-${y}`;
+    }
+    function escapeHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    }
+    function genId(prefix) {
+      return prefix + "-" + Math.random().toString(36).slice(2,9) + "-" + Date.now().toString(36);
+    }
+
+    function defaultState() {
+const isoStart = toISODate(new Date());
+      return {
+        isInitialized: false,
+        studentName: "",
+        startDate: isoStart,
+	subjects:[],
+            lectures: []
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        const parsed = JSON.parse(raw || "{}");
+        const defaults = defaultState();
+
+        if (!Array.isArray(parsed.subjects) || parsed.subjects.length === 0) {
+          parsed.subjects = defaults.subjects.map(s => ({
+            id: s.id, name: s.name,
+            schedule: s.schedule ? JSON.parse(JSON.stringify(s.schedule)) : { weeklyPattern: [] }
+          }));
+        } else {
+          // Merge logic to ensure schedule structure exists
+          parsed.subjects = parsed.subjects.map(s => {
+            const out = {
+              id: s.id || (s.name ? ("sub-" + s.name.toLowerCase().replace(/[^a-z0-9]+/g,"-")) : genId("sub")),
+              name: s.name || "Subject",
+              schedule: null
+            };
+            if (s && s.schedule && Array.isArray(s.schedule.weeklyPattern)) {
+              out.schedule = s.schedule;
+            } else {
+              const match = defaults.subjects.find(d => (d.id && d.id === s.id) || (d.name && s.name && d.name.toLowerCase() === s.name.toLowerCase()));
+              out.schedule = match ? JSON.parse(JSON.stringify(match.schedule)) : { weeklyPattern: [] };
+            }
+            return out;
+          });
+        }
+        if (!Array.isArray(parsed.lectures)) parsed.lectures = [];
+        if (!parsed.startDate) parsed.startDate = defaults.startDate;
+        if (typeof parsed.isInitialized !== "boolean") parsed.isInitialized = false;
+        return parsed;
+      } catch (e) {
+        console.error("Failed to load state", e);
+        return defaultState();
+      }
+    }
+
+    let state = loadState();
+    let currentMonthDate = new Date();
+    let selectedDate = new Date();
+
+    // Elements
+    const cheerMessageEl = document.getElementById("cheerMessage");
+    const summaryMainEl = document.getElementById("summaryMain");
+    const summarySubEl = document.getElementById("summarySub");
+    const homeView = document.getElementById("homeView");
+    const dayView = document.getElementById("dayView");
+    const timetableView = document.getElementById("timetableView");
+    const setupView = document.getElementById("setupView");
+    const navButtons = Array.from(document.querySelectorAll(".nav-btn"));
+    const studentNameInput = document.getElementById("studentName");
+    const startDateInput = document.getElementById("startDate");
+    const overallPillText = document.getElementById("overallPillText");
+    const subjectStatsList = document.getElementById("subjectStatsList");
+    const targetMessageEl = document.getElementById("targetMessage");
+const setupTargetValue = document.getElementById("setupTargetValue");
+const changeTargetBtn = document.getElementById("changeTargetBtn");
+    const subjectsListEl = document.getElementById("subjectsList");
+if (changeTargetBtn) {
+  changeTargetBtn.addEventListener("click", () => {
+    document.getElementById("targetSetupBackdrop").style.display = "flex";
+  });
+}
+
+    const addSubjectBtn = document.getElementById("addSubjectBtn");
+    const monthLabelEl = document.getElementById("monthLabel");
+    const calGridEl = document.getElementById("calGrid");
+    const prevMonthBtn = document.getElementById("prevMonthBtn");
+    const nextMonthBtn = document.getElementById("nextMonthBtn");
+    const selectedDateLabelEl = document.getElementById("selectedDateLabel");
+    const subjectFilterEl = document.getElementById("subjectFilter");
+    const loadDayBtn = document.getElementById("loadDayBtn");
+    const addLectureBtn = document.getElementById("addLectureBtn");
+    const addSpecialLectureBtn = document.getElementById("addSpecialLectureBtn");
+    const markAllAttendedBtn = document.getElementById("markAllAttendedBtn");
+    const markAllAbsentBtn = document.getElementById("markAllAbsentBtn");
+const markHolidayBtn = document.getElementById("markHolidayBtn");
+
+    const lecturesTableBodyEl = document.getElementById("lecturesTableBody");
+    const lecturesEmptyEl = document.getElementById("lecturesEmpty");
+    const timetableBodyEl = document.getElementById("timetableBody");
+    const darkToggle = document.getElementById("darkToggle");
+    const darkIcon = document.getElementById("darkIcon");
+    const darkLabel = document.getElementById("darkLabel");
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderSummary();
+      renderSubjectStats();
+renderSetupSummaries();
+    }
+    function setTheme(theme) {
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+        document.body.classList.add("dark");
+        darkIcon.textContent = "☀️";
+        darkLabel.textContent = "Light mode";
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.body.classList.remove("dark");
+        darkIcon.textContent = "🌙";
+        darkLabel.textContent = "Dark mode";
+      }
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    // ---------- Generation Logic ----------
+    function regenerateFromSchedules() {
+      const start = parseISO(state.startDate || toISODate(new Date()));
+      const today = new Date(); today.setHours(0,0,0,0);
+      
+      const manualLectures = state.lectures.filter(l => !l.autoGenerated);
+      const existingAuto = state.lectures.filter(l => l.autoGenerated);
+      const autoByKey = {};
+      
+      existingAuto.forEach(lec => {
+        if (!lec.date) return;
+        const d = parseISO(lec.date); d.setHours(0,0,0,0);
+        if (d < start || d > today) return;
+        const key = `${lec.date}|${lec.subjectId || ""}`;
+        if (!autoByKey[key]) autoByKey[key] = [];
+        autoByKey[key].push(lec);
+      });
+
+      const newAuto = [];
+      let cur = new Date(start); cur.setHours(0,0,0,0);
+      let guard = 0;
+      
+      while (cur <= today && guard < 5000) {
+        const iso = toISODate(cur);
+{
+          const dow = cur.getDay();
+          state.subjects.forEach(subj => {
+            if (!subj.schedule?.weeklyPattern) return;            
+            let occurrences = 0;
+            subj.schedule.weeklyPattern.forEach(p => { if (p.day === dow) occurrences += (p.count || 1); });
+            
+            if (occurrences > 0) {
+              const key = `${iso}|${subj.id}`;
+              const existing = autoByKey[key] || [];
+              for (let i = 0; i < occurrences; i++) {
+                if (existing[i]) {
+                  newAuto.push(existing[i]);
+                } else {
+                  newAuto.push({
+                    id: genId("lec"), date: iso, subjectId: subj.id, title: "", isSpecial: false, attended: true, autoGenerated: true
+                  });
+                }
+              }
+            }
+          });
+        }
+        cur.setDate(cur.getDate() + 1);
+        guard++;
+      }
+
+      const futureAuto = existingAuto.filter(lec => {
+        if (!lec.date) return false;
+        const d = parseISO(lec.date); d.setHours(0,0,0,0);
+        return d > today;
+      });
+
+      state.lectures = manualLectures.concat(newAuto, futureAuto);
+    }
+
+    function generateLecturesForDateInternal(subj, dateObj, avoidDuplicates) {
+      const iso = toISODate(dateObj);
+      const dow = dateObj.getDay();
+      let occurrences = 0;
+      subj.schedule.weeklyPattern.forEach(p => { if (p.day === dow) occurrences += (p.count || 1); });
+      if (occurrences <= 0) return;
+
+      const existingAuto = state.lectures.filter(lec => lec.autoGenerated && lec.date === iso && lec.subjectId === subj.id).length;
+      const toAdd = avoidDuplicates ? Math.max(0, occurrences - existingAuto) : occurrences;
+      
+      for (let i = 0; i < toAdd; i++) {
+        state.lectures.push({
+          id: genId("lec"), date: iso, subjectId: subj.id, title: "", isSpecial: false, attended: true, autoGenerated: true
+        });
+      }
+    }
+
+    function generateLecturesForDate(isoDate) {
+      const d = parseISO(isoDate); d.setHours(0,0,0,0);
+      state.subjects.forEach(subj => {
+        if (!subj.schedule || !Array.isArray(subj.schedule.weeklyPattern)) return;
+        generateLecturesForDateInternal(subj, d, true);
+      });
+    }
+
+
+  
+    // ---------- Rendering ----------
+    function renderStudent() {
+      studentNameInput.value = state.studentName || "";
+      startDateInput.value = state.startDate || toISODate(new Date());
+      cheerMessageEl.innerHTML = state.studentName 
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>! Let’s keep your attendance streak going strong. 🌟`
+        : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
+    }
+
+    function renderSubjectsList() {
+      subjectsListEl.innerHTML = "";
+      subjectFilterEl.innerHTML = "<option value=''>All</option>";
+      state.subjects.forEach((subj) => {
+        const row = document.createElement("div"); row.className = "subject-row";
+        
+        const input = document.createElement("input");
+        input.type = "text"; input.value = subj.name; input.placeholder = "Subject name";
+        
+        // FIX: Removed the "Delete all lectures" prompt on rename
+        input.addEventListener("change", () => {
+          subj.name = input.value.trim();
+          saveState();
+          renderLectures();
+          renderSubjectStats();
+          renderTimetable();
+          renderSubjectsList(); // refresh dropdowns
+        });
+
+        const timetableBtn = document.createElement("button");
+        timetableBtn.className = "btn small secondary"; timetableBtn.textContent = "Timetable";
+        timetableBtn.addEventListener("click", () => switchView("timetableView"));
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn small danger"; delBtn.textContent = "✕";
+        delBtn.addEventListener("click", () => {
+          if (!confirm("Remove this subject AND all its lectures?")) return;
+          state.subjects = state.subjects.filter(s => s.id !== subj.id);
+          state.lectures = state.lectures.filter(lec => lec.subjectId !== subj.id);
+          saveState(); renderSubjectsList(); renderLectures(); renderTimetable(); renderSubjectStats();
+        });
+
+        row.appendChild(input); row.appendChild(timetableBtn); row.appendChild(delBtn);
+        subjectsListEl.appendChild(row);
+
+        const opt = document.createElement("option");
+        opt.value = subj.id; opt.textContent = subj.name || "Subject";
+        subjectFilterEl.appendChild(opt);
+      });
+    }
+
+    function renderCalendar() {
+      const year = currentMonthDate.getFullYear();
+      const month = currentMonthDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      
+      monthLabelEl.textContent = `${monthNames[month]} ${year}`;
+      calGridEl.innerHTML = "";
+      dow.forEach(d => {
+        const el = document.createElement("div"); el.className = "cal-dow"; el.textContent = d; calGridEl.appendChild(el);
+      });
+
+      const dateToHasLectures = {};
+      state.lectures.forEach(lec => { if (lec.date) dateToHasLectures[lec.date] = true; });
+
+      let dayCounter = 1;
+      const todayISO = toISODate(new Date());
+      const selectedISO = toISODate(selectedDate);
+
+      for (let i = 0; i < 42; i++) {
+        const cell = document.createElement("div"); cell.className = "cal-cell";
+        if (i < firstDay || dayCounter > daysInMonth) {
+          cell.classList.add("disabled");
+        } else {
+          const d = dayCounter;
+          const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          cell.textContent = d;
+          if (iso === todayISO) cell.classList.add("today");
+          if (iso === selectedISO) cell.classList.add("selected");
+          if (dateToHasLectures[iso]) cell.classList.add("has-lectures");
+          
+          cell.addEventListener("click", () => {
+            selectedDate = parseISO(iso);
+            renderCalendar();
+            renderLectures();
+          });
+          dayCounter++;
+        }
+        calGridEl.appendChild(cell);
+      }
+    }
+
+    function renderLectures() {
+      const selectedISO = toISODate(selectedDate);
+      selectedDateLabelEl.textContent = `Showing lectures for: ${formatDisplayDate(selectedISO)}`;
+      const filterSubId = subjectFilterEl.value || "";
+      let todays = state.lectures.filter(lec => lec.date === selectedISO);
+      if (filterSubId) todays = todays.filter(lec => lec.subjectId === filterSubId);
+      todays.sort((a, b) => (a.id > b.id ? 1 : -1)); // Simple sort by ID (creation order usually)
+
+      lecturesTableBodyEl.innerHTML = "";
+      if (todays.length === 0) {
+        lecturesEmptyEl.textContent = "No lectures for this day with this filter. Load from timetable or add manually.";
+      } else {
+        lecturesEmptyEl.textContent = "";
+      }
+
+      todays.forEach(lec => {
+        const tr = document.createElement("tr");
+        
+        // Date (hidden power user feature: move lecture)
+        const tdDate = document.createElement("td");
+        const dateInput = document.createElement("input");
+        dateInput.type = "date"; dateInput.value = lec.date;
+        dateInput.addEventListener("change", () => { 
+          lec.date = dateInput.value || selectedISO; 
+          saveState(); renderCalendar(); renderLectures(); 
+        });
+        tdDate.appendChild(dateInput); tr.appendChild(tdDate);
+
+        // Subject
+        const tdSub = document.createElement("td");
+        const select = document.createElement("select");
+        const blank = document.createElement("option"); blank.value=""; blank.textContent="— none —"; select.appendChild(blank);
+        state.subjects.forEach(s => {
+          const opt = document.createElement("option"); opt.value=s.id; opt.textContent=s.name; select.appendChild(opt);
+        });
+        select.value = lec.subjectId || "";
+        select.addEventListener("change", () => { lec.subjectId = select.value; saveState(); renderSubjectStats(); });
+        tdSub.appendChild(select); tr.appendChild(tdSub);
+		tdSub.setAttribute("data-label", "Subject"); // Add this line
+        // Title
+        const tdTitle = document.createElement("td");
+        const tInput = document.createElement("input");
+        tInput.type = "text"; tInput.placeholder = "e.g. Tutorial..."; tInput.value = lec.title || "";
+        tInput.addEventListener("input", () => { lec.title = tInput.value; saveState(); });
+        tdTitle.appendChild(tInput); tr.appendChild(tdTitle);
+		tdTitle.setAttribute("data-label", "Topic"); // Add this line
+        // Special
+        const tdSpec = document.createElement("td"); tdSpec.className = "center";
+        if (lec.isSpecial) {
+          const tag = document.createElement("span"); tag.className="tag"; tag.textContent="Special"; tdSpec.appendChild(tag); tdSpec.appendChild(document.createElement("br"));
+        }
+        const specBtn = document.createElement("button"); specBtn.className="btn small secondary"; 
+        specBtn.textContent = lec.isSpecial ? "Make normal" : "Make special";
+        specBtn.addEventListener("click", () => { lec.isSpecial = !lec.isSpecial; saveState(); renderLectures(); });
+        tdSpec.appendChild(specBtn); tr.appendChild(tdSpec);
+		tdSpec.setAttribute("data-label", "Type"); // Label it "Type" or "Special"
+        // Attendance
+        const tdAtt = document.createElement("td"); tdAtt.className = "center";
+        const cb = document.createElement("input"); cb.type="checkbox"; cb.checked = !!lec.attended;
+        cb.addEventListener("change", () => { lec.attended = cb.checked; saveState(); renderSummary(); renderSubjectStats(); });
+        tdAtt.appendChild(cb); tr.appendChild(tdAtt);
+		tdAtt.setAttribute("data-label", "Attended?");
+        // Remove
+        const tdDel = document.createElement("td"); tdDel.className="center";
+        const delBtn = document.createElement("button"); delBtn.className="btn small danger"; delBtn.textContent="✕";
+        delBtn.addEventListener("click", () => {
+          if (!confirm("Remove this lecture?")) return;
+          state.lectures = state.lectures.filter(x => x.id !== lec.id);
+          saveState(); renderLectures(); renderCalendar(); renderSubjectStats(); renderSummary();
+        });
+        tdDel.appendChild(delBtn); tr.appendChild(tdDel);
+		
+        lecturesTableBodyEl.appendChild(tr);
+      });
+      renderSummary();
+    }
+function renderSetupTarget() {
+  if (!setupTargetValue) return;
+  const raw = parseFloat(localStorage.getItem(TARGET_KEY));
+  const target = (!isNaN(raw) ? raw : 0.75) * 100;
+  setupTargetValue.textContent = `Target: ${Math.round(target)}%`;
+}
+function renderSetupSummaries() {
+  // ---------- Subjects summary ----------
+  const subjEl = document.getElementById("setupSubjectsSummary");
+  if (subjEl) {
+    if (!state.subjects || state.subjects.length === 0) {
+      subjEl.textContent = "No subjects added yet.";
+    } else {
+      subjEl.innerHTML =
+        `${state.subjects.length} subject${state.subjects.length > 1 ? "s" : ""} added:` +
+        "<br>" +
+        state.subjects.map(s => "• " + escapeHtml(s.name)).join("<br>");
+    }
+  }
+
+  // ---------- Timetable summary ----------
+  const ttEl = document.getElementById("setupTimetableSummary");
+  if (ttEl) {
+    const configured = state.subjects.some(
+      s => s.schedule && Array.isArray(s.schedule.weeklyPattern) && s.schedule.weeklyPattern.length > 0
+    );
+
+    ttEl.textContent = configured
+      ? "Weekly timetable configured."
+      : "Timetable not configured yet.";
+  }
+}
+
+    function formatPct(pct) { return pct.toFixed(2).replace(/\.00$/, "") + "%"; }
+
+        function renderSummary() {
+      // 1. Calculate Basic Stats
+      const start = state.startDate || toISODate(new Date());
+      const all = state.lectures.filter(lec => lec.date && lec.date >= start);
+      const attended = all.filter(lec => lec.attended).length;
+      const total = all.length;
+      const pct = total > 0 ? ((attended / total) * 100).toFixed(2) : "0.00";
+
+
+      // 2. Update the Header (Top Right Corner)
+      if (summaryMainEl) summaryMainEl.textContent = `${attended} / ${total} lectures tracked`;
+      if (summarySubEl) summarySubEl.textContent = `Overall: ${pct}%`;
+      if (overallPillText) overallPillText.textContent = `${pct}%`;
+
+      // 3. Calculate "Bunkable" vs "Lagging"
+      // If we are ABOVE 75%, how many can we miss? 
+      // Formula: (Attended - 0.75 * Total) / 0.75
+const rawTarget = parseFloat(localStorage.getItem(TARGET_KEY));
+const target = (typeof rawTarget === "number" && !isNaN(rawTarget)) ? rawTarget : 0.75; // default 75%
+const canBunk = Math.floor((attended - target * total) / target);
+const needToAttend = Math.ceil((target * total - attended) / (1 - target));
+      // 4. Update the Home View Card (finalAttendanceSummary)
+      const summaryDiv = document.getElementById('finalAttendanceSummary');
+      
+      if (summaryDiv) {
+        let statusHtml = '';
+        
+if (pct >= target * 100) {
+          // GREEN CARD (SAFE)
+          statusHtml = `
+            <div style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #bbf7d0; font-size: 0.95rem; line-height: 1.5;">
+              <strong style="font-size:1.05rem;">You are looking good! 🎉</strong><br>
+You can skip the next <strong>${canBunk}</strong> lectures and stay above ${Math.round(target*100)}%.
+            </div>`;
+        } else {
+          // RED CARD (DANGER)
+          statusHtml = `
+            <div style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #fecaca; font-size: 0.95rem; line-height: 1.5;">
+              <strong style="font-size:1.05rem;">Attendance Low ⚠️</strong><br>
+              You need to attend <strong>${needToAttend}</strong> more lectures in a row to hit ${Math.round(target * 100)}%!
+            </div>`;
+        }
+
+        summaryDiv.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
+            <div class="pill" style="font-size:1rem; padding:6px 14px;">
+              🎯 Overall: <strong>${pct}%</strong>
+            </div>
+          </div>
+          ${statusHtml}
+        `;
+      }
+    }
+
+
+    function renderSubjectStats() {
+      const start = state.startDate || toISODate(new Date());
+      const all = state.lectures.filter(lec => lec.date && lec.date >= start);
+      subjectStatsList.innerHTML = "";
+      state.subjects.forEach(subj => {
+        const subLecs = all.filter(l => l.subjectId === subj.id);
+        const att = subLecs.filter(l => l.attended).length;
+        const tot = subLecs.length;
+        const pct = tot > 0 ? (att/tot)*100 : 0;
+        
+        const row = document.createElement("div"); row.className = "subject-stat-row";
+        row.innerHTML = `
+          <div class="subject-stat-name">${escapeHtml(subj.name)}</div>
+          <div class="subject-stat-bar"><div class="subject-stat-bar-inner" style="width:${pct}%"></div></div>
+          <div class="subject-stat-meta">${tot ? att+"/"+tot+" • "+formatPct(pct) : "No data"}</div>
+        `;
+        subjectStatsList.appendChild(row);
+      });
+    }
+
+    function renderTimetable() {
+      timetableBodyEl.innerHTML = "";
+      state.subjects.forEach(subj => {
+        const tr = document.createElement("tr");
+        const nameTd = document.createElement("td"); nameTd.textContent = subj.name; nameTd.style.textAlign="left"; tr.appendChild(nameTd);
+        
+        if (!subj.schedule) subj.schedule = { weeklyPattern: [] };
+        
+        for (let d = 1; d <= 6; d++) {
+          const td = document.createElement("td");
+          const existing = subj.schedule.weeklyPattern.find(p => p.day === d);
+          const count = existing ? existing.count : 0;
+          
+          const inp = document.createElement("input");
+          inp.type="number"; inp.min=0; inp.max=6; inp.value=count;
+          inp.addEventListener("change", () => {
+            let val = parseInt(inp.value,10); if (isNaN(val) || val<0) val=0; if (val>6) val=6; inp.value=val;
+            
+            const idx = subj.schedule.weeklyPattern.findIndex(p => p.day === d);
+            if (val === 0) {
+               if (idx !== -1) subj.schedule.weeklyPattern.splice(idx, 1);
+            } else {
+               if (idx === -1) subj.schedule.weeklyPattern.push({ day: d, count: val });
+               else subj.schedule.weeklyPattern[idx].count = val;
+            }
+            if (state.isInitialized) { regenerateFromSchedules(); saveState(); }
+            renderCalendar(); renderLectures();
+          });
+          td.appendChild(inp); tr.appendChild(td);
+        }
+        timetableBodyEl.appendChild(tr);
+      });
+    }
+
+function switchView(viewId) {
+  [homeView, dayView, timetableView, setupView].forEach(v =>
+    v.classList.toggle("active", v.id === viewId)
+  );
+
+  navButtons.forEach(b =>
+    b.classList.toggle("active", b.dataset.view === viewId)
+  );
+
+  if (viewId === "dayView") {
+    selectedDate = new Date();
+    selectedDate.setHours(0,0,0,0);
+    currentMonthDate = new Date(selectedDate);
+    currentMonthDate.setDate(1);
+    subjectFilterEl.value = "";
+    autoLoadTodayLectures();
+    renderCalendar();
+    renderLectures();
+  }
+
+  localStorage.setItem(VIEW_KEY, viewId);
+}
+
+    function autoLoadTodayLectures() {
+      if (!state.isInitialized) return;
+      const todayISO = toISODate(new Date());
+      const loaded = state.lectures.some(l => l.date === todayISO && l.autoGenerated);
+      if (!loaded) {
+        generateLecturesForDate(todayISO);
+        saveState();
+      }
+    }
+
+    // Events
+    studentNameInput.addEventListener("input", () => { state.studentName = studentNameInput.value; saveState(); renderStudent(); });
+    startDateInput.addEventListener("change", () => {
+state.startDate = startDateInput.value || toISODate(new Date());      state.isInitialized = true;
+      regenerateFromSchedules(); saveState(); renderCalendar(); renderLectures();
+    });
+
+    loadDayBtn.addEventListener("click", () => {
+      subjectFilterEl.value = ""; // FIX: Reset filter so user sees results
+      generateLecturesForDate(toISODate(selectedDate));
+      saveState(); renderCalendar(); renderLectures();
+    });
+
+    addSubjectBtn.addEventListener("click", () => {
+      const name = prompt("Subject name:");
+      if (name) {
+        state.subjects.push({ id: genId("sub"), name: name.trim(), schedule: { weeklyPattern: [] } });
+        saveState(); renderSubjectsList(); renderTimetable();
+      }
+    });
+
+    prevMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()-1); renderCalendar(); });
+    nextMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()+1); renderCalendar(); });
+    
+    addLectureBtn.addEventListener("click", () => {
+      const s = state.subjects[0];
+      state.lectures.push({ id: genId("lec"), date: toISODate(selectedDate), subjectId: s?s.id:"", title:"", isSpecial:false, attended:true, autoGenerated:false });
+      saveState(); renderLectures(); renderCalendar();
+    });
+    addSpecialLectureBtn.addEventListener("click", () => {
+       const s = state.subjects[0];
+       state.lectures.push({ id: genId("lec"), date: toISODate(selectedDate), subjectId: s?s.id:"", title:"Extra lecture", isSpecial:true, attended:true, autoGenerated:false });
+       saveState(); renderLectures(); renderCalendar();
+    });
+
+    markAllAttendedBtn.addEventListener("click", () => {
+      const iso = toISODate(selectedDate);
+      state.lectures.forEach(l => { if (l.date === iso) l.attended = true; });
+      saveState(); renderLectures();
+    });
+    markAllAbsentBtn.addEventListener("click", () => {
+      const iso = toISODate(selectedDate);
+      state.lectures.forEach(l => { if (l.date === iso) l.attended = false; });
+      saveState(); renderLectures();
+    });
+
+if (markHolidayBtn) {
+  markHolidayBtn.addEventListener("click", () => {
+    const iso = toISODate(selectedDate);
+
+    const before = state.lectures.length;
+
+    // Remove ONLY timetable-generated lectures for this day
+    state.lectures = state.lectures.filter(l =>
+      !(l.date === iso && l.autoGenerated)
+    );
+
+    if (state.lectures.length === before) {
+      alert("No timetable-generated lectures to clear for this day.");
+      return;
+    }
+
+    saveState();
+    renderLectures();
+    renderCalendar();
+    renderSummary();
+  });
+}
+
+    subjectFilterEl.addEventListener("change", renderLectures);
+    navButtons.forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
+    darkToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.contains("dark");
+      setTheme(isDark ? "light" : "dark");
+    });
+// ---------------- Onboarding: single guided tour + early attendance prompt ----------------
+(function onboardingInit() {
+  // Tour steps: NOTE the special '#ATTENDANCE_PROMPT' step which opens the attendance modal
+  const tourSteps = [
+    { view: "homeView", selector: "#studentName", title: "Enter your name", text: "Start by entering your name here." },
+    { view: "homeView", selector: "#startDate", title: "Start Date", text: "This is when attendance tracking begins." },
+    // Special step that will open the attendance modal (we treat this step as modal flow)
+    { view: "homeView", selector: "#ATTENDANCE_PROMPT", title: "Set your attendance target", text: "Choose the percentage you want to aim for. This personalizes suggestions." },
+    { view: "setupView", selector: "#subjectsList", title: "Subjects", text: "Add your subjects here, we will add them to the timetable later." },
+    { view: "dayView", selector: "#loadDayBtn", title: "Load Lectures", text: "Click this to generate the schedule for the selected day." },
+    { view: "setupView", selector: "#timetableBody", title: "Timetable", text: "Edit weekly counts here. Changes apply automatically." },
+    { view: "homeView", selector: "#finalAttendanceSummary", title: "Your progress", text: "This card shows your overall attendance and how many lectures you can miss." }
+  ];
+
+  let tourIndex = 0;
+  let tourTooltip = null;
+
+  // Cleanly start the guided tour (optionally show attendance modal and wait for continue)
+  function startGuidedTour() {
+    tourIndex = 0;
+    showTourStep();
+  }
+
+  // Advance to next step (used after attendance modal is confirmed)
+  function advanceTour() {
+    tourIndex++;
+    showTourStep();
+  }
+
+  // Show a single tour step
+  function showTourStep() {
+    // Remove any previous tooltip
+    if (tourTooltip) { tourTooltip.remove(); tourTooltip = null; }
+
+    const step = tourSteps[tourIndex];
+    if (!step) {
+      // Tour finished
+      localStorage.setItem("attrack_tutorial_seen", "1");
+      return;
+    }
+
+    // Switch view
+    switchView(step.view);
+
+    // Special attendance prompt step handling
+    if (step.selector === "#ATTENDANCE_PROMPT") {
+      // Show the attendance modal and wait for user to save (or let them cancel)
+      const backdrop = document.getElementById("targetSetupBackdrop");
+      const saveBtn = document.getElementById("saveTargetAttendanceBtn");
+      const cancel = () => {
+        if (backdrop) backdrop.style.display = "none";
+        // continue tour regardless (we don't block)
+        advanceTour();
+      };
+
+      // Show modal
+      if (backdrop) backdrop.style.display = "flex";
+
+      // Ensure we only add one listener
+      const onSave = () => {
+        // The existing save handler already persists and hides modal; just advance
+        advanceTour();
+        // cleanup
+        saveBtn.removeEventListener("click", onSave);
+      };
+      saveBtn.addEventListener("click", onSave);
+
+      // Also allow backdrop click to continue (non-blocking)
+      backdrop.addEventListener("click", function onBackdropClick(e) {
+        if (e.target === backdrop) {
+          backdrop.style.display = "none";
+          backdrop.removeEventListener("click", onBackdropClick);
+          saveBtn.removeEventListener("click", onSave);
+          advanceTour();
+        }
+      });
+
+      return; // wait for user action
+    }
+
+    // For normal (non-modal) steps, create a tooltip near the target element
+    setTimeout(() => {
+      const el = document.querySelector(step.selector);
+      if (!el) {
+        // If target missing, advance after a short delay
+        tourTooltip = document.createElement("div");
+        tourTooltip.className = "tour-tooltip";
+        tourTooltip.style.top = "80px";
+        tourTooltip.style.left = "20px";
+        tourTooltip.innerHTML = `<h4>${step.title}</h4><div>${step.text}</div><button class='btn small' id='tourNext'>${tourIndex===tourSteps.length-1?"Finish":"Next"}</button>`;
+        document.body.appendChild(tourTooltip);
+        document.getElementById("tourNext").onclick = () => { tourIndex++; showTourStep(); };
+        return;
+      }
+
+      // Ensure the element is visible in the current view
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+
+      const rect = el.getBoundingClientRect();
+      tourTooltip = document.createElement("div");
+      tourTooltip.className = "tour-tooltip";
+      tourTooltip.innerHTML = `<h4>${step.title}</h4><div style="margin-top:4px;">${step.text}</div><button class='btn small' id='tourNext' style="margin-top:10px;">${tourIndex===tourSteps.length-1?"Finish":"Next"}</button>`;
+      document.body.appendChild(tourTooltip);
+
+      // Basic positioning: try to place below the element, fallback to right
+      const top = Math.min(window.innerHeight - 140, rect.bottom + 10);
+      const left = Math.max(10, rect.left);
+      tourTooltip.style.top = top + "px";
+      tourTooltip.style.left = left + "px";
+
+      document.getElementById("tourNext").onclick = () => { tourIndex++; showTourStep(); };
+    }, 250);
+  }
+
+  // Re-open tour button
+  const showBtn = document.getElementById("showTutorialNavBtn");
+  if (showBtn) showBtn.addEventListener("click", () => { startGuidedTour(); });
+
+  // Auto-start on first run (only if user hasn't dismissed)
+  if (!localStorage.getItem("attrack_tutorial_seen")) {
+    // Wait a bit for UI to render, then run tour (showing attendance prompt in sequence)
+    setTimeout(() => {
+      startGuidedTour();
+    }, 500);
+  }
+})();
+    
+    function showTutorialReminder() {
+       // Simple reminder logic (omitted for brevity, code provided in original was fine)
+    }
+
+    // Boot
+    (function init() {
+      setTheme(localStorage.getItem(THEME_KEY) || "light");
+      if (!state.isInitialized) {
+         state.isInitialized = true;
+         // Pre-generate a few weeks if fresh
+         const start = parseISO(state.startDate);
+         const end = new Date();
+         for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
+            generateLecturesForDate(toISODate(d));
+         }
+         saveState();
+      }
+      // Ensure "Today" is loaded
+      autoLoadTodayLectures();
+      
+      renderStudent();
+      renderSubjectsList();
+      renderSubjectStats();
+      renderTimetable();
+      renderSummary();
+renderSetupTarget();
+
+		// This forces the app to open 'Daily View' every time, regardless of button order
+      switchView("dayView"); 
+
+    })();
+// ---------------------------------------------------------
+    // PDF IMPORTER INTEGRATION
+    // ---------------------------------------------------------
+
+    // 1. Your Helper Functions (Adapted from pdfImporter.js)
+    async function extractTextFromPDF(file) {
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      let fullText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map(it => it.str).join(" ") + "\n";
+      }
+      return fullText;
+    }
+
+function cleanSubjectName(name) {
+      // Blacklist of garbage headers/footers found in SAP PDFs
+      const blacklist = [
+        "attendance report", "generated on", "academic year",
+        "student name", "roll no", "printed on", "page", "date", "time", "course name"
+      ];
+
+      // 1. Remove leading "Sr No" numbers (e.g., "15. ", "121 ")
+      let cleaned = name.replace(/^\d+[\.\-\s]*/, '');
+      
+      // 2. Remove trailing index numbers (e.g., " - 45")
+      cleaned = cleaned.replace(/\s*-\s*\d+$/, '');
+      
+      // 3. Remove "(Lec ...)" artifacts
+      cleaned = cleaned.replace(/\(Lec.*?\)/gi, '');
+      
+      cleaned = cleaned.trim();
+      const lower = cleaned.toLowerCase();
+
+      // 4. Strict checks to ensure it's a real subject
+      if (!cleaned || cleaned.length < 3) return null; // Too short
+      if (/^page \d+ of \d+$/i.test(cleaned)) return null; // Page numbers
+      if (blacklist.some(word => lower.includes(word))) return null;
+
+      return cleaned;
+    }
+
+    function parseSAPAttendance(text) {
+      const rows = [];
+      const monthMap = {
+        Jan:"01", Feb:"02", Mar:"03", Apr:"04", May:"05", Jun:"06",
+        Jul:"07", Aug:"08", Sep:"09", Oct:"10", Nov:"11", Dec:"12"
+      };
+
+      // IMPROVED REGEX:
+      // 1. (.+?)             -> Captures Name (Lazy)
+      // 2. (Jan|Feb...)      -> Anchors to the Month
+      // 3. \s+               -> Handles flexible spaces
+      // 4. \d{1,2}\s*,\s* -> Handles "3, " or "3 , " (space before comma)
+      // 5. (P|A|AG|NU|L)     -> Added 'L' (Late) just in case
+      const rowRegex = /(.+?)\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s*,\s*(\d{4})\s+(\d{1,2}:\d{2}(?::\d{2})?\s+[AP]M)\s+(\d{1,2}:\d{2}(?::\d{2})?\s+[AP]M)\s+(P|A|AG|NU|L)/gi;
+
+      let match;
+      while ((match = rowRegex.exec(text)) !== null) {
+        try {
+            const rawName = match[1].trim();
+            const month = monthMap[match[2]];
+            const day = match[3].padStart(2,"0");
+            const year = match[4];
+            const status = match[7].toUpperCase(); // P, A, NU, etc.
+            
+            const isoDate = `${year}-${month}-${day}`;
+            
+            rows.push({
+              courseRaw: rawName,
+              date: isoDate,
+              code: status
+            });
+        } catch (e) {
+            console.warn("Skipped a malformed row", match);
+        }
+      }
+      return rows;
+    }
+// --- CORRECTED IMPORT LOGIC ---
+  // --- UPDATED IMPORT LOGIC WITH NAME CLEANING ---
+    const importBtn = document.getElementById("importPdfBtn");
+    const importInput = document.getElementById("sapPdfInput");
+    const importStatus = document.getElementById("importStatus");
+    const importPreview = document.getElementById("importPreview");
+
+    // Helper to strip numbers like "121. " or "Lec 5:" from the start/end
+   if (importBtn) {
+  importBtn.addEventListener("click", async () => {
+    if (!importInput.files[0]) return alert("Please select a PDF file first.");
+
+    importStatus.textContent = "Cleaning & Importing... ⏳";
+    importBtn.disabled = true;
+
+    try {
+      const text = await extractTextFromPDF(importInput.files[0]);
+      const parsedRows = parseSAPAttendance(text);
+
+      // CLEAR DEFAULTS: If starting fresh, wipe placeholders
+      if (state.lectures.length === 0) {
+         state.subjects = []; 
+      }
+
+      let importCount = 0;
+      let nuCount = 0;
+      let log = [];
+
+      parsedRows.forEach(row => {
+        const pdfName = cleanSubjectName(row.courseRaw);
+
+        // SKIP if the cleaner flagged it as a Page Number or Header
+        if (!pdfName) return;
+
+        // 1. Find or Create Subject
+        let matchedSubject = state.subjects.find(s => s.name.toLowerCase() === pdfName.toLowerCase());
+        if (!matchedSubject) {
+          matchedSubject = {
+            id: genId("sub"),
+            name: pdfName,
+            schedule: { weeklyPattern: [0,0,0,0,0,0,0] }
+          };
+          state.subjects.push(matchedSubject);
+        }
+
+        // 2. Logic for AG (Present) and NU (Needs Review)
+        let isPresent = false;
+        let customTitle = "SAP Import";
+
+        if (row.code === 'P' || row.code === 'AG') {
+          isPresent = true;
+        } else if (row.code === 'NU') {
+          isPresent = false; // Default to absent until you confirm
+          customTitle = "⚠️ NU: Check Attendance!";
+          nuCount++;
+        }
+
+        // 3. Prevent Duplicates & Stop the "Jump"
+        const existing = state.lectures.find(l => l.date === row.date && l.subjectId === matchedSubject.id);
+
+        if (!existing) {
+          state.lectures.push({
+            id: genId("lec"),
+            date: row.date,
+            subjectId: matchedSubject.id,
+            title: customTitle,
+            attended: isPresent,
+            autoGenerated: false // 🔥 This stops the count from jumping on refresh!
+          });
+          importCount++;
+          log.push(`${row.date}: ${pdfName} -> ${row.code}`);
+        }
+      });
+
+      saveState();
+      
+      // REFRESH UI
+      renderSubjectsList(); 
+      renderLectures();
+      renderSummary();
+renderSetupTarget();
+
+      renderSubjectStats();
+      renderTimetable();
+
+      importStatus.innerHTML = `<b>Import Complete!</b><br>Lectures: ${importCount}<br>Subjects: ${state.subjects.length}<br>NU Warnings: ${nuCount}`;
+      importPreview.style.display = "block";
+      importPreview.innerHTML = log.join("<br>");
+
+    } catch (err) {
+      console.error(err);
+      importStatus.textContent = "Error parsing PDF.";
+    } finally {
+      importBtn.disabled = false;
+    }
+  });
+}
+  // Share
+  const shareBtn = document.getElementById("shareAppBtn");
+  const shareStatus = document.getElementById("shareStatus");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", async () => {
+      if (navigator.share) {
+        try { await navigator.share({ title: "Attrack", url: window.location.href }); } catch(e){}
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        shareStatus.style.display = "inline";
+      }
+    });
+  }
+// Gentle daily reminder (post-load)
+setTimeout(() => {
+  if (!("Notification" in window)) return;
+
+  const askedBefore = localStorage.getItem(NOTIF_ASKED_KEY);
+
+  if (Notification.permission === "default" && !askedBefore) {
+    Notification.requestPermission().then(p => {
+      localStorage.setItem(NOTIF_ASKED_KEY, "1");
+      if (p === "granted" && shouldSendDailyReminder()) {
+        sendDailyReminder();
+      }
+    });
+  } else if (Notification.permission === "granted" && shouldSendDailyReminder()) {
+    sendDailyReminder();
+  }
+}, 2000);
+
+  })();
+</script><!-- hits.sh counter (can be invisible if you want) -->
+<img
+  src="https://hits.sh/jenishestmoizavut.github.io/Attrack-FYBFM-Edition-/.svg"
+  alt="Hits"
+  style="display:none"
+/>
+<script>
+  /* ---------- SERVICE WORKER & NOTIFICATIONS ---------- */
+/* ---------- SERVICE WORKER & NOTIFICATIONS ---------- */
+if ("serviceWorker" in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("./sw.js");
+
+      // Function to request permission
+      const askPermission = async () => {
+        if (Notification.permission === "default") {
+          const permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            console.log("Permission granted!");
+            // Remove the listeners once permission is handled
+            document.removeEventListener('click', askPermission);
+          }
+        }
+      };
+
+      // Listen for the FIRST click anywhere on the app to trigger the popup
+// Permission will be requested only when reminder logic runs
+
+      // ... keep your checkDailyReminder logic here ...
+      
+    } catch (err) {
+      console.error("SW registration failed", err);
+    }
+  });
+}
+</script><script>
+(function () {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastPing = localStorage.getItem("attrack_last_ping");
+
+    if (lastPing !== today) {
+      fetch(
+        "https://hits.sh/jenishestmoizavut.github.io/Attrack-FYBFM-Edition-/.svg",
+        { cache: "no-store" }
+      );
+      localStorage.setItem("attrack_last_ping", today);
+    }
+  } catch (e) {
+    // fail silently — never block the app
+  }
+})();
+</script>
+
+</body>
+	</html>
