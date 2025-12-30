@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.0.3"; // Incremented version
+const CACHE_VERSION = "v1.0.5"; // Bumped version to force update
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -7,10 +7,10 @@ const CORE_ASSETS = [
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" // Added the library
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ];
 
-/* ---------- INSTALL ---------- */
+// Force immediate activation
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
@@ -18,34 +18,27 @@ self.addEventListener("install", event => {
   );
 });
 
-/* ---------- ACTIVATE ---------- */
+// Clean up ALL old versions (v1.0.0, v1.0.2, etc.)
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       )
     )
   );
   self.clients.claim();
 });
 
-/* ---------- FETCH (Improved for Offline) ---------- */
+// Robust offline handling
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      // Return cached version if exists, otherwise fetch from network
-      return cached || fetch(event.request).catch(() => {
-        // Fallback for navigation requests (offline)
-        if (event.request.mode === 'navigate') {
-          return caches.match("./index.html");
-        }
+    fetch(event.request).catch(() => {
+      return caches.match(event.request).then(response => {
+        return response || (event.request.mode === 'navigate' ? caches.match("./index.html") : null);
       });
     })
   );
 });
-
