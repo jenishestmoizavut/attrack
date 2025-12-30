@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.0.2"; // Incremented version
+const CACHE_VERSION = "v1.0.3"; // Incremented version
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -48,3 +48,4 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
