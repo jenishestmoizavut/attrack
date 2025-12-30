@@ -925,7 +925,9 @@ div.popup-dot { display:none !important; }
     <div class="header">
       <div class="title-block">
         <div class="title">
-          📚 Attrack by Jenish
+          <img src="./icon-192.png.png" alt="Attrack logo" style="height:22px; vertical-align:middle; margin-right:6px;">
+Attrack by Jenish
+
           <span class="badge">Student-first UI</span>
         </div>
         <div id="cheerMessage" class="cheer">
@@ -2397,7 +2399,15 @@ if ("serviceWorker" in navigator) {
   }
 })();
 </script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
 
 </body>
 
 	</html>
+
