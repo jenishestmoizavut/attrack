@@ -923,162 +923,64 @@ div.popup-dot { display:none !important; }
     display: block;
   }
 }
-@media (max-width: 768px) {
-  .lecture-card {
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-}
-@media (max-width: 768px) {
-  .lecture-card .section {
-    padding-top: 8px;
-    margin-top: 8px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-  }
-}
-@media (max-width: 768px) {
-  .lecture-card .delete-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    opacity: 0.85;
-  }
-}
-.lecture-card {
-  position: relative;
-}
-.lecture-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #e5e7eb;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-/* --- MOBILE CARD VIEW FIX --- */
-@media (max-width: 768px) {
-  /* Hide the table header row completely */
-  #dayView thead {
-    display: none;
-  }
 
-  /* Make the table and rows behave like blocks (stacking vertically) */
-  #dayView table, 
-  #dayView tbody, 
-  #dayView tr, 
-  #dayView td {
-    display: block;
-    width: 100%;
-  }
 
-  /* Style the row as a card */
+	/* ------- MOBILE: table → stacked card rows (single canonical block) ------- */
+@media (max-width: 768px) {
+  /* hide desktop header */
+  #dayView thead { display: none; }
+
+  /* collapse table into block flow */
+  #dayView table, #dayView tbody, #dayView tr { display: block; width: 100%; }
+
+  /* each table row becomes a card */
   #dayView tr {
     background: var(--card-bg);
-    margin-bottom: 1rem;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
 
-  /* Style the cells to look like list items */
+  /* each td becomes a single line inside the card */
   #dayView td {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    text-align: right;
     padding: 8px 0;
-    border-bottom: 1px solid var(--bg); /* subtle separator */
+    border: none;
   }
 
-  /* Remove border from the last item in the card */
-  #dayView td:last-child {
-    border-bottom: none;
-    padding-top: 12px;
-    justify-content: center; /* Center the delete button */
-  }
-
-  /* INSERT LABELS VIA CSS */
-  /* This grabs the 'data-label' attribute we will add in JS */
+  /* show label on left using the data-label you already set in JS */
   #dayView td::before {
     content: attr(data-label);
-    float: left;
-    font-weight: 600;
-    color: var(--muted);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-  }
-  
-  /* Make inputs/selects look better in this layout */
-  #dayView input, #dayView select {
-    width: 60%; /* Give them more room */
-    text-align: right;
-  }
-}
-	  /* --- MOBILE LECTURES UI FIX --- */
-@media (max-width: 768px) {
-  /* 1. Hide the table headers on mobile */
-  #dayView thead {
-    display: none;
-  }
-
-  /* 2. Force the table and rows to stack vertically */
-  #dayView table, 
-  #dayView tbody, 
-  #dayView tr {
-    display: block;
-    width: 100%;
-    border: none;
-  }
-
-  /* 3. Turn each row into a standalone Card */
-  #dayView tr {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 16px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
-
-  /* 4. Make each cell a horizontal line inside the card */
-  #dayView td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: none;
-    padding: 8px 0;
-    text-align: right;
-  }
-
-  /* 5. Draw the Label (Date, Subject, etc.) on the left */
-  #dayView td::before {
-    content: attr(data-label); /* This pulls the text from setAttribute */
-    font-weight: 600;
-    color: var(--muted);
-    text-align: left;
     font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
     text-transform: uppercase;
+    margin-right: 12px;
     flex: 1;
   }
 
-  /* 6. Special handling for the Delete button cell */
+  /* inputs/selects on the right */
+  #dayView td input,
+  #dayView td select {
+    width: 60% !important;
+    max-width: 60%;
+    text-align: right;
+  }
+
+  /* last cell (delete) centered and separated */
   #dayView td:last-child {
-    border-top: 1px solid var(--border);
     margin-top: 10px;
     padding-top: 12px;
     justify-content: center;
-  }
-
-  /* 7. Ensure inputs don't look squashed */
-  #dayView td input, 
-  #dayView td select {
-    width: 65% !important;
+    border-top: 1px solid var(--border);
   }
 }
+
+
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -2593,6 +2495,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
