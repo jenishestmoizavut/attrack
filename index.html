@@ -786,24 +786,8 @@ div.popup-dot { display:none !important; }
     border: 1px solid var(--border);
   }
 
-  /* 3. Fix the "Squashed" Table problem */
-  /* This turns each row into its own little 'chunk' instead of a tight line */
-  #lecturesTableBody tr {
-    display: block;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 15px;
-    padding: 10px;
-  }
-
-  #lecturesTableBody td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: none;
-    padding: 8px 5px;
-  }
+  
+  
 
   /* Add labels so you know what each row in the 'chunk' is */
   #lecturesTableBody td::before {
@@ -919,6 +903,24 @@ div.popup-dot { display:none !important; }
 
   #dayView .day-calendar {
     order: 2;   /* show after lectures */
+  }
+}
+@media (max-width: 600px) {
+  table {
+    font-size: 0.78rem;
+  }
+
+  th, td {
+    padding: 6px 4px;
+  }
+
+  th {
+    white-space: nowrap;
+  }
+
+  table {
+    overflow-x: auto;
+    display: block;
   }
 }
 
@@ -2430,6 +2432,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
