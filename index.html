@@ -980,7 +980,7 @@ div.popup-dot { display:none !important; }
 <!-- Target Attendance Setup Modal -->
 <div id="targetSetupBackdrop" style="display:none;" aria-hidden="true">
   <div id="targetSetupModal" role="dialog" aria-modal="true" aria-labelledby="targetSetupTitle">
-    <h2 id="targetSetupTitle">Welcome — set your attendance target</h2>
+    <h2 id="targetSetupTitle">Set your attendance target</h2>
 
     <p class="hint">
       Tell Attrack the attendance percentage you want to aim for.
@@ -1984,8 +1984,8 @@ if (markHolidayBtn) {
     // Special step that will open the attendance modal (we treat this step as modal flow)
     { view: "homeView", selector: "#ATTENDANCE_PROMPT", title: "Set your attendance target", text: "Choose the percentage you want to aim for. This personalizes suggestions." },
     { view: "setupView", selector: "#subjectsList", title: "Subjects", text: "Add your subjects here, we will add them to the timetable later." },
-    { view: "dayView", selector: "#loadDayBtn", title: "Load Lectures", text: "Click this to generate the schedule for the selected day." },
     { view: "setupView", selector: "#timetableBody", title: "Timetable", text: "Edit weekly counts here. Changes apply automatically." },
+	{ view: "dayView", selector: "#loadDayBtn", title: "Load Lectures", text: "Click this to generate the schedule for the selected day." },
     { view: "homeView", selector: "#finalAttendanceSummary", title: "Your progress", text: "This card shows your overall attendance and how many lectures you can miss." }
   ];
 
@@ -2399,4 +2399,5 @@ if ("serviceWorker" in navigator) {
 </script>
 
 </body>
+
 	</html>
