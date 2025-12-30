@@ -70,12 +70,30 @@ html.dark::-webkit-scrollbar-thumb {
 }
 
 /* -------- View switching (IMPORTANT FIX) -------- */
+/* ----- VIEW SWITCHING (SAFE + ANIMATABLE) ----- */
+
 .view {
-  display: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition:
+    opacity 0.22s ease-out,
+    transform 0.22s ease-out,
+    visibility 0s linear 0.22s;
 }
 
 .view.active {
-  display: block;
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition:
+    opacity 0.22s ease-out,
+    transform 0.22s ease-out;
 }
 /* ---------------- Daily View – Lectures panel polish ---------------- */
 
@@ -618,6 +636,7 @@ div.popup-dot { display:none !important; }
   /* prevent content from hiding behind footer */
   .app {
     padding-bottom: 70px;
+ position: relative;
 }
 }
 @media (max-width: 768px) {
@@ -905,24 +924,7 @@ div.popup-dot { display:none !important; }
     order: 2;   /* show after lectures */
   }
 }
-@media (max-width: 600px) {
-  table {
-    font-size: 0.78rem;
-  }
 
-  th, td {
-    padding: 6px 4px;
-  }
-
-  th {
-    white-space: nowrap;
-  }
-
-  table {
-    overflow-x: auto;
-    display: block;
-  }
-}
 
 
 	/* ------- MOBILE: table → stacked card rows (single canonical block) ------- */
@@ -980,6 +982,22 @@ div.popup-dot { display:none !important; }
   }
 }
 
+/* Base state */
+.view {
+  display: none;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* Visible state */
+.view.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.22s ease-out,
+    transform 0.22s ease-out;
+}
 
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -2495,6 +2513,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
