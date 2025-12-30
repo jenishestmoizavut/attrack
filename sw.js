@@ -5,8 +5,8 @@ const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png",
+  "./icon-192.png.png",
+  "./icon-512.png.png",
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ];
 
@@ -42,3 +42,4 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
