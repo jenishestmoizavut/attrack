@@ -1499,7 +1499,7 @@ renderSetupSummaries();
   cur.setDate(cur.getDate() + 1);
   guard++;
   continue;
-{
+		  }
           const dow = cur.getDay();
           state.subjects.forEach(subj => {
             if (!subj.schedule?.weeklyPattern) return;            
@@ -2416,5 +2416,6 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
