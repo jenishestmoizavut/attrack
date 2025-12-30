@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.0.5"; // Bumped version to force update
+const CACHE_VERSION = "v1.0.6"; // Bumped version to force update
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -32,14 +32,16 @@ self.addEventListener("activate", event => {
 
 // Robust offline handling
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      caches.match("./index.html")
+        .then(response => response || fetch(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request).then(response => {
-        return response || (event.request.mode === 'navigate' ? caches.match("./index.html") : null);
-      });
-    })
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
   );
 });
-
