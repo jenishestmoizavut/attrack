@@ -943,6 +943,30 @@ div.popup-dot { display:none !important; }
     opacity 0.22s ease-out,
     transform 0.22s ease-out;
 }
+.creator-card {
+  max-width: 720px;
+  margin: 24px auto;
+  text-align: center;
+}
+
+.creator-card .muted {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}
+
+.linkedin-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #0a66c2;
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.linkedin-btn:hover {
+  filter: brightness(1.05);
+}
 
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1205,22 +1229,28 @@ When you add or load lectures, they’re marked attended by default.
     <div id="timetableView" class="view">
     
 	</div>
-	  <div class="card" style="margin-top:16px;">
-  <h3>From Jenish!👋</h3>
+	  <div class="card creator-card">
+  <h3>From the creator 👋</h3>
 
-  <iframe
-    src="./embed/linkedin.html"
-    style="width:100%; height:160px; border:none; border-radius:12px;"
-    loading="lazy">
-  </iframe>
+  <p class="muted" style="margin: 8px 0 14px;">
+    Building Attrack with a student-first mindset.  
+    Follow along for updates & ideas.
+  </p>
 
-  <div class="hint" style="margin-top:8px;">
+  <a
+    href="https://www.linkedin.com/in/jenish-chaplot"
+    target="_blank"
+    rel="noopener"
+    class="btn linkedin-btn"
+  >
+    Visit my LinkedIn →
+  </a>
+
+  <div class="hint" style="margin-top:10px;">
     External link • opens in a new tab
   </div>
 </div>
-  <div class="hint" style="margin-top:8px;">
-    This is a test embed. External content loads only when visible.
-  </div>
+
    <div class="footer">
   <div class="footer-actions">
     <span class="version-badge">Attrack v1.0 (Dec 2025)</span>
@@ -2462,6 +2492,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
