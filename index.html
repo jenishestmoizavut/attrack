@@ -1204,7 +1204,23 @@ When you add or load lectures, they’re marked attended by default.
     <!-- TIMETABLE VIEW -->
     <div id="timetableView" class="view">
     </div>
+<div class="card" style="margin-top:16px;">
+  <h3>From Jenish!👋</h3>
 
+  <iframe
+    src="./embed/linkedin.html"
+    style="width:100%; height:160px; border:none; border-radius:12px;"
+    loading="lazy">
+  </iframe>
+
+  <div class="hint" style="margin-top:8px;">
+    External link • opens in a new tab
+  </div>
+</div>
+  <div class="hint" style="margin-top:8px;">
+    This is a test embed. External content loads only when visible.
+  </div>
+</div>
    <div class="footer">
   <div class="footer-actions">
     <span class="version-badge">Attrack v1.0 (Dec 2025)</span>
@@ -1229,25 +1245,7 @@ When you add or load lectures, they’re marked attended by default.
   accept="application/pdf"
   hidden
 />
-<div class="card" style="margin-top:16px;">
-  <h3>From Jenish!👋</h3>
 
-  <iframe
-    src="./embed/linkedin.html"
-    style="width:100%; height:160px; border:none; border-radius:12px;"
-    loading="lazy">
-  </iframe>
-
-  <div class="hint" style="margin-top:8px;">
-    External link • opens in a new tab
-  </div>
-</div>
-
-
-  <div class="hint" style="margin-top:8px;">
-    This is a test embed. External content loads only when visible.
-  </div>
-</div>
 
 
   <div class="footer-credit">
@@ -1484,7 +1482,7 @@ if (changeTargetBtn) {
     const markAllAttendedBtn = document.getElementById("markAllAttendedBtn");
     const markAllAbsentBtn = document.getElementById("markAllAbsentBtn");
 const markHolidayBtn = document.getElementById("markHolidayBtn");
-
+const loadDayBtn = document.getElementById("loadDayBtn");
     const lecturesTableBodyEl = document.getElementById("lecturesTableBody");
     const lecturesEmptyEl = document.getElementById("lecturesEmpty");
     const timetableBodyEl = document.getElementById("timetableBody");
@@ -1979,6 +1977,11 @@ state.startDate = startDateInput.value || toISODate(new Date());      state.isIn
     });
 
 
+    loadDayBtn.addEventListener("click", () => {
+      subjectFilterEl.value = ""; // FIX: Reset filter so user sees results
+      generateLecturesForDate(toISODate(selectedDate));
+      saveState(); renderCalendar(); renderLectures();
+    });
     addSubjectBtn.addEventListener("click", () => {
       const name = prompt("Subject name:");
       if (name) {
@@ -2459,6 +2462,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
