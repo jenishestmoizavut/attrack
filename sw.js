@@ -29,24 +29,35 @@ self.addEventListener("activate", event => {
   );
   self.clients.claim();
 });
-
-// Robust offline handling
 self.addEventListener("fetch", event => {
+  const url = new URL(event.request.url);
+
+  // 🚫 Never touch embed pages
+  if (url.pathname.includes("/embed/")) {
+    return;
+  }
+
+  // 🧭 Navigation requests (SPA)
   if (event.request.mode === "navigate") {
     event.respondWith(
-      caches.match(event.request).then(response => {
-        if (response) return response;
-        return caches.match("./index.html");
-      })
+      fetch(event.request)
+        .then(response => {
+          // Cache the latest index.html
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put("./index.html", clone);
+          });
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
     );
     return;
   }
 
+  // 📦 Static assets
   event.respondWith(
     caches.match(event.request).then(response => {
       return response || fetch(event.request);
     })
   );
 });
-
-
