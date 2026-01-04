@@ -1135,15 +1135,7 @@ Attrack by Jenish
   
   <div id="importPreview" style="display:none; margin-top:10px; padding:10px; background:var(--bg-soft); border-radius:8px; max-height:150px; overflow-y:auto; font-size:0.75rem;"></div>
 </div>
-    <!-- DAILY VIEW -->
-<div class="mobile-only-hero">
-<button
-  class="btn"
-  style="width: 100%; height: 56px;"
-  onclick="document.getElementById('loadDayBtn').click()"
->
-  ⚡ Load today’s lectures
-</button></div>
+
 <!-- SETUP VIEW -->
 
 <!-- SETUP VIEW -->
@@ -1230,7 +1222,7 @@ Attrack by Jenish
           </div>
 
           <div class="toolbar">
-            <button class="btn small secondary" id="loadDayBtn" type="button">Load lectures of this day</button>
+         
             <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
             <button class="btn small secondary" id="addSpecialLectureBtn" type="button">+ Add Extras</button>
             <button class="btn small" id="markAllAttendedBtn" type="button">Mark all attended</button>
@@ -1522,7 +1514,6 @@ if (changeTargetBtn) {
     const nextMonthBtn = document.getElementById("nextMonthBtn");
     const selectedDateLabelEl = document.getElementById("selectedDateLabel");
     const subjectFilterEl = document.getElementById("subjectFilter");
-    const loadDayBtn = document.getElementById("loadDayBtn");
     const addLectureBtn = document.getElementById("addLectureBtn");
     const addSpecialLectureBtn = document.getElementById("addSpecialLectureBtn");
     const markAllAttendedBtn = document.getElementById("markAllAttendedBtn");
@@ -2022,11 +2013,6 @@ state.startDate = startDateInput.value || toISODate(new Date());      state.isIn
       regenerateFromSchedules(); saveState(); renderCalendar(); renderLectures();
     });
 
-    loadDayBtn.addEventListener("click", () => {
-      subjectFilterEl.value = ""; // FIX: Reset filter so user sees results
-      generateLecturesForDate(toISODate(selectedDate));
-      saveState(); renderCalendar(); renderLectures();
-    });
 
     addSubjectBtn.addEventListener("click", () => {
       const name = prompt("Subject name:");
@@ -2513,6 +2499,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
