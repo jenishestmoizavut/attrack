@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.0.8"; // Bumped version to force update
+const CACHE_VERSION = "v1.0.9"; // Bumped version to force update
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -61,3 +61,4 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
