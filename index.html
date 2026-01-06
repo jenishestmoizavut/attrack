@@ -2105,129 +2105,166 @@ markHolidayBtn.addEventListener("click", () => {
       setTheme(isDark ? "light" : "dark");
     });
 // ---------------- Onboarding: single guided tour + early attendance prompt ----------------
+// REPLACE YOUR EXISTING (function onboardingInit() { ... })(); WITH THIS:
+
 (function onboardingInit() {
-  // Tour steps: NOTE the special '#ATTENDANCE_PROMPT' step which opens the attendance modal
   const tourSteps = [
     { view: "homeView", selector: "#studentName", title: "Enter your name", text: "Start by entering your name here." },
     { view: "homeView", selector: "#startDate", title: "Start Date", text: "This is when attendance tracking begins." },
-    // Special step that will open the attendance modal (we treat this step as modal flow)
-    { view: "homeView", selector: "#ATTENDANCE_PROMPT", title: "Set your attendance target", text: "Choose the percentage you want to aim for. This personalizes suggestions." },
-    { view: "setupView", selector: "#subjectsList", title: "Subjects", text: "Add your subjects here, we will add them to the timetable later." },
-    { view: "setupView", selector: "#timetableBody", title: "Timetable", text: "Edit weekly counts here. Changes apply automatically." },
-	{ view: "dayView", selector: "#loadDayBtn", title: "Load Lectures", text: "Click this to generate the schedule for the selected day." },
-    { view: "homeView", selector: "#finalAttendanceSummary", title: "Your progress", text: "This card shows your overall attendance and how many lectures you can miss." }
+    { view: "homeView", selector: "#ATTENDANCE_PROMPT", title: "Set Target", text: "Choose your goal percentage." },
+    { view: "setupView", selector: "#subjectsList", title: "Subjects", text: "Add your subjects here first." },
+    { view: "setupView", selector: "#timetableBody", title: "Timetable", text: "Then set your weekly schedule here." },
+    { view: "dayView", selector: "#loadDayBtn", title: "Load Lectures", text: "Click this to generate the schedule for the selected day." },
+    { view: "homeView", selector: "#finalAttendanceSummary", title: "Your progress", text: "See how many lectures you can safely miss here." }
   ];
 
   let tourIndex = 0;
   let tourTooltip = null;
 
-  // Cleanly start the guided tour (optionally show attendance modal and wait for continue)
   function startGuidedTour() {
     tourIndex = 0;
     showTourStep();
   }
 
-  // Advance to next step (used after attendance modal is confirmed)
   function advanceTour() {
     tourIndex++;
     showTourStep();
   }
 
-  // Show a single tour step
   function showTourStep() {
-    // Remove any previous tooltip
     if (tourTooltip) { tourTooltip.remove(); tourTooltip = null; }
 
     const step = tourSteps[tourIndex];
     if (!step) {
-      // Tour finished
       localStorage.setItem("attrack_tutorial_seen", "1");
       return;
     }
 
-    // Switch view
+    // 1. Switch View
     switchView(step.view);
 
-    // Special attendance prompt step handling
+    // 2. Special Case: Modal Handling (Target Attendance)
     if (step.selector === "#ATTENDANCE_PROMPT") {
-      // Show the attendance modal and wait for user to save (or let them cancel)
       const backdrop = document.getElementById("targetSetupBackdrop");
       const saveBtn = document.getElementById("saveTargetAttendanceBtn");
-      const cancel = () => {
-        if (backdrop) backdrop.style.display = "none";
-        // continue tour regardless (we don't block)
-        advanceTour();
-      };
-
-      // Show modal
+      
       if (backdrop) backdrop.style.display = "flex";
 
-      // Ensure we only add one listener
       const onSave = () => {
-        // The existing save handler already persists and hides modal; just advance
         advanceTour();
-        // cleanup
         saveBtn.removeEventListener("click", onSave);
       };
-      saveBtn.addEventListener("click", onSave);
-
-      // Also allow backdrop click to continue (non-blocking)
-      backdrop.addEventListener("click", function onBackdropClick(e) {
-        if (e.target === backdrop) {
-          backdrop.style.display = "none";
-          backdrop.removeEventListener("click", onBackdropClick);
-          saveBtn.removeEventListener("click", onSave);
-          advanceTour();
-        }
+      
+      // Cleanup any old listeners to prevent double-jumps
+      const newBtn = saveBtn.cloneNode(true);
+      saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+      newBtn.addEventListener("click", () => {
+         // Run the original logic manually since we cloned the button
+         let val = parseInt(document.getElementById("targetAttendanceInput").value, 10);
+         if (isNaN(val) || val < 50) val = 50;
+         if (val > 100) val = 100;
+         localStorage.setItem("attrack_target_attendance", (val / 100).toString());
+         document.getElementById("targetSetupBackdrop").style.display = "none";
+         renderSummary();
+         onSave();
       });
 
-      return; // wait for user action
+      backdrop.onclick = (e) => {
+        if (e.target === backdrop) {
+           backdrop.style.display = "none";
+           advanceTour();
+        }
+      };
+      return; 
     }
 
-    // For normal (non-modal) steps, create a tooltip near the target element
-    setTimeout(() => {
+    // 3. Robust Element Finding (with Retry Loop for Mobile)
+    let attempts = 0;
+    const findElementLoop = setInterval(() => {
+      attempts++;
       const el = document.querySelector(step.selector);
-      if (!el) {
-        // If target missing, advance after a short delay
-        tourTooltip = document.createElement("div");
-        tourTooltip.className = "tour-tooltip";
-        tourTooltip.style.top = "80px";
-        tourTooltip.style.left = "20px";
-        tourTooltip.innerHTML = `<h4>${step.title}</h4><div>${step.text}</div><button class='btn small' id='tourNext'>${tourIndex===tourSteps.length-1?"Finish":"Next"}</button>`;
-        document.body.appendChild(tourTooltip);
-        document.getElementById("tourNext").onclick = () => { tourIndex++; showTourStep(); };
-        return;
+      
+      // If we found the element AND it is visible (has width), proceed
+      if (el && el.getBoundingClientRect().width > 0) {
+        clearInterval(findElementLoop);
+        drawTooltip(el, step);
+      } else if (attempts > 15) {
+        // Stop trying after 1.5 seconds to prevent infinite loops
+        clearInterval(findElementLoop);
+        // Fallback: Just show a generic center modal if element is truly missing
+        drawTooltip(null, step); 
       }
-
-      // Ensure the element is visible in the current view
-      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-
-      const rect = el.getBoundingClientRect();
-      tourTooltip = document.createElement("div");
-      tourTooltip.className = "tour-tooltip";
-      tourTooltip.innerHTML = `<h4>${step.title}</h4><div style="margin-top:4px;">${step.text}</div><button class='btn small' id='tourNext' style="margin-top:10px;">${tourIndex===tourSteps.length-1?"Finish":"Next"}</button>`;
-      document.body.appendChild(tourTooltip);
-
-      // Basic positioning: try to place below the element, fallback to right
-      const top = Math.min(window.innerHeight - 140, rect.bottom + 10);
-      const left = Math.max(10, rect.left);
-      tourTooltip.style.top = top + "px";
-      tourTooltip.style.left = left + "px";
-
-      document.getElementById("tourNext").onclick = () => { tourIndex++; showTourStep(); };
-    }, 600);
+    }, 100); // Check every 100ms
   }
 
-  // Re-open tour button
+  function drawTooltip(el, step) {
+    tourTooltip = document.createElement("div");
+    tourTooltip.className = "tour-tooltip";
+    
+    // Content
+    tourTooltip.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <h4 style="margin:0;">${step.title}</h4>
+        <button id="tourSkipBtn" style="background:none;border:none;color:var(--muted);font-size:12px;padding:0;">✕</button>
+      </div>
+      <div style="margin:6px 0 10px;line-height:1.4;">${step.text}</div>
+      <div style="text-align:right;">
+        <button class='btn small' id='tourNext'>
+          ${tourIndex === tourSteps.length - 1 ? "Finish" : "Next →"}
+        </button>
+      </div>
+    `;
+    document.body.appendChild(tourTooltip);
+
+    // Event Listeners
+    document.getElementById("tourNext").onclick = () => advanceTour();
+    document.getElementById("tourSkipBtn").onclick = () => { tourTooltip.remove(); };
+
+    // --- SMART POSITIONING LOGIC ---
+    if (!el) {
+      // Fallback center position
+      tourTooltip.style.top = "50%";
+      tourTooltip.style.left = "50%";
+      tourTooltip.style.transform = "translate(-50%, -50%)";
+      tourTooltip.style.position = "fixed";
+      return;
+    }
+
+    // Scroll to element
+    el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+
+    const rect = el.getBoundingClientRect();
+    const tooltipHeight = 140; // Approx height of our card
+    
+    // Check if element is in the bottom half of the screen
+    const isLowOnScreen = rect.bottom > (window.innerHeight - 160);
+
+    if (isLowOnScreen) {
+      // PLACE ABOVE the element
+      // (rect.top - tooltip height - padding)
+      let topPos = rect.top - tooltipHeight - 15;
+      if (topPos < 10) topPos = 10; // Don't go off top edge
+      tourTooltip.style.top = topPos + "px";
+    } else {
+      // PLACE BELOW the element
+      tourTooltip.style.top = (rect.bottom + 12) + "px";
+    }
+
+    // Horizontal positioning (Keep it on screen)
+    let leftPos = rect.left;
+    if (leftPos + 260 > window.innerWidth) {
+       // If too far right, anchor to the right edge
+       leftPos = window.innerWidth - 280; 
+    }
+    if (leftPos < 10) leftPos = 10;
+    tourTooltip.style.left = leftPos + "px";
+  }
+
   const showBtn = document.getElementById("showTutorialNavBtn");
   if (showBtn) showBtn.addEventListener("click", () => { startGuidedTour(); });
 
-  // Auto-start on first run (only if user hasn't dismissed)
   if (!localStorage.getItem("attrack_tutorial_seen")) {
-    // Wait a bit for UI to render, then run tour (showing attendance prompt in sequence)
-    setTimeout(() => {
-      startGuidedTour();
-    }, 500);
+    setTimeout(() => startGuidedTour(), 800);
   }
 })();
     
@@ -2623,6 +2660,7 @@ if ("serviceWorker" in navigator) {
 </body>
 
 	</html>
+
 
 
 
