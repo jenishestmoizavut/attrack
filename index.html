@@ -399,14 +399,14 @@ h1,h2,h3 { margin:0 0 8px; }
 .field{ margin-bottom:8px; display:flex; flex-direction:column; gap:4px; }
 .field label{ font-size:0.8rem; color:var(--text-soft); }
 
-input[type="text"], input[type="date"], select{
-  padding:6px 8px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  font-size:0.85rem;
-  outline:none;
-  background:var(--card-bg);
-  color:var(--text);
+input[type="text"], input[type="date"], input[type="number"], select {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  outline: none;
+  background: var(--card-bg); /* This ensures it is dark in dark mode */
+  color: var(--text);
 }
 input[type="text"]:focus, input[type="date"]:focus, select:focus{
   border-color:var(--accent);
@@ -1037,6 +1037,9 @@ Attrack by Jenish
   <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
 
   <button id="showTutorialNavBtn" class="nav-btn" type="button">🎓 Show tutorial</button>
+	<button id="installAppBtn" class="nav-btn" type="button" style="display:none; background: var(--accent-soft); color: var(--accent);">
+    📲 Install
+  </button>
   <div class="nav-spacer"></div>
   <button id="darkToggle" class="dark-toggle" type="button">
     <span id="darkIcon">🌙</span>
@@ -2212,7 +2215,7 @@ markHolidayBtn.addEventListener("click", () => {
       tourTooltip.style.left = left + "px";
 
       document.getElementById("tourNext").onclick = () => { tourIndex++; showTourStep(); };
-    }, 250);
+    }, 600);
   }
 
   // Re-open tour button
@@ -2465,6 +2468,52 @@ setTimeout(() => {
     sendDailyReminder();
   }
 }, 2000);
+	  // --- 📲 INSTALLATION LOGIC (Android & iOS) ---
+  
+  const installAppBtn = document.getElementById("installAppBtn");
+  const iosModal = document.getElementById("iosInstallModal");
+  const closeIosBtn = document.getElementById("closeIosModalBtn");
+  let deferredPrompt; // To store the Android prompt
+
+  // 1. Detect iOS
+  const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isInstalled = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+  // 2. Event: Android/Desktop supports "Add to Home Screen" natively
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); // Prevent automatic mini-bar
+    deferredPrompt = e; // Stash the event
+    if (installAppBtn) installAppBtn.style.display = "inline-flex"; // Show button
+  });
+
+  // 3. Logic: Show button on iOS if not installed
+  if (isIos && !isInstalled && installAppBtn) {
+    installAppBtn.style.display = "inline-flex";
+  }
+
+  // 4. Handle Button Click
+  if (installAppBtn) {
+    installAppBtn.addEventListener("click", async () => {
+      // Case A: Android/Chrome (Native Prompt)
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log("Install outcome:", outcome);
+        deferredPrompt = null;
+        installAppBtn.style.display = "none"; // Hide button if installed
+      } 
+      // Case B: iOS (Show Instructions)
+      else if (isIos) {
+        if (iosModal) iosModal.style.display = "flex";
+      }
+    });
+  }
+
+  // 5. Close iOS Modal
+  if (closeIosBtn) closeIosBtn.addEventListener("click", () => iosModal.style.display = "none");
+  if (iosModal) iosModal.addEventListener("click", (e) => {
+    if (e.target === iosModal) iosModal.style.display = "none";
+  });
 
   })();
 </script><!-- hits.sh counter (can be invisible if you want) -->
@@ -2528,10 +2577,53 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<div id="iosInstallModal" class="ios-modal-backdrop" style="display:none;">
+  <div class="ios-modal-card">
+    <button id="closeIosModalBtn" class="ios-close-btn">✕</button>
+    
+    <h3>Install on iOS 🍏</h3>
+    <p>Install Attrack to your home screen for the best experience.</p>
+    
+    <div class="ios-step">
+      <span class="ios-icon">1️⃣</span>
+      <span>Tap the <strong>Share</strong> button <span style="font-size:1.3em; line-height:1">⎋</span> below.</span>
+    </div>
+    
+    <div class="ios-step">
+      <span class="ios-icon">2️⃣</span>
+      <span>Scroll down and tap <strong>"Add to Home Screen"</strong> ➕.</span>
+    </div>
+  </div>
+</div>
 
+<style>
+/* CSS for the iOS Modal */
+.ios-modal-backdrop {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 20px;
+}
+.ios-modal-card {
+  background: var(--card-bg); width: 92%; max-width: 400px;
+  padding: 20px; border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  position: relative; animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: var(--text); border: 1px solid var(--border);
+}
+.ios-close-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; font-size: 1.2rem;
+  color: var(--muted); cursor: pointer; padding: 4px 8px;
+}
+.ios-step { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 0.95rem; }
+.ios-icon { font-size: 1.4rem; }
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
 </body>
 
 	</html>
+
 
 
 
