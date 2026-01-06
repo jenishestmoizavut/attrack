@@ -997,7 +997,28 @@ div.popup-dot { display:none !important; }
 .linkedin-btn:hover {
   filter: brightness(1.05);
 }
-
+/* CSS for the iOS Modal */
+.ios-modal-backdrop {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 20px;
+}
+.ios-modal-card {
+  background: var(--card-bg); width: 92%; max-width: 400px;
+  padding: 20px; border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  position: relative; animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: var(--text); border: 1px solid var(--border);
+}
+.ios-close-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; font-size: 1.2rem;
+  color: var(--muted); cursor: pointer; padding: 4px 8px;
+}
+.ios-step { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 0.95rem; }
+.ios-icon { font-size: 1.4rem; }
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -2633,33 +2654,11 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<style>
-/* CSS for the iOS Modal */
-.ios-modal-backdrop {
-  position: fixed; inset: 0; z-index: 2000;
-  background: rgba(0,0,0,0.6);
-  display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: 20px;
-}
-.ios-modal-card {
-  background: var(--card-bg); width: 92%; max-width: 400px;
-  padding: 20px; border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  position: relative; animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  color: var(--text); border: 1px solid var(--border);
-}
-.ios-close-btn {
-  position: absolute; top: 12px; right: 12px;
-  background: none; border: none; font-size: 1.2rem;
-  color: var(--muted); cursor: pointer; padding: 4px 8px;
-}
-.ios-step { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 0.95rem; }
-.ios-icon { font-size: 1.4rem; }
-@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-</style>
+
 </body>
 
 	</html>
+
 
 
 
