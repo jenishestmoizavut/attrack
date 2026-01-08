@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.1.1"; // Bumped version to force update
+const CACHE_VERSION = "v1.1.2"; // Bumped version to force update
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -32,35 +32,48 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
 
-  // 🚫 Never touch embed pages
+  // 🚫 1. Don't intercept OFF-origin requests (JSONBlob / CDNs / anything else)
+  if (url.origin !== self.location.origin) {
+    return; // allow browser to reach network directly
+  }
+
+  // 🚫 2. Don't cache non-GET requests (POST, PUT, DELETE)
+  if (event.request.method !== "GET") {
+    return;
+  }
+
+  // 🚫 3. Don't mess with embeds
   if (url.pathname.includes("/embed/")) {
     return;
   }
 
-  // 🧭 Navigation requests (SPA)
+  // 🧭 4. Navigation requests (SPA fallback)
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
-        .then(response => {
-          // Cache the latest index.html
-          const clone = response.clone();
+        .then(res => {
           caches.open(CACHE_NAME).then(cache => {
-            cache.put("./index.html", clone);
+            cache.put("./index.html", res.clone());
           });
-          return response;
+          return res;
         })
         .catch(() => caches.match("./index.html"))
     );
     return;
   }
 
-  // 📦 Static assets
+  // 📦 5. Cache static same-origin GET requests
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+    caches.match(event.request).then(res => {
+      return (
+        res ||
+        fetch(event.request).then(networkRes => {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, networkRes.clone());
+          });
+          return networkRes;
+        })
+      );
     })
   );
 });
-
-
-
