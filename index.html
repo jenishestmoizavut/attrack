@@ -1491,8 +1491,12 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
             body: JSON.stringify(shareState)
         });
 
+        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+
         // Get the ID
         const locationHeader = response.headers.get("Location");
+        if (!locationHeader) throw new Error("No Location header received from server");
+
         const blobId = locationHeader.split("/").pop();
         const magicLink = `${window.location.origin}${window.location.pathname}?import=${blobId}`;
 
@@ -1506,9 +1510,13 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 
       } catch (e) {
         console.error(e);
-        alert("Could not generate link. Check internet?");
+        // FALLBACK: Offer file download if cloud fails
+        if(confirm(`Could not generate a magic link (Error: ${e.message}).\n\nThis usually happens due to ad-blockers or network restrictions.\n\nDo you want to download the file instead to share on WhatsApp?`)) {
+            exportScheduleFile();
+        }
       } finally {
         btn.disabled = false;
+        if (btn.textContent === "Generating Link...") btn.textContent = "🔗 Share Schedule Link";
       }
     }
 
