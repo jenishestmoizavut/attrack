@@ -2398,14 +2398,6 @@ markHolidayBtn.addEventListener("click", () => {
   }
   // <---- PASTE END ---->
 
-  setTheme(localStorage.getItem(THEME_KEY) || "light");
-  
-  if (!state.isInitialized) {
-     // ... (Your existing default setup logic) ...
-  }
-
-  // ... (Rest of your render functions) ...
-})();
       setTheme(localStorage.getItem(THEME_KEY) || "light");
       if (!state.isInitialized) {
          state.isInitialized = true;
@@ -2749,6 +2741,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
