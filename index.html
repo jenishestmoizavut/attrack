@@ -1083,7 +1083,7 @@ Attrack by Jenish
     </div>
 <div id="targetSetupBackdrop" style="display:none;" aria-hidden="true">
   <div id="targetSetupModal" role="dialog" aria-modal="true" aria-labelledby="targetSetupTitle">
-    <h2 id="targetSetupTitle">Set your attendance target</h2>
+    <h2 id="targetSetupTitle">Set your attendance target (updates instantly, just refresh)!</h2>
 
     <p class="hint">
       Tell Attrack the attendance percentage you want to aim for.
@@ -1473,7 +1473,7 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
       const btn = document.getElementById("shareLinkBtn");
       const status = document.getElementById("shareLinkStatus");
       
-      // Prepare Data (Reset attendance for privacy)
+      // Prepare Data
       const shareState = {
         startDate: state.startDate,
         subjects: state.subjects,
@@ -1484,23 +1484,27 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
         btn.disabled = true;
         btn.textContent = "Generating Link...";
 
-        // Upload to JSONBlob
+        // 1. Upload
         const response = await fetch("https://jsonblob.com/api/jsonBlob", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify(shareState)
         });
 
-        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+        if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
-        // Get the ID
+        // 2. Safer ID Extraction (Your Fix)
         const locationHeader = response.headers.get("Location");
-        if (!locationHeader) throw new Error("No Location header received from server");
+        const match = locationHeader && locationHeader.match(/\/([^\/]+)$/);
+        const blobId = match ? match[1] : null;
 
-        const blobId = locationHeader.split("/").pop();
-        const magicLink = `${window.location.origin}${window.location.pathname}?import=${blobId}`;
+        if (!blobId) throw new Error("Could not extract blob ID from server response.");
 
-        // Copy to clipboard
+        // 3. Cleaner URL Generation (Your Fix)
+        const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+        const magicLink = `${base}?import=${blobId}`;
+
+        // 4. Success
         await navigator.clipboard.writeText(magicLink);
 
         status.style.display = "block";
@@ -1510,8 +1514,8 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 
       } catch (e) {
         console.error(e);
-        // FALLBACK: Offer file download if cloud fails
-        if(confirm(`Could not generate a magic link (Error: ${e.message}).\n\nThis usually happens due to ad-blockers or network restrictions.\n\nDo you want to download the file instead to share on WhatsApp?`)) {
+        // Fallback: If cloud fails, offer file download
+        if(confirm("Cloud sharing failed (likely an ad-blocker). Download file instead?")) {
             exportScheduleFile();
         }
       } finally {
@@ -1520,7 +1524,7 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
       }
     }
 
-    async function checkUrlForImport() {
+  async function checkUrlForImport() {
         const params = new URLSearchParams(window.location.search);
         const importId = params.get("import");
 
@@ -1533,8 +1537,12 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
         }
 
         try {
-            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${importId}`);
-            if (!res.ok) throw new Error("Link expired");
+            // Your Fix: Added Accept header for better compatibility
+            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${importId}`, {
+                headers: { "Accept": "application/json" }
+            });
+
+            if (!res.ok) throw new Error("Link expired or invalid");
             const json = await res.json();
 
             state.subjects = json.subjects;
@@ -1553,9 +1561,10 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 
         } catch (e) {
             alert("Error loading schedule: " + e.message);
+            // Clean URL so it doesn't loop the error on refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
-
     // ---------------- Export Attendance (CSV) ----------------
     function exportAttendanceCSV() {
       if (!state || !Array.isArray(state.lectures) || state.lectures.length === 0) {
@@ -2862,3 +2871,4 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
