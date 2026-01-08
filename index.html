@@ -1493,12 +1493,23 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 
         if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
-        // 2. Extract ID (Your Fix: Regex match is safer than split)
-        const locationHeader = response.headers.get("Location");
-        const match = locationHeader && locationHeader.match(/\/([^\/]+)$/);
-        const blobId = match ? match[1] : null;
+        // 2. Extract ID reliably
+let blobId = null;
 
-        if (!blobId) throw new Error("Could not extract blob ID from response headers.");
+// First try Location header
+const locationHeader = response.headers.get("Location");
+if (locationHeader) {
+  const match = locationHeader.match(/\/([^\/]+)$/);
+  if (match) blobId = match[1];
+}
+
+// Fallback: use response.url
+if (!blobId && response.url) {
+  const match2 = response.url.match(/\/([^\/]+)$/);
+  if (match2) blobId = match2[1];
+}
+
+if (!blobId) throw new Error("Could not extract blob ID from response headers.");
 
         // 3. Construct Clean URL (Your Fix: Removes index.html)
         const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -2871,6 +2882,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
