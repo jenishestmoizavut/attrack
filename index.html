@@ -1192,6 +1192,26 @@ Attrack by Jenish
       <button id="changeTargetBtn" class="btn small secondary" type="button">Change</button>
     </div>
   </div>
+	<div class="card" style="margin-top:12px; border-color: var(--accent);">
+  <h3>⚡️ Class Rep / Backup</h3>
+  <div class="hint">
+    <strong>Class Reps:</strong> Set up the timetable & lectures, then "Export File" and share it on WhatsApp.
+    <br>
+    <strong>Students:</strong> Download the file and click "Import File" to instantly set up your app.
+  </div>
+  
+  <div style="display:flex; gap:10px; margin-top:12px;">
+    <button id="exportScheduleBtn" class="btn small" style="background:var(--accent);">
+      📤 Export Schedule File
+    </button>
+
+    <button id="triggerImportBtn" class="btn small secondary">
+      📥 Import Schedule File
+    </button>
+    
+    <input type="file" id="importScheduleInput" accept=".json" style="display:none" />
+  </div>
+</div>
           <div class="card" style="margin-bottom:8px;">
             <h3>Subjects 🧠</h3>
             <div class="subjects-list" id="subjectsList"></div>
@@ -1376,7 +1396,85 @@ Source code is not licensed for reuse or redistribution.
     const VIEW_KEY    = "attrack_lastView";
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
   const NOTIF_ASKED_KEY = "attrack_notif_permission_asked";
+// ---------------- Full Schedule Export/Import (Class Rep Mode) ----------------
+    
+    // 1. Export Function (Download JSON)
+    function exportScheduleFile() {
+      if (!state.subjects.length) {
+        alert("Nothing to export! Add subjects first.");
+        return;
+      }
 
+      // Create a clean copy to share
+      const shareState = {
+        studentName: "", // Don't share name
+        startDate: state.startDate,
+        subjects: state.subjects,
+        // Share lectures but RESET attendance to 'true' (Present)
+        // This lets the Rep share the *Schedule* without sharing their *Bunks*
+        lectures: state.lectures.map(l => ({
+          ...l,
+          attended: true 
+        }))
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(shareState));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "Attrack_Schedule_Config.json");
+      document.body.appendChild(downloadAnchorNode); // required for firefox
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    // 2. Import Function (Read JSON)
+    function importScheduleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const json = JSON.parse(e.target.result);
+
+          // Basic validation
+          if (!json.subjects || !Array.isArray(json.subjects)) {
+            alert("Invalid file format.");
+            return;
+          }
+
+          if (confirm("⚠️ Warning: Importing this file will REPLACE your current subjects, timetable, and attendance history.\n\nAre you sure?")) {
+            // Apply the new state
+            state.subjects = json.subjects;
+            state.lectures = json.lectures || [];
+            if (json.startDate) state.startDate = json.startDate;
+            
+            // Keep the user's existing name if they have one
+            if (!state.studentName && json.studentName) state.studentName = json.studentName;
+
+            state.isInitialized = true;
+            saveState();
+            
+            // Refresh UI
+            renderStudent();
+            renderSubjectsList();
+            renderTimetable();
+            renderLectures();
+            renderSummary();
+            renderSetupSummaries();
+            
+            alert("Schedule imported successfully! ✅");
+            switchView("dayView");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Error reading file. Make sure it's a valid JSON file.");
+        }
+      };
+      reader.readAsText(file);
+      // Reset input so same file can be selected again if needed
+      event.target.value = ''; 
+    }
 
     // ---------------- Export Attendance (CSV) ----------------
     function exportAttendanceCSV() {
@@ -2143,6 +2241,25 @@ markHolidayBtn.addEventListener("click", () => {
       const isDark = document.body.classList.contains("dark");
       setTheme(isDark ? "light" : "dark");
     });
+	  // --- File Export/Import Events ---
+    
+    // 1. Export
+    const exportScheduleBtn = document.getElementById("exportScheduleBtn");
+    if (exportScheduleBtn) {
+      exportScheduleBtn.addEventListener("click", exportScheduleFile);
+    }
+
+    // 2. Import (Trigger the hidden input)
+    const triggerImportBtn = document.getElementById("triggerImportBtn");
+    const importScheduleInput = document.getElementById("importScheduleInput");
+    
+    if (triggerImportBtn && importScheduleInput) {
+      triggerImportBtn.addEventListener("click", () => {
+        importScheduleInput.click();
+      });
+      
+      importScheduleInput.addEventListener("change", importScheduleFile);
+    }
 // ---------------- Onboarding: single guided tour + early attendance prompt ----------------
 // REPLACE YOUR EXISTING (function onboardingInit() { ... })(); WITH THIS:
 
@@ -2655,6 +2772,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
