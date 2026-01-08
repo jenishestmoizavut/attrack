@@ -1019,6 +1019,29 @@ div.popup-dot { display:none !important; }
 .ios-step { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 0.95rem; }
 .ios-icon { font-size: 1.4rem; }
 @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+	  /* --- Class Rep / Feature Modal --- */
+#classRepModalBackdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center; 
+  z-index: 2100; /* Highest priority */
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+#classRepModal {
+  background: var(--card-bg); color: var(--text);
+  max-width: 380px; width: 100%; border-radius: 20px;
+  padding: 24px; box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  animation: slideUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cr-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+.cr-box {
+  background: var(--bg-soft); border: 1px solid var(--border);
+  padding: 14px; border-radius: 12px; margin-bottom: 10px; text-align: left;
+}
+.cr-box strong { display: block; font-size: 0.95rem; color: var(--text); }
+.cr-box p { font-size: 0.8rem; color: var(--muted); margin: 4px 0 0; line-height: 1.4; }
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -2421,7 +2444,45 @@ renderSetupTarget();
       switchView("homeView"); 
 
     })();
-	
+	// --- Class Rep Feature Popup Logic ---
+(function() {
+  const FEATURE_KEY = "attrack_feature_class_rep_seen";
+  const backdrop = document.getElementById("classRepModalBackdrop");
+  const btnSetup = document.getElementById("crModalSetup");
+  const btnClose = document.getElementById("crModalClose");
+
+  // Only show if:
+  // 1. User hasn't seen this popup before
+  // 2. User hasn't already imported data (state.subjects is empty)
+  // 3. User isn't currently trying to import a link (URL doesn't have ?import=)
+  const isNewUser = (!state.subjects || state.subjects.length === 0);
+  const hasSeen = localStorage.getItem(FEATURE_KEY);
+  const isImporting = window.location.search.includes("import=");
+
+  if (!hasSeen && isNewUser && !isImporting) {
+    // Show after a small delay so it doesn't clash with theme loading
+    setTimeout(() => {
+      if(backdrop) backdrop.style.display = "flex";
+    }, 1500);
+  }
+
+  // "I'll set it up" -> Go to Setup View
+  if(btnSetup) {
+    btnSetup.addEventListener("click", () => {
+      localStorage.setItem(FEATURE_KEY, "1");
+      backdrop.style.display = "none";
+      switchView("setupView");
+    });
+  }
+
+  // "I have a link" -> Just close (user needs to go click the link externally)
+  if(btnClose) {
+    btnClose.addEventListener("click", () => {
+      localStorage.setItem(FEATURE_KEY, "1");
+      backdrop.style.display = "none";
+    });
+  }
+})();
 // ---------------------------------------------------------
     // PDF IMPORTER INTEGRATION
     // ---------------------------------------------------------
@@ -2739,8 +2800,33 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+	<div id="classRepModalBackdrop" style="display:none;">
+  <div id="classRepModal">
+    <span class="cr-icon">⚡️</span>
+    <h3 style="margin-bottom:8px;">Instant Setup</h3>
+    <p style="color:var(--text-soft); font-size:0.9rem; margin-bottom:20px; line-height:1.5;">
+      Don't want to add subjects manually?<br>Use the new <strong>Class Rep Mode</strong>!
+    </p>
+    
+    <div class="cr-box">
+      <strong>🦸 Are you the Class Rep?</strong>
+      <p>Configure the timetable once in <em>Setup</em>, then click <strong>Share</strong> to send a magic link to the whole class.</p>
+    </div>
+
+    <div class="cr-box">
+      <strong>🧑‍🎓 Just a student?</strong>
+      <p>Ask your Rep for the link! Clicking it will set up your subjects instantly.</p>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:stretch; margin-top:20px;">
+      <button id="crModalClose" class="btn secondary" style="flex:1;">I have a link</button>
+      <button id="crModalSetup" class="btn" style="flex:1;">I'll set it up</button>
+    </div>
+  </div>
+</div>
 </body>
 	</html>
+
 
 
 
