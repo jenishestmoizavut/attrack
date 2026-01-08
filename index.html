@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Primary SEO -->
-<title>Attrack – Smart Attendance Tracker for College Students </title>
+  <title>Attrack – Smart Attendance Tracker for College Students </title>
 
 <meta name="description"
       content="Attrack is a free attendance tracker for college students. Track lectures, calculate attendance percentage, and know how many classes you can miss safely. Works offline, no login required.">
@@ -14,10 +13,8 @@
 <meta name="author" content="Jenish Chaplot">
 <meta name="robots" content="index, follow">
 
-<!-- Mobile friendliness -->
 <meta name="theme-color" content="#4f46e5">
 
-<!-- Open Graph (WhatsApp, LinkedIn, Discord preview) -->
 <meta property="og:title" content="Attrack – Smart Attendance Tracker for Students">
 <meta property="og:description"
       content="Track attendance, know how many lectures you can miss, and stay above your target %. Built by a student, for students.">
@@ -25,7 +22,6 @@
 <meta property="og:url" content="https://jenishestmoizavut.github.io/attrack/">
 <meta property="og:image" content="https://jenishestmoizavut.github.io/attrack/icon-512.png.png">
 
-<!-- Twitter preview -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Attrack – Smart Attendance Tracker">
 <meta name="twitter:description"
@@ -1029,7 +1025,6 @@ div.popup-dot { display:none !important; }
 <body>
   <div class="app">
 
-    <!-- ----------------- Header + Nav (REPLACED) ----------------- -->
     <div class="header">
       <div class="title-block">
         <div class="title">
@@ -1054,8 +1049,7 @@ Attrack by Jenish
   
   <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
   
- <!-- <button class="nav-btn" data-view="timetableView" type="button">🗓 Timetable</button>-->
-  <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
+ <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
 
   <button id="showTutorialNavBtn" class="nav-btn" type="button">🎓 Show tutorial</button>
 	<button id="installAppBtn" class="nav-btn" type="button" style="display:none; background: var(--accent-soft); color: var(--accent);">
@@ -1069,9 +1063,6 @@ Attrack by Jenish
 </div>
 
 
-    <!-- ----------------- end Header + Nav ----------------- -->
-
-    <!-- Tutorial modal (hidden by default) -->
     <div id="tutorialModalBackdrop" aria-hidden="true" style="display:none;">
       <div id="tutorialModal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
         <h2 id="tutorialTitle">Welcome to Attrack — quick tutorial</h2>
@@ -1090,7 +1081,6 @@ Attrack by Jenish
         </div>
       </div>
     </div>
-<!-- Target Attendance Setup Modal -->
 <div id="targetSetupBackdrop" style="display:none;" aria-hidden="true">
   <div id="targetSetupModal" role="dialog" aria-modal="true" aria-labelledby="targetSetupTitle">
     <h2 id="targetSetupTitle">Set your attendance target</h2>
@@ -1116,7 +1106,6 @@ Attrack by Jenish
 </div>
 
 
-    <!-- HOME VIEW -->
     <div id="homeView" class="view active">
 
       <div class="home-grid">
@@ -1169,9 +1158,6 @@ Attrack by Jenish
   <div id="importPreview" style="display:none; margin-top:10px; padding:10px; background:var(--bg-soft); border-radius:8px; max-height:150px; overflow-y:auto; font-size:0.75rem;"></div>
 </div>
 
-<!-- SETUP VIEW -->
-
-<!-- SETUP VIEW -->
 <div id="setupView" class="view">
   <div class="card">
     <h3>Setup</h3>
@@ -1195,23 +1181,24 @@ Attrack by Jenish
 	<div class="card" style="margin-top:12px; border-color: var(--accent);">
   <h3>⚡️ Class Rep / Backup</h3>
   <div class="hint">
-    <strong>Class Reps:</strong> Set up the timetable & lectures, then "Export File" and share it on WhatsApp.
+    <strong>Class Reps:</strong> Click "Share Schedule Link" to generate a magic link. Send that link to the class group.
     <br>
-    <strong>Students:</strong> Download the file and click "Import File" to instantly set up your app.
+    <strong>Students:</strong> Just click the link you received to set up the app instantly.
   </div>
   
- <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
+  <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
     <button id="shareLinkBtn" class="btn small" style="background:var(--accent);">
-      🔗 Share Class Schedule Link
+      🔗 Share Schedule Link
     </button>
     
-    <button id="exportScheduleBtn" class="btn small secondary" style="display:none">Export File</button> <button id="triggerImportBtn" class="btn small secondary">
-      📂 Import File
+    <button id="exportScheduleBtn" class="btn small secondary" style="display:none">Export File</button>
+    <button id="triggerImportBtn" class="btn small secondary">
+      📥 Import File
     </button>
     
     <input type="file" id="importScheduleInput" accept=".json" style="display:none" />
-</div>
-<div id="shareLinkStatus" class="hint" style="margin-top:8px; display:none; color:#166534; font-weight:bold;"></div>
+  </div>
+  <div id="shareLinkStatus" class="hint" style="margin-top:8px; display:none; color:#166534; font-weight:bold;"></div>
 </div>
           <div class="card" style="margin-bottom:8px;">
             <h3>Subjects 🧠</h3>
@@ -1310,7 +1297,6 @@ When you add or load lectures, they’re marked attended by default.
       </div>
     </div>
 	</div>
-    <!-- TIMETABLE VIEW -->
     <div id="timetableView" class="view">
     
 	</div>
@@ -1427,100 +1413,7 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
     }
-// ---------------------------------------------------------
-    // MAGIC LINK SHARING (JSONBlob.com)
-    // ---------------------------------------------------------
-    
-    // 1. CR: Uploads Config & Copies Link
-    async function shareScheduleViaLink() {
-      if (!state.subjects.length) return alert("Add subjects first!");
-      
-      const btn = document.getElementById("shareLinkBtn");
-      const status = document.getElementById("shareLinkStatus");
-      
-      // 1. Prepare Data (Same as file export)
-      const shareState = {
-        startDate: state.startDate,
-        subjects: state.subjects,
-        lectures: state.lectures.map(l => ({ ...l, attended: true })) // Privacy: Reset attendance
-      };
 
-      try {
-        btn.disabled = true;
-        btn.textContent = "Generating Link...";
-
-        // 2. Upload to JSONBlob (Free, No Auth required)
-        const response = await fetch("https://jsonblob.com/api/jsonBlob", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify(shareState)
-        });
-
-        // 3. Get the ID from the Location header
-        // Header format: https://jsonblob.com/api/jsonBlob/<ID>
-        const locationHeader = response.headers.get("Location");
-        const blobId = locationHeader.split("/").pop();
-
-        // 4. Create the "Magic Link"
-        // It appends ?import=ID to your current URL
-        const magicLink = `${window.location.origin}${window.location.pathname}?import=${blobId}`;
-
-        // 5. Copy to Clipboard
-        await navigator.clipboard.writeText(magicLink);
-
-        status.style.display = "block";
-        status.innerHTML = `✅ Link copied! Paste it in WhatsApp.<br><span style="font-weight:normal; font-size:0.8em">${magicLink}</span>`;
-        btn.textContent = "🔗 Share Schedule Link";
-
-      } catch (e) {
-        console.error(e);
-        alert("Could not generate link. Check internet?");
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
-    // 2. Student: Auto-detects Link on Load
-    async function checkUrlForImport() {
-        const params = new URLSearchParams(window.location.search);
-        const importId = params.get("import");
-
-        if (!importId) return; // No link used
-
-        // Ask user confirmation so they don't accidentally overwrite data
-        if (!confirm("Start fresh with the class schedule from this link?")) {
-            // If they say no, clean URL and stop
-            window.history.replaceState({}, document.title, window.location.pathname);
-            return;
-        }
-
-        try {
-            // Fetch the data
-            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${importId}`);
-            if (!res.ok) throw new Error("Link expired or invalid");
-            const json = await res.json();
-
-            // Apply Data (Same logic as file import)
-            state.subjects = json.subjects;
-            state.lectures = json.lectures || [];
-            if (json.startDate) state.startDate = json.startDate;
-            
-            // Keep existing name
-            if (!state.studentName && json.studentName) state.studentName = json.studentName;
-
-            state.isInitialized = true;
-            saveState();
-
-            // Clean URL (remove ?import=...) so it doesn't run again on refresh
-            window.history.replaceState({}, document.title, window.location.pathname);
-
-            alert("✅ Schedule imported successfully!");
-            location.reload(); // Refresh to ensure everything renders clean
-
-        } catch (e) {
-            alert("Error loading schedule: " + e.message);
-        }
-    }
     // 2. Import Function (Read JSON)
     function importScheduleFile(event) {
       const file = event.target.files[0];
@@ -1568,6 +1461,91 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
       reader.readAsText(file);
       // Reset input so same file can be selected again if needed
       event.target.value = ''; 
+    }
+
+    // ---------------------------------------------------------
+    // MAGIC LINK SHARING (JSONBlob.com)
+    // ---------------------------------------------------------
+    
+    async function shareScheduleViaLink() {
+      if (!state.subjects.length) return alert("Add subjects first!");
+      
+      const btn = document.getElementById("shareLinkBtn");
+      const status = document.getElementById("shareLinkStatus");
+      
+      // Prepare Data (Reset attendance for privacy)
+      const shareState = {
+        startDate: state.startDate,
+        subjects: state.subjects,
+        lectures: state.lectures.map(l => ({ ...l, attended: true })) 
+      };
+
+      try {
+        btn.disabled = true;
+        btn.textContent = "Generating Link...";
+
+        // Upload to JSONBlob
+        const response = await fetch("https://jsonblob.com/api/jsonBlob", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(shareState)
+        });
+
+        // Get the ID
+        const locationHeader = response.headers.get("Location");
+        const blobId = locationHeader.split("/").pop();
+        const magicLink = `${window.location.origin}${window.location.pathname}?import=${blobId}`;
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(magicLink);
+
+        status.style.display = "block";
+        status.innerHTML = `✅ Link copied! Paste it in WhatsApp.<br><span style="font-weight:normal; font-size:0.8em; word-break:break-all;">${magicLink}</span>`;
+        btn.textContent = "🔗 Link Copied!";
+        setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 3000);
+
+      } catch (e) {
+        console.error(e);
+        alert("Could not generate link. Check internet?");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function checkUrlForImport() {
+        const params = new URLSearchParams(window.location.search);
+        const importId = params.get("import");
+
+        if (!importId) return; 
+
+        if (!confirm("Start fresh with the class schedule from this link? This will overwrite your current data.")) {
+            // Clean URL if they say no
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+        }
+
+        try {
+            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${importId}`);
+            if (!res.ok) throw new Error("Link expired");
+            const json = await res.json();
+
+            state.subjects = json.subjects;
+            state.lectures = json.lectures || [];
+            if (json.startDate) state.startDate = json.startDate;
+            if (!state.studentName && json.studentName) state.studentName = json.studentName;
+
+            state.isInitialized = true;
+            saveState();
+
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            alert("✅ Schedule imported successfully!");
+            location.reload(); 
+
+        } catch (e) {
+            alert("Error loading schedule: " + e.message);
+        }
     }
 
     // ---------------- Export Attendance (CSV) ----------------
@@ -2335,8 +2313,6 @@ markHolidayBtn.addEventListener("click", () => {
       const isDark = document.body.classList.contains("dark");
       setTheme(isDark ? "light" : "dark");
     });
-	  const shareLinkBtn = document.getElementById("shareLinkBtn");
-    if (shareLinkBtn) shareLinkBtn.addEventListener("click", shareScheduleViaLink);
 	  // --- File Export/Import Events ---
     
     // 1. Export
@@ -2356,6 +2332,15 @@ markHolidayBtn.addEventListener("click", () => {
       
       importScheduleInput.addEventListener("change", importScheduleFile);
     }
+
+    // ---------------------------------------------------------
+    // MAGIC LINK SETUP - LISTENER & INIT
+    // ---------------------------------------------------------
+    
+    // Wire up the button
+    const shareLinkBtn = document.getElementById("shareLinkBtn");
+    if (shareLinkBtn) shareLinkBtn.addEventListener("click", shareScheduleViaLink);
+
 // ---------------- Onboarding: single guided tour + early attendance prompt ----------------
 // REPLACE YOUR EXISTING (function onboardingInit() { ... })(); WITH THIS:
 
@@ -2526,7 +2511,8 @@ markHolidayBtn.addEventListener("click", () => {
 
     // Boot
     (function init() {
-	checkUrlForImport();
+      checkUrlForImport(); // <--- MAGIC LINK CHECK HAPPENS HERE
+      
       setTheme(localStorage.getItem(THEME_KEY) || "light");
       if (!state.isInitialized) {
          state.isInitialized = true;
@@ -2806,8 +2792,7 @@ setTimeout(() => {
   });
 
   })();
-</script><!-- hits.sh counter (can be invisible if you want) -->
-<img
+</script><img
   src="https://hits.sh/jenishestmoizavut.github.io/attrack/.svg?view=today-total"
   alt="Hits"
   style="display:none"
@@ -2869,9 +2854,3 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
-
-
-
-
-
-
