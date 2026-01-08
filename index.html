@@ -1200,17 +1200,18 @@ Attrack by Jenish
     <strong>Students:</strong> Download the file and click "Import File" to instantly set up your app.
   </div>
   
-  <div style="display:flex; gap:10px; margin-top:12px;">
-    <button id="exportScheduleBtn" class="btn small" style="background:var(--accent);">
-      📤 Export Schedule File
+ <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
+    <button id="shareLinkBtn" class="btn small" style="background:var(--accent);">
+      🔗 Share Class Schedule Link
     </button>
-
-    <button id="triggerImportBtn" class="btn small secondary">
-      📥 Import Schedule File
+    
+    <button id="exportScheduleBtn" class="btn small secondary" style="display:none">Export File</button> <button id="triggerImportBtn" class="btn small secondary">
+      📂 Import File
     </button>
     
     <input type="file" id="importScheduleInput" accept=".json" style="display:none" />
-  </div>
+</div>
+<div id="shareLinkStatus" class="hint" style="margin-top:8px; display:none; color:#166534; font-weight:bold;"></div>
 </div>
           <div class="card" style="margin-bottom:8px;">
             <h3>Subjects 🧠</h3>
@@ -1426,7 +1427,100 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
     }
+// ---------------------------------------------------------
+    // MAGIC LINK SHARING (JSONBlob.com)
+    // ---------------------------------------------------------
+    
+    // 1. CR: Uploads Config & Copies Link
+    async function shareScheduleViaLink() {
+      if (!state.subjects.length) return alert("Add subjects first!");
+      
+      const btn = document.getElementById("shareLinkBtn");
+      const status = document.getElementById("shareLinkStatus");
+      
+      // 1. Prepare Data (Same as file export)
+      const shareState = {
+        startDate: state.startDate,
+        subjects: state.subjects,
+        lectures: state.lectures.map(l => ({ ...l, attended: true })) // Privacy: Reset attendance
+      };
 
+      try {
+        btn.disabled = true;
+        btn.textContent = "Generating Link...";
+
+        // 2. Upload to JSONBlob (Free, No Auth required)
+        const response = await fetch("https://jsonblob.com/api/jsonBlob", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(shareState)
+        });
+
+        // 3. Get the ID from the Location header
+        // Header format: https://jsonblob.com/api/jsonBlob/<ID>
+        const locationHeader = response.headers.get("Location");
+        const blobId = locationHeader.split("/").pop();
+
+        // 4. Create the "Magic Link"
+        // It appends ?import=ID to your current URL
+        const magicLink = `${window.location.origin}${window.location.pathname}?import=${blobId}`;
+
+        // 5. Copy to Clipboard
+        await navigator.clipboard.writeText(magicLink);
+
+        status.style.display = "block";
+        status.innerHTML = `✅ Link copied! Paste it in WhatsApp.<br><span style="font-weight:normal; font-size:0.8em">${magicLink}</span>`;
+        btn.textContent = "🔗 Share Schedule Link";
+
+      } catch (e) {
+        console.error(e);
+        alert("Could not generate link. Check internet?");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // 2. Student: Auto-detects Link on Load
+    async function checkUrlForImport() {
+        const params = new URLSearchParams(window.location.search);
+        const importId = params.get("import");
+
+        if (!importId) return; // No link used
+
+        // Ask user confirmation so they don't accidentally overwrite data
+        if (!confirm("Start fresh with the class schedule from this link?")) {
+            // If they say no, clean URL and stop
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+        }
+
+        try {
+            // Fetch the data
+            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${importId}`);
+            if (!res.ok) throw new Error("Link expired or invalid");
+            const json = await res.json();
+
+            // Apply Data (Same logic as file import)
+            state.subjects = json.subjects;
+            state.lectures = json.lectures || [];
+            if (json.startDate) state.startDate = json.startDate;
+            
+            // Keep existing name
+            if (!state.studentName && json.studentName) state.studentName = json.studentName;
+
+            state.isInitialized = true;
+            saveState();
+
+            // Clean URL (remove ?import=...) so it doesn't run again on refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            alert("✅ Schedule imported successfully!");
+            location.reload(); // Refresh to ensure everything renders clean
+
+        } catch (e) {
+            alert("Error loading schedule: " + e.message);
+        }
+    }
     // 2. Import Function (Read JSON)
     function importScheduleFile(event) {
       const file = event.target.files[0];
@@ -2241,6 +2335,8 @@ markHolidayBtn.addEventListener("click", () => {
       const isDark = document.body.classList.contains("dark");
       setTheme(isDark ? "light" : "dark");
     });
+	  const shareLinkBtn = document.getElementById("shareLinkBtn");
+    if (shareLinkBtn) shareLinkBtn.addEventListener("click", shareScheduleViaLink);
 	  // --- File Export/Import Events ---
     
     // 1. Export
@@ -2430,6 +2526,7 @@ markHolidayBtn.addEventListener("click", () => {
 
     // Boot
     (function init() {
+	checkUrlForImport();
       setTheme(localStorage.getItem(THEME_KEY) || "light");
       if (!state.isInitialized) {
          state.isInitialized = true;
@@ -2772,6 +2869,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
