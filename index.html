@@ -1485,7 +1485,7 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
         btn.textContent = "Generating Link...";
 
         // 1. Upload to JSONBlob
-        const response = await fetch("https://jsonblob.com/api/jsonBlob", {
+        const response = await fetch("https://cors.eu.org/https://jsonblob.com/api/jsonBlob", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify(shareState)
@@ -2871,5 +2871,6 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
