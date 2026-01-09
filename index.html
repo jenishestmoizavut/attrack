@@ -1467,83 +1467,17 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
     // MAGIC LINK SHARING (JSONBlob.com)
     // ---------------------------------------------------------
     
-    async function shareScheduleViaLink() {
-      if (!state.subjects.length) return alert("Add subjects first!");
-      
-      const btn = document.getElementById("shareLinkBtn");
-      const status = document.getElementById("shareLinkStatus");
-      
-      // Prepare Data
-      const shareState = {
-        startDate: state.startDate,
-        subjects: state.subjects,
-        lectures: state.lectures.map(l => ({ ...l, attended: true })) 
-      };
+const response = await fetch("https://jsonblob.com/api/jsonBlob", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "Accept": "application/json" },
+  body: JSON.stringify(shareState)
+});
 
-      try {
-        btn.disabled = true;
-        btn.textContent = "Generating Link...";
+if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
-        // 1. Upload to JSONBlob
-        const response = await fetch("https://cors.eu.org/https://jsonblob.com/api/jsonBlob", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify(shareState)
-        });
+let blobId = response.headers.get("Location")?.split("/").pop();
+if (!blobId) throw new Error("Could not extract blob ID");
 
-        if (!response.ok) throw new Error(`Server returned ${response.status}`);
-
-        // 2. Extract ID reliably
-let blobId = null;
-
-// 1. Try Location header
-const locationHeader = response.headers.get("Location");
-if (locationHeader) {
-  const match = locationHeader.match(/\/([^\/]+)$/);
-  if (match) blobId = match[1];
-}
-
-// 2. Try response.url
-if (!blobId && response.url) {
-  const match2 = response.url.match(/\/([^\/]+)$/);
-  if (match2) blobId = match2[1];
-}
-
-// 3. Try reading JSON response body
-if (!blobId) {
-  try {
-    const text = await response.clone().text(); // Read body safely
-    const idMatch = text.match(/[a-f0-9-]{8,}/i); // any UUID-ish token
-    if (idMatch) blobId = idMatch[0];
-  } catch(e) {}
-}
-
-if (!blobId || blobId.toLowerCase() === "jsonblob") {
-  throw new Error("Could not extract blob ID");
-}
-        // 3. Construct Clean URL (Your Fix: Removes index.html)
-        const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-        const magicLink = `${base}?import=${blobId}`;
-
-        // 4. Success
-        await navigator.clipboard.writeText(magicLink);
-
-        status.style.display = "block";
-        status.innerHTML = `✅ Link copied! Paste it in WhatsApp.<br><span style="font-weight:normal; font-size:0.8em; word-break:break-all;">${magicLink}</span>`;
-        btn.textContent = "🔗 Link Copied!";
-        setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 3000);
-
-      } catch (e) {
-        console.error(e);
-        // Fallback: If cloud fails, offer file download
-        if(confirm(`Cloud sharing failed (${e.message}).\n\nDownload the file instead to share on WhatsApp?`)) {
-            exportScheduleFile();
-        }
-      } finally {
-        btn.disabled = false;
-        if (btn.textContent === "Generating Link...") btn.textContent = "🔗 Share Schedule Link";
-      }
-    }
 
   async function checkUrlForImport() {
         const params = new URLSearchParams(window.location.search);
@@ -2892,6 +2826,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
