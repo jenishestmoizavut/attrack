@@ -2584,7 +2584,7 @@ markHolidayBtn.addEventListener("click", () => {
       renderTimetable();
       renderSummary();
 renderSetupTarget();
-maybeShowClassSharePopup();
+showNewFeaturePopupIfNeeded();
 
 		// This forces the app to open 'Home View' every time, regardless of button order
       switchView("homeView"); 
@@ -2860,21 +2860,16 @@ document.getElementById("popupCopyBtn").onclick = () => {
 document.getElementById("popupCloseBtn").onclick = () => {
   document.getElementById("shareInfoPopup").style.display = "none";
 };
-function maybeShowClassSharePopup() {
-  const KEY = "attrack_share_popup_seen";
+function showNewFeaturePopupIfNeeded() {
+  const KEY = "attrack_seen_share_popup";
 
-  // Only show ONCE EVER
+  // If you want it once per browser:
   if (localStorage.getItem(KEY) === "yes") return;
 
-  // Only show if user has timetable OR subjects
-  if (!state.subjects || state.subjects.length === 0) return;
+  document.getElementById("newFeaturePopup").style.display = "flex";
 
-  // Show popup
-  document.getElementById("classShareInfo").style.display = "flex";
-
-  // When dismissed
-  document.getElementById("classShareDismissBtn").onclick = () => {
-    document.getElementById("classShareInfo").style.display = "none";
+  document.getElementById("newFeatureCloseBtn").onclick = () => {
+    document.getElementById("newFeaturePopup").style.display = "none";
     localStorage.setItem(KEY, "yes");
   };
 }
@@ -2939,23 +2934,20 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
-	
-	<div id="classShareInfo" class="popup-overlay" style="display:none;">
+<div id="newFeaturePopup" class="popup-overlay" style="display:none;">
   <div class="popup-body">
-    <h2>Share Attrack with your class ✨</h2>
-
+    <h2>New Feature! 🎉</h2>
     <p style="font-size:0.9rem; margin:10px 0;">
-      You can share the lectures loaded so far with your classmates so they do not have to set up the app!  
+      You can share the lectures loaded so far with your classmates so they do not have to set up the app!
       If you are using it for the first time, get your friend to share the link to have your set up ready!
     </p>
-
-    <button id="classShareDismissBtn" style="margin-top:12px;">Got it!</button>
+    <button id="newFeatureCloseBtn" style="margin-top:12px;">Got it!</button>
   </div>
 </div>
 
-
 </body>
 	</html>
+
 
 
 
