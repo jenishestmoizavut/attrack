@@ -1581,8 +1581,20 @@ state.lectures = (data.lectures || []).map(l => ({
     saveState();
 
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
-    alert("Imported successfully! 🎉");
-    location.reload();
+document.getElementById("shareInfoPopup").querySelector("h2").textContent =
+  "Setup Complete 🎉";
+
+document.getElementById("shareInfoPopup").querySelector("p").textContent =
+  "You're now running your class timetable. Mark today's lectures from the Daily tab!";
+
+document.getElementById("popupLinkBox").style.display = "none";
+document.getElementById("shareInfoPopup").style.display = "flex";
+
+document.getElementById("popupCloseBtn").onclick = () => {
+  document.getElementById("shareInfoPopup").style.display = "none";
+  location.reload();
+};
+
   } catch (e) {
     alert("Could not import.");
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
@@ -2924,6 +2936,7 @@ if ("serviceWorker" in navigator) {
 
 </body>
 	</html>
+
 
 
 
