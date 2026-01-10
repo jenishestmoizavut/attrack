@@ -1524,7 +1524,12 @@ async function checkUrlForImport() {
 
     state.startDate = data.startDate;
     state.subjects = data.subjects;
-    state.lectures = data.lectures || [];
+state.lectures = (data.lectures || []).map(l => ({
+  ...l,
+  attended: true,      // mark all as present by default
+  special: l.special || false
+}));
+
 
     if (data.target) {
       localStorage.setItem("attrack_target_attendance", data.target);
@@ -2848,6 +2853,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
