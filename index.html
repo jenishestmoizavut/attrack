@@ -1466,126 +1466,82 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
     // ---------------------------------------------------------
     // MAGIC LINK SHARING (JSONBlob.com)
     // ---------------------------------------------------------
-    
-    async function shareScheduleViaLink() {
-      if (!state.subjects.length) return alert("Add subjects first!");
-      
-      const btn = document.getElementById("shareLinkBtn");
-      const status = document.getElementById("shareLinkStatus");
-      
-      // Prepare Data
-      const shareState = {
-        startDate: state.startDate,
-        subjects: state.subjects,
-        lectures: state.lectures.map(l => ({ ...l, attended: true })) 
-      };
+   async function shareScheduleViaLink() {
+  if (!state.subjects.length) return alert("Add subjects first!");
 
-      try {
-        btn.disabled = true;
-        btn.textContent = "Generating Link...";
+  const btn = document.getElementById("shareLinkBtn");
+  const status = document.getElementById("shareLinkStatus");
 
-        // 1. Upload to JSONBlob
-        const response = await fetch("https://cors.eu.org/https://jsonblob.com/api/jsonBlob", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Accept": "application/json" },
-            body: JSON.stringify(shareState)
-        });
+  const shareState = {
+    startDate: state.startDate,
+    subjects: state.subjects,
+    lectures: state.lectures,
+    target: localStorage.getItem("attrack_target_attendance")
+  };
 
-        if (!response.ok) throw new Error(`Server returned ${response.status}`);
-
-        // 2. Extract ID reliably
-let blobId = null;
-
-// 1. Try Location header
-const locationHeader = response.headers.get("Location");
-if (locationHeader) {
-  const match = locationHeader.match(/\/([^\/]+)$/);
-  if (match) blobId = match[1];
-}
-
-// 2. Try response.url
-if (!blobId && response.url) {
-  const match2 = response.url.match(/\/([^\/]+)$/);
-  if (match2) blobId = match2[1];
-}
-
-// 3. Try reading JSON response body
-if (!blobId) {
   try {
-    const text = await response.clone().text(); // Read body safely
-    const idMatch = text.match(/[a-f0-9-]{8,}/i); // any UUID-ish token
-    if (idMatch) blobId = idMatch[0];
-  } catch(e) {}
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+
+    const response = await fetch("https://attrack.jenishschaplot.workers.dev/save", {
+      method: "POST",
+      body: JSON.stringify(shareState)
+    });
+
+    const id = await response.text();
+
+    const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+    const magicLink = `${base}?import=${id}`;
+
+    await navigator.clipboard.writeText(magicLink);
+
+    status.style.display = "block";
+    status.innerHTML = `✅ Link copied!<br><span style="font-weight:normal; font-size:0.8em; word-break:break-all;">${magicLink}</span>`;
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 3000);
+
+  } catch (e) {
+    alert("Cloud save failed. Try again.");
+  } finally {
+    btn.disabled = false;
+  }
 }
+async function checkUrlForImport() {
+  const params = new URLSearchParams(window.location.search);
+  const importId = params.get("import");
+  if (!importId) return;
 
-if (!blobId || blobId.toLowerCase() === "jsonblob") {
-  throw new Error("Could not extract blob ID");
-}
-        // 3. Construct Clean URL (Your Fix: Removes index.html)
-        const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-        const magicLink = `${base}?import=${blobId}`;
+  if (!confirm("Start with the shared schedule? This will replace your data.")) {
+    history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
+    return;
+  }
 
-        // 4. Success
-        await navigator.clipboard.writeText(magicLink);
+  try {
+    const res = await fetch(`https://attrack.jenishschaplot.workers.dev/load?id=${importId}`);
+    if (!res.ok) throw new Error("Invalid or expired link");
 
-        status.style.display = "block";
-        status.innerHTML = `✅ Link copied! Paste it in WhatsApp.<br><span style="font-weight:normal; font-size:0.8em; word-break:break-all;">${magicLink}</span>`;
-        btn.textContent = "🔗 Link Copied!";
-        setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 3000);
+    const data = await res.json();
 
-      } catch (e) {
-        console.error(e);
-        // Fallback: If cloud fails, offer file download
-        if(confirm(`Cloud sharing failed (${e.message}).\n\nDownload the file instead to share on WhatsApp?`)) {
-            exportScheduleFile();
-        }
-      } finally {
-        btn.disabled = false;
-        if (btn.textContent === "Generating Link...") btn.textContent = "🔗 Share Schedule Link";
-      }
+    state.startDate = data.startDate;
+    state.subjects = data.subjects;
+    state.lectures = data.lectures || [];
+
+    if (data.target) {
+      localStorage.setItem("attrack_target_attendance", data.target);
     }
 
-  async function checkUrlForImport() {
-        const params = new URLSearchParams(window.location.search);
-        const importId = params.get("import");
+    state.isInitialized = true;
+    saveState();
 
-        if (!importId) return; 
+    history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
+    alert("Imported successfully! 🎉");
+    location.reload();
+  } catch (e) {
+    alert("Could not import.");
+    history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
+  }
+}
 
-        if (!confirm("Start fresh with the class schedule from this link? This will overwrite your current data.")) {
-            // Clean URL if they say no
-            window.history.replaceState({}, document.title, window.location.pathname.replace(/index\.html$/, ""));
-            return;
-        }
-
-        try {
-            // Your Fix: Explicit Accept header
-            const res = await fetch(`https://jsonblob.com/api/jsonBlob/${importId}`, {
-                headers: { "Accept": "application/json" }
-            });
-
-            if (!res.ok) throw new Error("Link expired or invalid");
-            const json = await res.json();
-
-            state.subjects = json.subjects;
-            state.lectures = json.lectures || [];
-            if (json.startDate) state.startDate = json.startDate;
-            if (!state.studentName && json.studentName) state.studentName = json.studentName;
-
-            state.isInitialized = true;
-            saveState();
-
-            // Clean URL
-            window.history.replaceState({}, document.title, window.location.pathname.replace(/index\.html$/, ""));
-
-            alert("✅ Schedule imported successfully!");
-            location.reload(); 
-
-        } catch (e) {
-            alert("Error loading schedule: " + e.message);
-            // Clean URL so it doesn't loop the error on refresh
-            window.history.replaceState({}, document.title, window.location.pathname.replace(/index\.html$/, ""));
-        }
-    }
     // ---------------- Export Attendance (CSV) ----------------
     function exportAttendanceCSV() {
       if (!state || !Array.isArray(state.lectures) || state.lectures.length === 0) {
@@ -2892,6 +2848,7 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 	</html>
+
 
 
 
