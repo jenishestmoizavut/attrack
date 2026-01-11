@@ -1509,11 +1509,13 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
     // ---------------------------------------------------------
     // MAGIC LINK SHARING (JSONBlob.com)
     // ---------------------------------------------------------
-   async function shareScheduleViaLink() {
-  if (!state.subjects.length) return alert("Add subjects first!");
+ async function shareScheduleViaLink() {
+  if (!state.subjects.length) {
+    alert("Add subjects first!");
+    return;
+  }
 
   const btn = document.getElementById("shareLinkBtn");
-  const status = document.getElementById("shareLinkStatus");
 
   const shareState = {
     startDate: state.startDate,
@@ -1538,13 +1540,17 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 
     await navigator.clipboard.writeText(magicLink);
 
-    showSharePopup(magicLink);
-btn.textContent = "Copied!";
-setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 3000);
+    btn.textContent = "Copied!";   // 🟢 YOUR SUCCESS MESSAGE
+    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
 
   } catch (e) {
-    alert("Cloud save failed. Try again.");
-  } finally {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = "Failed — try again";
+    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
+  }
+}
+ finally {
     btn.disabled = false;
   }
 }
@@ -2949,6 +2955,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
