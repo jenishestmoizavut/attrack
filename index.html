@@ -2584,7 +2584,7 @@ markHolidayBtn.addEventListener("click", () => {
       renderTimetable();
       renderSummary();
 renderSetupTarget();
-showNewFeaturePopupIfNeeded();
+showNewFeaturePopupIfNeeded(); // showNewFeaturePopupIfNeeded();
 
 		// This forces the app to open 'Home View' every time, regardless of button order
       switchView("homeView"); 
@@ -2936,17 +2936,23 @@ if ("serviceWorker" in navigator) {
 </script>
 <div id="newFeaturePopup" class="popup-overlay" style="display:none;">
   <div class="popup-body">
-    <h2>New Feature! 🎉</h2>
-    <p style="font-size:0.9rem; margin:10px 0;">
-      You can share the lectures loaded so far with your classmates so they do not have to set up the app!
-      If you are using it for the first time, get your friend to share the link to have your set up ready!
-    </p>
-    <button id="newFeatureCloseBtn" style="margin-top:12px;">Got it!</button>
+    <h2>New Feature Added 🎉</h2>
+    <p>Class rep sharing link is now live!</p>
+
+    <button id="newFeatureCloseBtn" class="btn small">Okay!</button>
   </div>
 </div>
 
+<script>
+document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
+  document.getElementById("newFeaturePopup").style.display = "none";
+  localStorage.setItem("attrack_feature_seen", "1");
+});
+</script>
+
 </body>
 	</html>
+
 
 
 
