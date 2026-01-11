@@ -1550,10 +1550,7 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
     setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
   }
 }
- finally {
-    btn.disabled = false;
-  }
-}
+ 
 async function checkUrlForImport() {
   const params = new URLSearchParams(window.location.search);
   const importId = params.get("import");
@@ -2955,6 +2952,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
