@@ -2846,20 +2846,19 @@ setTimeout(() => {
   });
 
   })();
-	function showSharePopup(magicLink) {
-  document.getElementById("popupLinkInput").value = magicLink;
-  document.getElementById("shareInfoPopup").style.display = "flex";
-}
+//function showSharePopup(magicLink) {
+//  document.getElementById("popupLinkInput").value = magicLink;
+  //document.getElementById("shareInfoPopup").style.display = "flex";
+//}
 
-document.getElementById("popupCopyBtn").onclick = () => {
-  const link = document.getElementById("popupLinkInput").value;
-  navigator.clipboard.writeText(link);
-  alert("Link copied!");
-};
+//document.getElementById("popupCopyBtn").onclick = () => {
+  //const link = document.getElementById("popupLinkInput").value;
+ // navigator.clipboard.writeText(link);
+  //alert("Link copied!");
 
-document.getElementById("popupCloseBtn").onclick = () => {
-  document.getElementById("shareInfoPopup").style.display = "none";
-};
+//document.getElementById("popupCloseBtn").onclick = () => {
+  //document.getElementById("shareInfoPopup").style.display = "none";
+
 
 function showNewFeaturePopupIfNeeded() {
   const KEY = "attrack_seen_share_popup_V2";
@@ -2950,6 +2949,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
