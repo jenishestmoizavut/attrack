@@ -1746,7 +1746,7 @@ function shouldSendDailyReminder() {
   const isoDate = toISODate(now);
 
   // 2. Check Time (Change '20' to '0' while testing to see it immediately!)
-  if (now.getHours() < 0) return false; 
+  if (now.getHours() < 20) return false; 
 
   // 3. Check if we already reminded today
   const last = localStorage.getItem("attrack_last_reminder_date");
@@ -3046,6 +3046,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
