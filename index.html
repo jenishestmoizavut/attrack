@@ -1553,41 +1553,6 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
   }
 }
 
-  const btn = document.getElementById("shareLinkBtn");
-
-  const shareState = {
-    startDate: state.startDate,
-    subjects: state.subjects,
-    lectures: state.lectures,
-    target: localStorage.getItem("attrack_target_attendance")
-  };
-
-  try {
-    btn.disabled = true;
-    btn.textContent = "Saving...";
-
-    const response = await fetch("https://attrack.jenishschaplot.workers.dev/save", {
-      method: "POST",
-      body: JSON.stringify(shareState)
-    });
-
-    const id = await response.text();
-
-    const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-    const magicLink = `${base}?import=${id}`;
-
-    await navigator.clipboard.writeText(magicLink);
-
-    btn.textContent = "Copied!";   // 🟢 YOUR SUCCESS MESSAGE
-    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
-
-  } catch (e) {
-    console.error(e);
-    btn.disabled = false;
-    btn.textContent = "Failed — try again";
-    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
-  }
-}
  async function checkUrlForImport() {
   const params = new URLSearchParams(window.location.search);
   const importId = params.get("import");
@@ -3010,6 +2975,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
