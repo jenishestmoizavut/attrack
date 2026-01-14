@@ -1738,21 +1738,25 @@ if (saveTargetBtn) {
     }
 function shouldSendDailyReminder() {
   if (!("Notification" in window)) return false;
+  
+  // 1. Check Permission
   if (Notification.permission !== "granted") return false;
 
   const now = new Date();
-  if (now.getHours() < 20) return false; // before 8 PM
+  const isoDate = toISODate(now);
 
-  const todayISO = toISODate(now);
+  // 2. Check Time (Change '20' to '0' while testing to see it immediately!)
+  if (now.getHours() < 0) return false; 
+
+  // 3. Check if we already reminded today
   const last = localStorage.getItem("attrack_last_reminder_date");
-  if (last === todayISO) return false;
+  if (last === isoDate) return false;
 
-  const todays = state.lectures.filter(l => l.date === todayISO);
-  if (todays.length === 0) return false;
-
-  // If any lecture still untouched → remind
-  const needsUpdate = todays.some(l => l.attended === undefined);
-  return needsUpdate;
+  // 4. Check if there are ANY lectures today (regardless of attendance status)
+  const todays = state.lectures.filter(l => l.date === isoDate && !l.isCancelled);
+  
+  // If there are lectures today, we remind the user to check them
+  return todays.length > 0;
 }
 function sendDailyReminder() {
   navigator.serviceWorker.getRegistration().then(reg => {
@@ -3036,6 +3040,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
