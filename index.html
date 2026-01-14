@@ -2679,7 +2679,13 @@ renderSetupTarget();
 
 		// This forces the app to open 'Home View' every time, regardless of button order
       switchView("homeView"); 
-
+// Add this inside your init() or at the bottom of your script
+document.addEventListener('click', async () => {
+  // Only ask once, ever
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}, { once: true });
     })();
 // ---------------------------------------------------------
     // PDF IMPORTER INTEGRATION
@@ -3040,6 +3046,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
