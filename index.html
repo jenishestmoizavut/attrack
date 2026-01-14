@@ -1521,6 +1521,44 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
     startDate: state.startDate,
     subjects: state.subjects,
     lectures: state.lectures,
+    // --- 🔴 FIX: SEND HOLIDAYS ---
+    holidays: state.holidays || [], 
+    target: localStorage.getItem("attrack_target_attendance")
+  };
+
+  try {
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+
+    const response = await fetch("https://attrack.jenishschaplot.workers.dev/save", {
+      method: "POST",
+      body: JSON.stringify(shareState)
+    });
+
+    const id = await response.text();
+
+    const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+    const magicLink = `${base}?import=${id}`;
+
+    await navigator.clipboard.writeText(magicLink);
+
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
+
+  } catch (e) {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = "Failed — try again";
+    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
+  }
+}
+
+  const btn = document.getElementById("shareLinkBtn");
+
+  const shareState = {
+    startDate: state.startDate,
+    subjects: state.subjects,
+    lectures: state.lectures,
     target: localStorage.getItem("attrack_target_attendance")
   };
 
@@ -1550,8 +1588,7 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
     setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
   }
 }
- 
-async function checkUrlForImport() {
+ async function checkUrlForImport() {
   const params = new URLSearchParams(window.location.search);
   const importId = params.get("import");
   if (!importId) return;
@@ -1569,12 +1606,15 @@ async function checkUrlForImport() {
 
     state.startDate = data.startDate;
     state.subjects = data.subjects;
-state.lectures = (data.lectures || []).map(l => ({
-  ...l,
-  attended: true,      // mark all as present by default
-  special: l.special || false
-}));
-
+    
+    // --- 🔴 FIX: LOAD HOLIDAYS ---
+    state.holidays = data.holidays || [];
+    
+    state.lectures = (data.lectures || []).map(l => ({
+      ...l,
+      attended: true,
+      special: l.special || false
+    }));
 
     if (data.target) {
       localStorage.setItem("attrack_target_attendance", data.target);
@@ -1584,19 +1624,17 @@ state.lectures = (data.lectures || []).map(l => ({
     saveState();
 
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
-document.getElementById("shareInfoPopup").querySelector("h2").textContent =
-  "Setup Complete 🎉";
+    
+    // UI Updates
+    document.getElementById("shareInfoPopup").querySelector("h2").textContent = "Setup Complete 🎉";
+    document.getElementById("shareInfoPopup").querySelector("p").textContent = "You're now running your class timetable. Mark today's lectures from the Daily tab!";
+    document.getElementById("popupLinkBox").style.display = "none";
+    document.getElementById("shareInfoPopup").style.display = "flex";
 
-document.getElementById("shareInfoPopup").querySelector("p").textContent =
-  "You're now running your class timetable. Mark today's lectures from the Daily tab!";
-
-document.getElementById("popupLinkBox").style.display = "none";
-document.getElementById("shareInfoPopup").style.display = "flex";
-
-document.getElementById("popupCloseBtn").onclick = () => {
-  document.getElementById("shareInfoPopup").style.display = "none";
-  location.reload();
-};
+    document.getElementById("popupCloseBtn").onclick = () => {
+      document.getElementById("shareInfoPopup").style.display = "none";
+      location.reload();
+    };
 
   } catch (e) {
     alert("Could not import.");
@@ -1850,7 +1888,7 @@ renderSetupSummaries();
     }
 
     // ---------- Generation Logic ----------
-    function regenerateFromSchedules() {
+function regenerateFromSchedules() {
       const start = parseISO(state.startDate || toISODate(new Date()));
       const today = new Date(); today.setHours(0,0,0,0);
       
@@ -1871,9 +1909,21 @@ renderSetupSummaries();
       let cur = new Date(start); cur.setHours(0,0,0,0);
       let guard = 0;
       
+      // Ensure holidays array exists
+      const holidays = state.holidays || [];
+
       while (cur <= today && guard < 5000) {
         const iso = toISODate(cur);
-{
+
+        // --- 🔴 CRITICAL FIX: SKIP HOLIDAYS ---
+        // If this date is in the holiday list, skip generation entirely
+        if (holidays.includes(iso)) {
+            cur.setDate(cur.getDate() + 1);
+            continue; 
+        }
+        // --------------------------------------
+
+        {
           const dow = cur.getDay();
           state.subjects.forEach(subj => {
             if (!subj.schedule?.weeklyPattern) return;            
@@ -1907,7 +1957,6 @@ renderSetupSummaries();
 
       state.lectures = manualLectures.concat(newAuto, futureAuto);
     }
-
     function generateLecturesForDateInternal(subj, dateObj, avoidDuplicates) {
       const iso = toISODate(dateObj);
       const dow = dateObj.getDay();
@@ -2315,10 +2364,19 @@ state.startDate = startDateInput.value || toISODate(new Date());      state.isIn
     });
 
 
-    loadDayBtn.addEventListener("click", () => {
-      subjectFilterEl.value = ""; // FIX: Reset filter so user sees results
-      generateLecturesForDate(toISODate(selectedDate));
-      saveState(); renderCalendar(); renderLectures();
+   loadDayBtn.addEventListener("click", () => {
+      subjectFilterEl.value = ""; 
+      const iso = toISODate(selectedDate);
+      
+      // If user forces load, remove this day from holidays
+      if (state.holidays) {
+        state.holidays = state.holidays.filter(h => h !== iso);
+      }
+
+      generateLecturesForDate(iso);
+      saveState(); 
+      renderCalendar(); 
+      renderLectures();
     });
     addSubjectBtn.addEventListener("click", () => {
       const name = prompt("Subject name:");
@@ -2952,6 +3010,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
