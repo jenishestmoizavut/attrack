@@ -2242,9 +2242,11 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
       // If we are ABOVE 75%, how many can we miss? 
       // Formula: (Attended - 0.75 * Total) / 0.75
 const rawTarget = parseFloat(localStorage.getItem(TARGET_KEY));
-const target = (typeof rawTarget === "number" && !isNaN(rawTarget)) ? rawTarget : 0.75; // default 75%
-const canBunk = Math.floor((attended - target * total) / target);
+const target = (!isNaN(rawTarget) ? rawTarget : 0.75);
+
+const canBunk     = Math.floor((attended - target * total) / target);
 const needToAttend = Math.ceil((target * total - attended) / (1 - target));
+
       // 4. Update the Home View Card (finalAttendanceSummary)
       const summaryDiv = document.getElementById('finalAttendanceSummary');
       
@@ -2252,20 +2254,21 @@ const needToAttend = Math.ceil((target * total - attended) / (1 - target));
         let statusHtml = '';
         
 if (pct >= target * 100) {
-          // GREEN CARD (SAFE)
-          statusHtml = `
-            <div style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #bbf7d0; font-size: 0.95rem; line-height: 1.5;">
-              <strong style="font-size:1.05rem;">You are looking good! 🎉</strong><br>
-You can skip the next <strong>${canBunk}</strong> lectures and stay above ${Math.round(target*100)}%.
-            </div>`;
-        } else {
-          // RED CARD (DANGER)
-          statusHtml = `
-            <div style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px; border:1px solid #fecaca; font-size: 0.95rem; line-height: 1.5;">
-              <strong style="font-size:1.05rem;">Attendance Low ⚠️</strong><br>
-              You need to attend <strong>${needToAttend}</strong> more lectures in a row to hit ${Math.round(target * 100)}%!
-            </div>`;
-        }
+  // GREEN GOOD NEWS
+  statusHtml = `
+    <div style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
+      <strong>You are looking good 🎉</strong><br>
+      You can skip the next <strong>${canBunk}</strong> lectures!
+    </div>`;
+} else {
+  // RED WARNING
+  statusHtml = `
+    <div style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px;">
+      <strong>Attendance low ⚠️</strong><br>
+      You need to attend <strong>${needToAttend}</strong> more lectures to hit ${Math.round(target * 100)}%.
+    </div>`;
+}
+
 
         summaryDiv.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
@@ -3046,6 +3049,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
