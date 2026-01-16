@@ -1058,16 +1058,6 @@ div.popup-dot { display:none !important; }
   color: white;
 }
 /* --- BRAND CORNER (Top Left - Desktop Only) --- */
-.brand-corner {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  z-index: 2000; /* High z-index to stay above the app */
-}
 
 /* Hide on mobile/tablets so it doesn't overlap the app UI */
 @media (max-width: 1100px) {
@@ -1127,6 +1117,111 @@ div.popup-dot { display:none !important; }
   margin-left: 5px;
   color: var(--muted);
 }
+	  /* --- HEADER CONTROLS --- */
+/* Add this to your existing header styles if needed, or just use this */
+header {
+    display: flex;
+    justify-content: space-between; /* Space between Title and Gear */
+    align-items: center;
+    padding: 0 5px; /* Adjust based on your existing padding */
+}
+
+.settings-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.settings-btn:active { background: rgba(0,0,0,0.1); }
+[data-theme="dark"] .settings-btn { color: white; }
+
+/* --- BOTTOM SHEET MENU (Mobile Style) --- */
+.menu-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none; /* Click-through when hidden */
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.menu-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.bottom-sheet {
+    position: fixed;
+    bottom: -100%; /* Hidden below screen */
+    left: 0; right: 0;
+    background: var(--card-bg, #ffffff); /* Use your existing var */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px;
+    z-index: 9999;
+    transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    color: var(--text-color, #2d3436);
+}
+
+.menu-overlay.open .bottom-sheet {
+    bottom: 0; /* Slide up */
+}
+
+/* Menu Items */
+.menu-header {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+    opacity: 0.5;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(0,0,0,0.03);
+    margin-bottom: 10px;
+    font-weight: 500;
+    transition: transform 0.1s;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    font-size: 1rem;
+    text-align: left;
+}
+
+.menu-item:active { transform: scale(0.98); }
+
+/* Custom Colors for specific buttons */
+.menu-item.highlight {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+}
+
+.menu-icon { font-size: 1.2rem; width: 24px; text-align: center; }
+
+/* Sigma Icon for your link */
+.sigma-box {
+    width: 24px; height: 24px;
+    background: white; color: #4f46e5;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-family: serif; font-size: 14px;
+}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1147,18 +1242,9 @@ div.popup-dot { display:none !important; }
     </a>
 </div>
 
-  <div class="app">
 
-<p style="margin-top:12px; font-size:0.9rem;">
-  Check out my other project: <br>
-  <a href="https://jenishestmoizavut.github.io/simulating-statistics/" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:600;">
-    🎲 Simulating Statistics →
-  </a>
-</p>
-  <div class="app">
 
-    <div class="header">
-      <div class="title-block">
+    <div class="title-block">
         <div class="title">
           <img src="./icon-192.png.png" alt="Attrack logo" style="height:22px; vertical-align:middle; margin-right:6px;">
 Attrack by Jenish
@@ -3138,6 +3224,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
