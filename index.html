@@ -1059,7 +1059,7 @@ div.popup-dot { display:none !important; }
 }
 /* --- BRAND CORNER (Top Left - Desktop Only) --- */
 .brand-corner {
-  position: fixed;
+  position: absolute;
   top: 24px;
   left: 24px;
   display: flex;
@@ -1092,7 +1092,21 @@ div.popup-dot { display:none !important; }
   transform: translateX(5px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
-
+/* The Sigma Icon Box */
+.brand-logo-icon {
+  width: 24px; 
+  height: 24px; 
+  background: #4f46e5; /* Indigo color */
+  color: white; 
+  border-radius: 6px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: bold; 
+  font-family: serif;
+  font-size: 14px;
+  flex-shrink: 0;
+}
 .brand-logo-img {
   width: 24px; 
   height: 24px;
@@ -1123,27 +1137,18 @@ div.popup-dot { display:none !important; }
 <body>
 
   <div class="brand-corner">
-    <a href="#" class="brand-link">
-      <img src="./icon-192.png.png" alt="Attrack" class="brand-logo-img">
-      <span class="brand-text">Attrack</span>
-    </a>
-
+  
     <a href="https://jenishestmoizavut.github.io/simulating-statistics/" target="_blank" class="brand-link">
-		 <img src="./Simulating-Statistics-Logo" alt="Simulating Statistics" class="brand-logo-img">
+      <div class="brand-logo-icon">Σ</div>
       <div>
         <span class="brand-text">Simulating Stats</span>
         <span class="brand-sub">↗</span>
       </div>
     </a>
-  </div>
+</div>
 
   <div class="app">
-    ```
 
-### 💡 Pro Tip for Attrack
-Since Attrack is primarily used on phones where this corner will be hidden, you might also want to add a text link in your **Creator Card** (at the bottom of the page) so mobile users can find it too:
-
-```html
 <p style="margin-top:12px; font-size:0.9rem;">
   Check out my other project: <br>
   <a href="https://jenishestmoizavut.github.io/simulating-statistics/" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:600;">
@@ -3133,6 +3138,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
