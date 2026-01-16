@@ -1057,7 +1057,62 @@ div.popup-dot { display:none !important; }
   background-color: #007bff;
   color: white;
 }
+/* --- BRAND CORNER (Top Left - Desktop Only) --- */
+.brand-corner {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  z-index: 2000; /* High z-index to stay above the app */
+}
 
+/* Hide on mobile/tablets so it doesn't overlap the app UI */
+@media (max-width: 1100px) {
+  .brand-corner { display: none; }
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  background: var(--card-bg);
+  padding: 8px 16px; 
+  border-radius: 50px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brand-link:hover {
+  transform: translateX(5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.brand-logo-img {
+  width: 24px; 
+  height: 24px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.brand-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.brand-sub {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  font-weight: 500;
+  margin-left: 5px;
+  color: var(--muted);
+}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1066,6 +1121,35 @@ div.popup-dot { display:none !important; }
 </script>
 </head>
 <body>
+
+  <div class="brand-corner">
+    <a href="#" class="brand-link">
+      <img src="./icon-192.png.png" alt="Attrack" class="brand-logo-img">
+      <span class="brand-text">Attrack</span>
+    </a>
+
+    <a href="https://jenishestmoizavut.github.io/simulating-statistics/" target="_blank" class="brand-link">
+		 <img src="./Simulating-Statistics-Logo" alt="Simulating Statistics" class="brand-logo-img">
+      <div>
+        <span class="brand-text">Simulating Stats</span>
+        <span class="brand-sub">↗</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="app">
+    ```
+
+### 💡 Pro Tip for Attrack
+Since Attrack is primarily used on phones where this corner will be hidden, you might also want to add a text link in your **Creator Card** (at the bottom of the page) so mobile users can find it too:
+
+```html
+<p style="margin-top:12px; font-size:0.9rem;">
+  Check out my other project: <br>
+  <a href="https://jenishestmoizavut.github.io/simulating-statistics/" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:600;">
+    🎲 Simulating Statistics →
+  </a>
+</p>
   <div class="app">
 
     <div class="header">
@@ -3049,6 +3133,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
