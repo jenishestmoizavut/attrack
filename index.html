@@ -1234,6 +1234,28 @@ Attrack by Jenish
       <button id="changeTargetBtn" class="btn small secondary" type="button">Change</button>
     </div>
   </div>
+	<div class="card" style="margin-top:12px;">
+  <h3>⏰ Daily Reminders</h3>
+  <div class="hint">
+    Since Attrack runs offline, use your phone's calendar to get notified.
+  </div>
+  
+  <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+    <button id="downloadIcsBtn" class="btn small" style="justify-content:center;">
+      📅 Add to Calendar (Recommended)
+    </button>
+    
+    <button id="openGcalBtn" class="btn small secondary" style="justify-content:center;">
+      🔗 Open Google Calendar
+    </button>
+  </div>
+  
+  <div class="hint" style="margin-top:8px;">
+    This sets a daily event at <strong>8:00 PM</strong> to remind you to log attendance.
+  </div>
+</div>
+
+
 	<div class="card" style="margin-top:12px; border-color: var(--accent);">
   <h3>⚡️ Class Rep / Backup</h3>
   <div class="hint">
@@ -1442,7 +1464,90 @@ Source code is not licensed for reuse or redistribution.
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
   const NOTIF_ASKED_KEY = "attrack_notif_permission_asked";
 // ---------------- Full Schedule Export/Import (Class Rep Mode) ----------------
-    
+    // ---------------------------------------------------------
+// CALENDAR REMINDER LOGIC
+// ---------------------------------------------------------
+
+function generateReminderEvent() {
+  // 1. Calculate start time (Tonight at 8:00 PM)
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(20, 0, 0, 0); // 20:00 = 8 PM
+  
+  // If it's already past 8 PM, schedule for tomorrow
+  if (now > start) {
+    start.setDate(start.getDate() + 1);
+  }
+
+  // Format date for ICS (YYYYMMDDTHHMMSS)
+  const formatICSDate = (date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+
+  const startDateStr = formatICSDate(start);
+  const endDateStr = formatICSDate(new Date(start.getTime() + 15 * 60000)); // 15 min duration
+
+  // 2. Build ICS Content (Standard Calendar Format)
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Attrack//Attendance Tracker//EN',
+    'BEGIN:VEVENT',
+    'UID:attrack-reminder-' + Date.now(),
+    'DTSTAMP:' + formatICSDate(new Date()),
+    'DTSTART:' + startDateStr,
+    'DTEND:' + endDateStr,
+    'RRULE:FREQ=DAILY', // Recur every day
+    'SUMMARY:✅ Mark Attendance (Attrack)',
+    'DESCRIPTION:Keep your streak alive! Log your lectures here: https://jenishestmoizavut.github.io/attrack/',
+    'LOCATION:Attrack App',
+    'BEGIN:VALARM',      // Set a notification alarm
+    'TRIGGER:-PT0M',     // Trigger at time of event
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  return icsContent;
+}
+
+function downloadIcsFile() {
+  const icsData = generateReminderEvent();
+  const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'attrack_reminder.ics');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  alert("Event file downloaded! \n\nTap the file to open it and hit 'Add' to save it to your calendar.");
+}
+
+function openGoogleCalendar() {
+  // Format: YYYYMMDDTHHMMSSZ
+  // For GCal link, we just need a general start time, e.g., Tonight 20:00 UTC
+  // To keep it simple for URL, we use a fixed time or user's local time converted
+  
+  const now = new Date();
+  now.setHours(20, 0, 0, 0); 
+  const start = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const end = new Date(now.getTime() + 15*60000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+  const title = encodeURIComponent("✅ Mark Attendance (Attrack)");
+  const details = encodeURIComponent("Time to update your attendance! https://jenishestmoizavut.github.io/attrack/");
+  
+  // action=TEMPLATE triggers the creation window
+  // recur=RRULE:FREQ=DAILY ensures it repeats
+  const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${start}/${end}&recur=RRULE:FREQ=DAILY`;
+  
+  window.open(gcalUrl, '_blank');
+}
+
     // 1. Export Function (Download JSON)
     function exportScheduleFile() {
       if (!state.subjects.length) {
@@ -2694,6 +2799,17 @@ markHolidayBtn.addEventListener("click", () => {
       renderSummary();
 renderSetupTarget();
  //showNewFeaturePopupIfNeeded();
+// --- Calendar Reminder Listeners ---
+const downloadIcsBtn = document.getElementById("downloadIcsBtn");
+const openGcalBtn = document.getElementById("openGcalBtn");
+
+if (downloadIcsBtn) {
+  downloadIcsBtn.addEventListener("click", downloadIcsFile);
+}
+
+if (openGcalBtn) {
+  openGcalBtn.addEventListener("click", openGoogleCalendar);
+}
 
 		// This forces the app to open 'Home View' every time, regardless of button order
       switchView("homeView"); 
@@ -3064,5 +3180,6 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
