@@ -1468,49 +1468,103 @@ const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 // CALENDAR REMINDER LOGIC
 // ---------------------------------------------------------
 
+// ---------------------------------------------------------
+// 🧠 SMART REMINDER LOGIC (Timetable + Holidays)
+// ---------------------------------------------------------
+
+// 1. Helper: Find which days actually have lectures (e.g., "MO,WE,FR")
+function getActiveDaysList() {
+  const daysMap = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"]; // 0-6
+  const activeSet = new Set();
+
+  // If no subjects, default to Mon-Fri
+  if (!state.subjects || !state.subjects.length) {
+    return ["MO", "TU", "WE", "TH", "FR"];
+  }
+
+  state.subjects.forEach(subj => {
+    if (subj.schedule && subj.schedule.weeklyPattern) {
+      subj.schedule.weeklyPattern.forEach(p => {
+        // If lecture count > 0 for this day, add it
+        if (p.count > 0 && p.day >= 0 && p.day <= 6) {
+           activeSet.add(daysMap[p.day]); 
+        }
+      });
+    }
+  });
+
+  // If timetable is empty, default to Mon-Fri
+  if (activeSet.size === 0) return ["MO", "TU", "WE", "TH", "FR"];
+  
+  // Sort days order
+  const order = { SU:0, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 };
+  return Array.from(activeSet).sort((a,b) => order[a] - order[b]);
+}
+
+// 2. Helper: Get list of Holiday dates to SKIP
+function getHolidayExclusions(startTimeStr) { // startTimeStr is "THHMMSS" part
+  if (!state.holidays || !state.holidays.length) return "";
+  
+  // Convert "2025-12-25" -> "20251225T200000Z"
+  const exDates = state.holidays.map(isoDate => {
+     return isoDate.replace(/-/g, '') + 'T' + startTimeStr + 'Z';
+  });
+
+  // ICS format: EXDATE:20251225T200000Z,20251226T200000Z...
+  return "EXDATE:" + exDates.join(",");
+}
+
 function generateReminderEvent() {
+  const daysList = getActiveDaysList().join(','); // e.g. "MO,WE,FR"
+  
   // 1. Calculate start time (Tonight at 8:00 PM)
   const now = new Date();
   const start = new Date(now);
-  start.setHours(20, 0, 0, 0); // 20:00 = 8 PM
+  start.setHours(20, 0, 0, 0); 
   
-  // If it's already past 8 PM, schedule for tomorrow
-  if (now > start) {
-    start.setDate(start.getDate() + 1);
-  }
+  if (now > start) start.setDate(start.getDate() + 1);
 
-  // Format date for ICS (YYYYMMDDTHHMMSS)
   const formatICSDate = (date) => {
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
+  
+  // Extract just the time part for holidays logic (e.g. "200000")
+  const timePart = "200000"; 
 
   const startDateStr = formatICSDate(start);
-  const endDateStr = formatICSDate(new Date(start.getTime() + 15 * 60000)); // 15 min duration
+  const endDateStr = formatICSDate(new Date(start.getTime() + 15 * 60000)); 
+  const holidayExclusions = getHolidayExclusions(timePart);
 
-  // 2. Build ICS Content (Standard Calendar Format)
-  const icsContent = [
+  // 2. Build ICS with SMART Recurrence & Exceptions
+  const icsLines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Attrack//Attendance Tracker//EN',
     'BEGIN:VEVENT',
-    'UID:attrack-reminder-' + Date.now(),
+    'UID:attrack-smart-reminder-' + Date.now(),
     'DTSTAMP:' + formatICSDate(new Date()),
     'DTSTART:' + startDateStr,
     'DTEND:' + endDateStr,
-    'RRULE:FREQ=DAILY', // Recur every day
+    `RRULE:FREQ=WEEKLY;BYDAY=${daysList}`, // Only on lecture days
     'SUMMARY:✅ Mark Attendance (Attrack)',
-    'DESCRIPTION:Keep your streak alive! Log your lectures here: https://jenishestmoizavut.github.io/attrack/',
+    'DESCRIPTION:Update your tracker! Open app: https://jenishestmoizavut.github.io/attrack/',
     'LOCATION:Attrack App',
-    'BEGIN:VALARM',      // Set a notification alarm
-    'TRIGGER:-PT0M',     // Trigger at time of event
+    'BEGIN:VALARM',
+    'TRIGGER:-PT0M',
     'ACTION:DISPLAY',
     'DESCRIPTION:Reminder',
-    'END:VALARM',
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ].join('\r\n');
+    'END:VALARM'
+  ];
 
-  return icsContent;
+  // Add holidays if they exist
+  if (holidayExclusions) {
+    icsLines.push(holidayExclusions);
+  }
+
+  icsLines.push('END:VEVENT');
+  icsLines.push('END:VCALENDAR');
+
+  return icsLines.join('\r\n');
 }
 
 function downloadIcsFile() {
@@ -1520,33 +1574,36 @@ function downloadIcsFile() {
   
   const link = document.createElement('a');
   link.href = url;
-  link.setAttribute('download', 'attrack_reminder.ics');
+  link.setAttribute('download', 'Attrack_Smart_Reminder.ics');
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   
-  alert("Event file downloaded! \n\nTap the file to open it and hit 'Add' to save it to your calendar.");
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function openGoogleCalendar() {
-  // Format: YYYYMMDDTHHMMSSZ
-  // For GCal link, we just need a general start time, e.g., Tonight 20:00 UTC
-  // To keep it simple for URL, we use a fixed time or user's local time converted
-  
+  const daysList = getActiveDaysList().join(','); 
+
   const now = new Date();
-  now.setHours(20, 0, 0, 0); 
-  const start = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const end = new Date(now.getTime() + 15*60000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  now.setHours(20, 0, 0, 0);
+  
+  const formatGCal = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  
+  const start = formatGCal(now);
+  const end = formatGCal(new Date(now.getTime() + 15*60000)); 
 
   const title = encodeURIComponent("✅ Mark Attendance (Attrack)");
-  const details = encodeURIComponent("Time to update your attendance! https://jenishestmoizavut.github.io/attrack/");
+  const details = encodeURIComponent("Update attendance: https://jenishestmoizavut.github.io/attrack/");
   
-  // action=TEMPLATE triggers the creation window
-  // recur=RRULE:FREQ=DAILY ensures it repeats
-  const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${start}/${end}&recur=RRULE:FREQ=DAILY`;
+  // Note: GCal URL links don't support EXDATE (holiday skipping) easily via URL.
+  // We still use the "Smart Days" logic though.
+  const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${start}/${end}&recur=RRULE:FREQ=WEEKLY;BYDAY=${daysList}`;
   
   window.open(gcalUrl, '_blank');
 }
+
+
 
     // 1. Export Function (Download JSON)
     function exportScheduleFile() {
@@ -3180,6 +3237,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
