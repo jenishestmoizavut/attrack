@@ -2057,9 +2057,9 @@ const isoStart = toISODate(new Date());
             return out;
           });
         }
-        if (!Array.isArray(parsed.lectures)) parsed.lectures = [];
-        if (!parsed.startDate) parsed.startDate = defaults.startDate;
+		  if (!parsed.startDate) parsed.startDate = defaults.startDate;
         if (typeof parsed.isInitialized !== "boolean") parsed.isInitialized = false;
+        if (!Array.isArray(parsed.lectures)) parsed.lectures = [];
         return parsed;
       } catch (e) {
         console.error("Failed to load state", e);
@@ -3375,6 +3375,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
