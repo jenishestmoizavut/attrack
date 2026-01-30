@@ -2065,6 +2065,8 @@ const isoStart = toISODate(new Date());
         console.error("Failed to load state", e);
         return defaultState();
       }
+	  if (!Array.isArray(parsed.assignments)) parsed.assignments = [];
+
     }
 
     let state = loadState();
@@ -3373,6 +3375,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
