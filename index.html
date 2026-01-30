@@ -1057,6 +1057,14 @@ div.popup-dot { display:none !important; }
   background-color: #007bff;
   color: white;
 }
+/* Ensure nav buttons split the width evenly */
+.nav { justify-content: space-between; }
+.nav-btn {
+  flex-grow: 1;
+  justify-content: center;
+  padding: 8px 2px;
+  min-width: 60px;
+}
 
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1088,22 +1096,16 @@ Attrack by Jenish
     </div>
 
 <div class="nav" role="navigation" aria-label="Main navigation">
-  <button class="nav-btn" data-view="homeView" type="button">🏠 Home</button>
-  
+  <button class="nav-btn active" data-view="homeView" type="button">🏠 Home</button>
   <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
+  <button class="nav-btn" data-view="assignmentsView" type="button">📝 Tasks</button>
+  <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
   
- <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
-
-  <button id="showTutorialNavBtn" class="nav-btn" type="button">🎓 Show tutorial</button>
-	<button id="installAppBtn" class="nav-btn" type="button" style="display:none; background: var(--accent-soft); color: var(--accent);">
+  <button id="installAppBtn" class="nav-btn" type="button" style="display:none; background: var(--accent-soft); color: var(--accent);">
     📲 Install
   </button>
-  <div class="nav-spacer"></div>
-  <button id="darkToggle" class="dark-toggle" type="button">
-    <span id="darkIcon">🌙</span>
-    <span id="darkLabel">Dark mode</span>
-  </button>
 </div>
+
 
 
     <div id="tutorialModalBackdrop" aria-hidden="true" style="display:none;">
@@ -1217,9 +1219,18 @@ Attrack by Jenish
 <div id="setupView" class="view">
   <div class="card">
     <h3>Setup</h3>
-    <div class="hint">
-      Set up how your attendance works. You usually do this once.
-    </div>
+    <div class="card" style="margin-top:12px;">
+  <h3>App Settings 🛠️</h3>
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button id="darkToggle" class="btn small secondary" type="button" style="flex:1; justify-content:center;">
+      <span id="darkIcon">🌙</span> <span id="darkLabel">Dark mode</span>
+    </button>
+    <button id="showTutorialNavBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center;">
+      🎓 Tutorial
+    </button>
+  </div>
+</div>
+
   </div>
 
   <div class="card" style="margin-top:12px;">
@@ -1376,8 +1387,43 @@ When you add or load lectures, they’re marked attended by default.
     </div>
 	</div>
     <div id="timetableView" class="view">
-    
 	</div>
+	  <div id="assignmentsView" class="view">
+  <div class="card">
+    <h3>Add Assignment 📝</h3>
+    <div class="hint">Keep track of deadlines and submissions.</div>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+      <div class="field">
+        <label>Subject</label>
+        <select id="newAssSubject"></select>
+      </div>
+      <div class="field">
+        <label>Due Date</label>
+        <input type="date" id="newAssDate">
+      </div>
+    </div>
+    
+    <div class="field" style="margin-top:8px;">
+      <label>Assignment Title</label>
+      <input type="text" id="newAssTitle" placeholder="e.g. Lab Report 3">
+    </div>
+
+    <button id="addAssignmentBtn" class="btn small" style="margin-top:10px;">+ Add Task</button>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <h3>Pending Tasks ⏳</h3>
+    <div id="assignmentsListPending" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
+    <div id="noPendingMsg" class="hint" style="text-align:center; padding:10px;">No pending tasks! 🎉</div>
+  </div>
+
+  <div class="card" style="margin-top:12px; opacity:0.8;">
+    <h3>Completed ✅</h3>
+    <div id="assignmentsListDone" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
+  </div>
+</div>
+
 	  <div class="card creator-card">
   <h3>From the creator 👋</h3>
 
@@ -1978,6 +2024,7 @@ const isoStart = toISODate(new Date());
         startDate: isoStart,
 	subjects:[],
             lectures: []
+		  assignments:[]
       };
     }
 
@@ -2541,7 +2588,9 @@ if (didGenerate) {
 }
 
   }
+if (viewId === "assignmentsView") { renderAssignments();
 
+								  }
   localStorage.setItem(VIEW_KEY, viewId);
 }
 
@@ -2832,6 +2881,93 @@ markHolidayBtn.addEventListener("click", () => {
     function showTutorialReminder() {
        // Simple reminder logic (omitted for brevity, code provided in original was fine)
     }
+// --- ASSIGNMENT TRACKER LOGIC ---
+const assignmentsListPending = document.getElementById("assignmentsListPending");
+const assignmentsListDone = document.getElementById("assignmentsListDone");
+const newAssSubject = document.getElementById("newAssSubject");
+const newAssDate = document.getElementById("newAssDate");
+const newAssTitle = document.getElementById("newAssTitle");
+const addAssignmentBtn = document.getElementById("addAssignmentBtn");
+const noPendingMsg = document.getElementById("noPendingMsg");
+
+function renderAssignments() {
+  if (!assignmentsListPending) return; // Guard clause
+  assignmentsListPending.innerHTML = "";
+  assignmentsListDone.innerHTML = "";
+  
+  // Sort: Pending first, then by date
+  const sorted = (state.assignments || []).slice().sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
+
+  let pendingCount = 0;
+
+  sorted.forEach(ass => {
+    const subj = state.subjects.find(s => s.id === ass.subjectId);
+    const row = document.createElement("div");
+    row.className = "subject-stat-row";
+    row.style.display = "grid"; 
+    row.style.gridTemplateColumns = "24px 1fr auto"; 
+    row.style.gap = "10px";
+    row.style.marginBottom = "6px";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = ass.completed;
+    cb.style.width = "18px"; cb.style.height = "18px";
+    cb.addEventListener("change", () => {
+      ass.completed = cb.checked;
+      saveState(); renderAssignments();
+    });
+
+    const info = document.createElement("div");
+    const dateDisp = ass.dueDate ? formatDisplayDate(ass.dueDate) : "No date";
+    info.innerHTML = `<div style="font-weight:600; text-decoration:${ass.completed ? 'line-through' : 'none'}">${escapeHtml(ass.title)}</div>
+                      <div style="font-size:0.75rem; color:var(--muted)">${subj ? escapeHtml(subj.name) : "Unknown"} • ${dateDisp}</div>`;
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn small danger"; delBtn.textContent = "✕";
+    delBtn.addEventListener("click", () => {
+      if(confirm("Delete task?")) {
+        state.assignments = state.assignments.filter(x => x.id !== ass.id);
+        saveState(); renderAssignments();
+      }
+    });
+
+    row.appendChild(cb); row.appendChild(info); row.appendChild(delBtn);
+
+    if (ass.completed) assignmentsListDone.appendChild(row);
+    else { assignmentsListPending.appendChild(row); pendingCount++; }
+  });
+
+  if(noPendingMsg) noPendingMsg.style.display = pendingCount === 0 ? "block" : "none";
+  
+  // Refresh Dropdown
+  if(newAssSubject) {
+    newAssSubject.innerHTML = "";
+    state.subjects.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id; opt.textContent = s.name;
+      newAssSubject.appendChild(opt);
+    });
+  }
+}
+
+if (addAssignmentBtn) {
+  addAssignmentBtn.addEventListener("click", () => {
+    if (!newAssTitle.value.trim()) return alert("Enter a title");
+    if (!state.subjects.length) return alert("Add subjects in Setup first!");
+    
+    state.assignments.push({
+      id: genId("ass"),
+      subjectId: newAssSubject.value || state.subjects[0].id,
+      title: newAssTitle.value.trim(),
+      dueDate: newAssDate.value || toISODate(new Date()),
+      completed: false
+    });
+    
+    newAssTitle.value = ""; 
+    saveState();
+    renderAssignments();
+  });
+}
 
     // Boot
     (function init() {
@@ -3237,6 +3373,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
