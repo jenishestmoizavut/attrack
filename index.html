@@ -2067,6 +2067,7 @@ const isoStart = toISODate(new Date());
     const dayView = document.getElementById("dayView");
     const timetableView = document.getElementById("timetableView");
     const setupView = document.getElementById("setupView");
+	  const assignmentsView = document.getElementById("assignmentsView");
     const navButtons = Array.from(document.querySelectorAll(".nav-btn"));
     const studentNameInput = document.getElementById("studentName");
     const startDateInput = document.getElementById("startDate");
@@ -2550,7 +2551,7 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
     }
 
 function switchView(viewId) {
-  [homeView, dayView, timetableView, setupView].forEach(v =>
+	[homeView, dayView, timetableView, setupView, assignmentsView].forEach(v =>
     v.classList.toggle("active", v.id === viewId)
   );
 
@@ -3361,6 +3362,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
