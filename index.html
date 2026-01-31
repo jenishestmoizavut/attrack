@@ -1065,7 +1065,27 @@ div.popup-dot { display:none !important; }
   padding: 8px 2px;
   min-width: 60px;
 }
+/* Clickable Subject Chips */
+.subject-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
 
+/* Selected State */
+.subject-chip.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+  transform: translateY(-1px);
+}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1098,7 +1118,7 @@ Attrack by Jenish
 <div class="nav" role="navigation" aria-label="Main navigation">
   <button class="nav-btn active" data-view="homeView" type="button">🏠 Home</button>
   <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
-  <button class="nav-btn" data-view="assignmentsView" type="button">📝 Tasks</button>
+  <button class="nav-btn" data-view="assignmentsView" type="button">📝 Assignments </button>
   <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
   
   <button id="installAppBtn" class="nav-btn" type="button" style="display:none; background: var(--accent-soft); color: var(--accent);">
@@ -1389,28 +1409,31 @@ When you add or load lectures, they’re marked attended by default.
     <div id="timetableView" class="view">
 	</div>
 	  <div id="assignmentsView" class="view">
-  <div class="card">
-    <h3>Add Assignment 📝</h3>
-    <div class="hint">Keep track of deadlines and submissions.</div>
-    
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
-      <div class="field">
-        <label>Subject</label>
-        <select id="newAssSubject"></select>
+<div class="card">
+  <h3>Add Assignment 📝</h3>
+  <div class="hint">Tap subjects to select (one or more).</div>
+  
+  <div class="field" style="margin-top:12px;">
+    <label>Subjects:</label>
+    <div id="assSubjectChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
       </div>
-      <div class="field">
-        <label>Due Date</label>
-        <input type="date" id="newAssDate">
-      </div>
-    </div>
-    
-    <div class="field" style="margin-top:8px;">
-      <label>Assignment Title</label>
-      <input type="text" id="newAssTitle" placeholder="e.g. Lab Report 3">
-    </div>
-
-    <button id="addAssignmentBtn" class="btn small" style="margin-top:10px;">+ Add Task</button>
   </div>
+
+  <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:12px; gap:12px;">
+    <div class="field">
+      <label>Due Date</label>
+      <input type="date" id="newAssDate">
+    </div>
+    <div class="field">
+      <label>Title (Optional)</label>
+      <input type="text" id="newAssTitle" placeholder="e.g. Lab Report">
+    </div>
+  </div>
+  
+  <button id="addAssignmentBtn" class="btn small" style="margin-top:14px; width:100%; justify-content:center;">
+    + Add Task(s)
+  </button>
+</div>
 
   <div class="card" style="margin-top:12px;">
     <h3>Pending Tasks ⏳</h3>
@@ -2071,7 +2094,7 @@ const isoStart = toISODate(new Date());
     let state = loadState();
     let currentMonthDate = new Date();
     let selectedDate = new Date();
-
+let selectedAssSubjects = new Set();
     // Elements
     const cheerMessageEl = document.getElementById("cheerMessage");
     const summaryMainEl = document.getElementById("summaryMain");
@@ -2286,7 +2309,41 @@ function regenerateFromSchedules() {
         subjectFilterEl.appendChild(opt);
       });
     }
+function renderAssignmentChips() {
+  const container = document.getElementById("assSubjectChips");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  
+  if (state.subjects.length === 0) {
+    container.innerHTML = "<span class='hint'>No subjects found. Add them in Setup.</span>";
+    return;
+  }
 
+  state.subjects.forEach(subj => {
+    const chip = document.createElement("div");
+    chip.className = "subject-chip";
+    chip.textContent = subj.name;
+    
+    // Check if currently selected
+    if (selectedAssSubjects.has(subj.id)) {
+      chip.classList.add("selected");
+    }
+
+    // Click Handler
+    chip.addEventListener("click", () => {
+      if (selectedAssSubjects.has(subj.id)) {
+        selectedAssSubjects.delete(subj.id);
+        chip.classList.remove("selected");
+      } else {
+        selectedAssSubjects.add(subj.id);
+        chip.classList.add("selected");
+      }
+    });
+
+    container.appendChild(chip);
+  });
+}
     function renderCalendar() {
       const year = currentMonthDate.getFullYear();
       const month = currentMonthDate.getMonth();
@@ -2591,7 +2648,7 @@ if (didGenerate) {
 
   }
 if (viewId === "assignmentsView") { renderAssignments();
-
+renderAssignmentChips();
 								  }
   localStorage.setItem(VIEW_KEY, viewId);
 }
@@ -2954,23 +3011,42 @@ function renderAssignments() {
 
 if (addAssignmentBtn) {
   addAssignmentBtn.addEventListener("click", () => {
-    if (!newAssTitle.value.trim()) return alert("Enter a title");
-    if (!state.subjects.length) return alert("Add subjects in Setup first!");
-    
-    state.assignments.push({
-      id: genId("ass"),
-      subjectId: newAssSubject.value || state.subjects[0].id,
-      title: newAssTitle.value.trim(),
-      dueDate: newAssDate.value || toISODate(new Date()),
-      completed: false
+    // 1. Validation: Must have at least one subject
+    if (selectedAssSubjects.size === 0) {
+      alert("Please select at least one subject.");
+      return;
+    }
+
+    // 2. Title is now Optional
+    let titleText = newAssTitle.value.trim();
+    if (!titleText) {
+      titleText = "Assignment"; // Default text if empty
+    }
+
+    const dueDateVal = newAssDate.value || toISODate(new Date());
+
+    // 3. Loop through ALL selected subjects and add a task for each
+    selectedAssSubjects.forEach(subjectId => {
+      state.assignments.push({
+        id: genId("ass"),
+        subjectId: subjectId,
+        title: titleText,
+        dueDate: dueDateVal,
+        completed: false
+      });
     });
-    
-    newAssTitle.value = ""; 
+
+    // 4. Reset UI
+    newAssTitle.value = "";
+    selectedAssSubjects.clear(); // Unselect all
+    renderAssignmentChips();     // Redraw chips (to remove color)
+    renderAssignments();         // Show new tasks
     saveState();
-    renderAssignments();
+    
+    // Optional: Feedback
+    alert("Task(s) added successfully!");
   });
 }
-
     // Boot
     (function init() {
       checkUrlForImport(); // <--- MAGIC LINK CHECK HAPPENS HERE
@@ -2990,6 +3066,7 @@ if (addAssignmentBtn) {
       renderStudent();
       renderSubjectsList();
       renderSubjectStats();
+		renderAssignmentChips();
       renderTimetable();
       renderSummary();
 renderSetupTarget();
@@ -3442,6 +3519,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
