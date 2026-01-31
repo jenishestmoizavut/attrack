@@ -1086,6 +1086,34 @@ div.popup-dot { display:none !important; }
   box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
   transform: translateY(-1px);
 }
+	  /* Sleek Promo Card Styles */
+.promo-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(to right, var(--bg-soft), var(--card-bg));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.promo-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+/* Dark mode tweak for the gradient */
+body.dark .promo-card {
+  background: linear-gradient(to right, #1e293b, #0f172a);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1536,6 +1564,49 @@ Source code is not licensed for reuse or redistribution.
     </div>
 
     <div id="notesList" class="subject-stats-list" style="overflow-y:auto; flex:1;"></div>
+  </div>
+</div>
+	<div id="versionModalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+  <div class="card" style="width:min(440px,90%); padding:24px; animation: slideUp 0.3s ease-out;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px;">
+      <h2 style="margin:0; font-size:1.4rem;">What’s New 🚀</h2>
+      <button id="closeVersionX" style="background:none; border:none; font-size:1.2rem; color:var(--muted); cursor:pointer;">✕</button>
+    </div>
+
+    <ul style="padding-left:0; list-style:none; margin:0 0 20px 0; display:flex; flex-direction:column; gap:12px;">
+      <li style="display:flex; gap:10px; align-items:start;">
+        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">📝</span>
+        <div>
+          <strong style="display:block; color:var(--text);">Tasks & Assignments</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Track deadlines. Group by subject. Bulk add.</span>
+        </div>
+      </li>
+      <li style="display:flex; gap:10px; align-items:start;">
+        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">🔍</span>
+        <div>
+          <strong style="display:block; color:var(--text);">Notes Finder</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Instantly find "ask ma'am for attendance" notes.</span>
+        </div>
+      </li>
+    </ul>
+
+    <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
+
+    <p style="font-size:0.8rem; font-weight:600; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Check out my other project</p>
+    
+    <a href="https://jenishestmoizavut.github.io/simulating-statistics/?utm_source=attrack_v2" target="_blank" style="text-decoration:none;">
+      <div class="promo-card">
+        <div style="font-size:1.8rem;">📊</div>
+        <div style="flex:1;">
+          <div style="font-weight:700; color:var(--text); font-size:1rem;">Simulating Statistics</div>
+          <div style="font-size:0.85rem; color:var(--text-soft);">Visualize complex math concepts interactively.</div>
+        </div>
+        <div style="color:var(--accent); font-size:1.2rem;">→</div>
+      </div>
+    </a>
+
+    <button id="closeVersionBtn" class="btn" style="width:100%; margin-top:20px; justify-content:center; padding:10px;">Got it!</button>
   </div>
 </div>
 <script>
@@ -3178,6 +3249,34 @@ if (closeNotesBtn) closeNotesBtn.addEventListener("click", () => notesModalBackd
 if (notesModalBackdrop) notesModalBackdrop.addEventListener("click", (e) => {
     if(e.target === notesModalBackdrop) notesModalBackdrop.style.display = "none";
 });
+		// --- VERSION ANNOUNCEMENT LOGIC ---
+(function checkVersionPopup() {
+  const VERSION_KEY = "attrack_update_v2_seen"; // Unique key for this specific update
+  const modal = document.getElementById("versionModalBackdrop");
+  const closeBtn = document.getElementById("closeVersionBtn");
+  const closeX = document.getElementById("closeVersionX");
+
+  // If user hasn't seen this specific update yet
+  if (!localStorage.getItem(VERSION_KEY)) {
+    // Small delay so it doesn't pop up instantly on load
+    setTimeout(() => {
+      if (modal) modal.style.display = "flex";
+    }, 1500);
+  }
+
+  function dismiss() {
+    if (modal) modal.style.display = "none";
+    localStorage.setItem(VERSION_KEY, "true");
+  }
+
+  if (closeBtn) closeBtn.addEventListener("click", dismiss);
+  if (closeX) closeX.addEventListener("click", dismiss);
+  
+  // Close on backdrop click
+  if (modal) modal.addEventListener("click", (e) => {
+    if (e.target === modal) dismiss();
+  });
+})();
     })();
 // ---------------------------------------------------------
     // PDF IMPORTER INTEGRATION
@@ -3538,6 +3637,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
