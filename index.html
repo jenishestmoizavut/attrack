@@ -1361,7 +1361,7 @@ Attrack by Jenish
 <button class="btn small danger" id="markHolidayBtn" type="button">
   No Lectures on this day 
 </button>
-
+<button class="btn small secondary" id="findNotesBtn" type="button">🔍 All Notes</button>
           </div>
 
           <table>
@@ -1501,7 +1501,20 @@ Source code is not licensed for reuse or redistribution.
     </div>
   </div>
 </div>
+<div id="notesModalBackdrop" style="position:fixed; inset:0; background:rgba(2,6,23,0.45); display:none; align-items:center; justify-content:center; z-index:1400;">
+  <div class="card" style="width:min(500px,95%); max-height:80vh; display:flex; flex-direction:column; padding:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+      <h3 style="margin:0;">📝 Note History</h3>
+      <button id="closeNotesBtn" class="btn small secondary">✕</button>
+    </div>
+    
+    <div class="hint" style="margin-bottom:10px;">
+      Click any note to jump to that date.
+    </div>
 
+    <div id="notesList" class="subject-stats-list" style="overflow-y:auto; flex:1;"></div>
+  </div>
+</div>
 <script>
   (function () {
     const STORAGE_KEY = "attrack_v1";
@@ -3002,6 +3015,73 @@ document.addEventListener('click', async () => {
     await Notification.requestPermission();
   }
 }, { once: true });
+		// --- NOTES FINDER LOGIC ---
+const findNotesBtn = document.getElementById("findNotesBtn");
+const notesModalBackdrop = document.getElementById("notesModalBackdrop");
+const closeNotesBtn = document.getElementById("closeNotesBtn");
+const notesList = document.getElementById("notesList");
+
+if (findNotesBtn) {
+  findNotesBtn.addEventListener("click", () => {
+    // 1. Filter: Find lectures that have a non-empty title/note
+    const withNotes = state.lectures
+      .filter(l => l.title && l.title.trim().length > 0 && !l.isCancelled)
+      .sort((a, b) => (a.date < b.date ? 1 : -1)); // Newest first
+
+    // 2. Clear previous list
+    notesList.innerHTML = "";
+
+    if (withNotes.length === 0) {
+      notesList.innerHTML = "<div class='hint' style='text-align:center; padding:20px;'>No notes found yet. <br>Write in the 'Lecture title' box to see them here.</div>";
+    } else {
+      // 3. Build the list
+      withNotes.forEach(l => {
+        const subj = state.subjects.find(s => s.id === l.subjectId);
+        
+        const row = document.createElement("div");
+        row.className = "subject-stat-row";
+        row.style.display = "block"; // Stack text vertically
+        row.style.cursor = "pointer"; // Make it look clickable
+        
+        // Date & Subject Line
+        const header = `
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); margin-bottom:4px;">
+            <span>📅 ${formatDisplayDate(l.date)} • ${subj ? escapeHtml(subj.name) : "Unknown"}</span>
+            <span>${l.attended ? "✅ Present" : "❌ Absent"}</span>
+          </div>`;
+          
+        // The Note Content
+        const content = `<div style="font-weight:600; font-size:0.9rem; color:var(--text);">${escapeHtml(l.title)}</div>`;
+
+        row.innerHTML = header + content;
+
+        // 4. Click to Jump Logic
+        row.addEventListener("click", () => {
+           selectedDate = parseISO(l.date);
+           currentMonthDate = new Date(selectedDate); // Sync calendar
+           currentMonthDate.setDate(1); 
+           
+           notesModalBackdrop.style.display = "none";
+           switchView("dayView"); // Go to Daily View
+           // Force refresh of the view
+           renderCalendar();
+           renderLectures();
+        });
+        
+        notesList.appendChild(row);
+      });
+    }
+    
+    // Show Modal
+    notesModalBackdrop.style.display = "flex";
+  });
+}
+
+// Close logic
+if (closeNotesBtn) closeNotesBtn.addEventListener("click", () => notesModalBackdrop.style.display = "none");
+if (notesModalBackdrop) notesModalBackdrop.addEventListener("click", (e) => {
+    if(e.target === notesModalBackdrop) notesModalBackdrop.style.display = "none";
+});
     })();
 // ---------------------------------------------------------
     // PDF IMPORTER INTEGRATION
@@ -3362,6 +3442,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
