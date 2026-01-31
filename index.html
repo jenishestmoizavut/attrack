@@ -2028,46 +2028,32 @@ const isoStart = toISODate(new Date());
       };
     }
 
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return defaultState();
-        const parsed = JSON.parse(raw || "{}");
-        const defaults = defaultState();
+   function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw || "{}");
+    const defaults = defaultState();
 
-        if (!Array.isArray(parsed.subjects) || parsed.subjects.length === 0) {
-          parsed.subjects = defaults.subjects.map(s => ({
-            id: s.id, name: s.name,
-            schedule: s.schedule ? JSON.parse(JSON.stringify(s.schedule)) : { weeklyPattern: [] }
-          }));
-        } else {
-          // Merge logic to ensure schedule structure exists
-          parsed.subjects = parsed.subjects.map(s => {
-            const out = {
-              id: s.id || (s.name ? ("sub-" + s.name.toLowerCase().replace(/[^a-z0-9]+/g,"-")) : genId("sub")),
-              name: s.name || "Subject",
-              schedule: null
-            };
-            if (s && s.schedule && Array.isArray(s.schedule.weeklyPattern)) {
-              out.schedule = s.schedule;
-            } else {
-              const match = defaults.subjects.find(d => (d.id && d.id === s.id) || (d.name && s.name && d.name.toLowerCase() === s.name.toLowerCase()));
-              out.schedule = match ? JSON.parse(JSON.stringify(match.schedule)) : { weeklyPattern: [] };
-            }
-            return out;
-          });
-        }
-		  if (!parsed.startDate) parsed.startDate = defaults.startDate;
-        if (typeof parsed.isInitialized !== "boolean") parsed.isInitialized = false;
-        if (!Array.isArray(parsed.lectures)) parsed.lectures = [];
-        return parsed;
-      } catch (e) {
-        console.error("Failed to load state", e);
-        return defaultState();
-      }
-	  if (!Array.isArray(parsed.assignments)) parsed.assignments = [];
-
+    if (!Array.isArray(parsed.subjects) || parsed.subjects.length === 0) {
+      // ... (existing subjects logic) ...
+    } else {
+      // ... (existing subjects logic) ...
     }
+
+    if (!parsed.startDate) parsed.startDate = defaults.startDate;
+    if (typeof parsed.isInitialized !== "boolean") parsed.isInitialized = false;
+    if (!Array.isArray(parsed.lectures)) parsed.lectures = [];
+    
+    // ✅ FIX: Move this line UP here, before the return
+    if (!Array.isArray(parsed.assignments)) parsed.assignments = [];
+
+    return parsed; // Now it returns the complete object
+  } catch (e) {
+    console.error("Failed to load state", e);
+    return defaultState();
+  }
+}
 
     let state = loadState();
     let currentMonthDate = new Date();
@@ -3375,6 +3361,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
