@@ -2950,11 +2950,10 @@ const addAssignmentBtn = document.getElementById("addAssignmentBtn");
 const noPendingMsg = document.getElementById("noPendingMsg");
 
 function renderAssignments() {
-  if (!assignmentsListPending) return; // Guard clause
+  if (!assignmentsListPending) return; 
   assignmentsListPending.innerHTML = "";
   assignmentsListDone.innerHTML = "";
   
-  // Sort: Pending first, then by date
   const sorted = (state.assignments || []).slice().sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
 
   let pendingCount = 0;
@@ -2966,11 +2965,13 @@ function renderAssignments() {
     row.style.display = "grid"; 
     row.style.gridTemplateColumns = "24px 1fr auto"; 
     row.style.gap = "10px";
-    row.style.marginBottom = "6px";
+    row.style.marginBottom = "8px";
+    row.style.alignItems = "center";
 
     const cb = document.createElement("input");
     cb.type = "checkbox"; cb.checked = ass.completed;
     cb.style.width = "18px"; cb.style.height = "18px";
+    cb.style.cursor = "pointer";
     cb.addEventListener("change", () => {
       ass.completed = cb.checked;
       saveState(); renderAssignments();
@@ -2978,11 +2979,23 @@ function renderAssignments() {
 
     const info = document.createElement("div");
     const dateDisp = ass.dueDate ? formatDisplayDate(ass.dueDate) : "No date";
-    info.innerHTML = `<div style="font-weight:600; text-decoration:${ass.completed ? 'line-through' : 'none'}">${escapeHtml(ass.title)}</div>
-                      <div style="font-size:0.75rem; color:var(--muted)">${subj ? escapeHtml(subj.name) : "Unknown"} • ${dateDisp}</div>`;
+    const subjName = subj ? escapeHtml(subj.name) : "Unknown Subject";
+    const titleText = escapeHtml(ass.title) || "Assignment";
+
+    // 👇 THE FIX: Subject is now BOLD at the top. Title is smaller below.
+    info.innerHTML = `
+      <div style="font-weight:700; font-size:0.95rem; color:var(--text); text-decoration:${ass.completed ? 'line-through' : 'none'}">
+        ${subjName}
+      </div>
+      <div style="font-size:0.85rem; color:var(--text-soft); margin-top:2px;">
+        ${titleText} • <span style="font-size:0.8rem; color:var(--muted)">${dateDisp}</span>
+      </div>
+    `;
 
     const delBtn = document.createElement("button");
-    delBtn.className = "btn small danger"; delBtn.textContent = "✕";
+    delBtn.className = "btn small danger"; 
+    delBtn.textContent = "✕";
+    delBtn.style.height = "24px"; 
     delBtn.addEventListener("click", () => {
       if(confirm("Delete task?")) {
         state.assignments = state.assignments.filter(x => x.id !== ass.id);
@@ -2998,7 +3011,7 @@ function renderAssignments() {
 
   if(noPendingMsg) noPendingMsg.style.display = pendingCount === 0 ? "block" : "none";
   
-  // Refresh Dropdown
+  // Refresh Dropdown (if used elsewhere, though we use chips now)
   if(newAssSubject) {
     newAssSubject.innerHTML = "";
     state.subjects.forEach(s => {
@@ -3132,19 +3145,25 @@ if (findNotesBtn) {
 
         row.innerHTML = header + content;
 
-        // 4. Click to Jump Logic
+      // 4. Click to Jump Logic
         row.addEventListener("click", () => {
+           // 1. Close the popup
+           notesModalBackdrop.style.display = "none";
+
+           // 2. Switch the view FIRST (This triggers the reset to "Today")
+           switchView("dayView"); 
+
+           // 3. NOW overwrite "Today" with the Note's date
            selectedDate = parseISO(l.date);
-           currentMonthDate = new Date(selectedDate); // Sync calendar
+           
+           // 4. Update the calendar visual
+           currentMonthDate = new Date(selectedDate); 
            currentMonthDate.setDate(1); 
            
-           notesModalBackdrop.style.display = "none";
-           switchView("dayView"); // Go to Daily View
-           // Force refresh of the view
+           // 5. Show the lectures
            renderCalendar();
            renderLectures();
         });
-        
         notesList.appendChild(row);
       });
     }
@@ -3519,6 +3538,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
