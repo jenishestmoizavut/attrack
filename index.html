@@ -1114,6 +1114,32 @@ body.dark .promo-card {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+	  /* --- Feedback Form Styling --- */
+.emoji-rating { display: flex; gap: 15px; font-size: 2rem; padding: 5px 0; }
+.emoji-rating input { display: none; }
+.emoji-rating label { cursor: pointer; opacity: 0.4; transition: 0.2s; filter: grayscale(100%); }
+.emoji-rating label:hover, 
+.emoji-rating input:checked + label { opacity: 1; transform: scale(1.2); filter: grayscale(0%); }
+
+/* 1-10 Scale Buttons */
+.scale-radio { flex: 1; text-align: center; }
+.scale-radio input { display: none; }
+.scale-radio span { 
+  display: block; 
+  padding: 8px 0; 
+  background: var(--bg-soft); 
+  border: 1px solid var(--border); 
+  border-radius: 6px; 
+  font-size: 0.85rem; 
+  cursor: pointer; 
+  transition: all 0.2s;
+}
+.scale-radio input:checked + span {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: bold;
+}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1510,13 +1536,16 @@ When you add or load lectures, they’re marked attended by default.
 <button id="shareAppBtn" class="share-btn">
   📤 Share Attrack
 </button>
-
+<button id="feedbackBtn" class="share-btn">
+  💬 Feedback
+</button>
 
     <span id="shareStatus"
           style="display:none; font-size:0.7rem; color:#16a34a;">
       Link copied!
     </span>
   </div>
+	   
 <input
   type="file"
   id="sapPdfInput"
@@ -1932,6 +1961,7 @@ function rehydrateMissingLectures(importedLectures, subjects, startDateStr) {
   }
   return filledLectures;
 }
+
 async function checkUrlForImport() {
   const params = new URLSearchParams(window.location.search);
   const importId = params.get("import");
@@ -3277,6 +3307,59 @@ if (notesModalBackdrop) notesModalBackdrop.addEventListener("click", (e) => {
     if (e.target === modal) dismiss();
   });
 })();
+			  // --- FEEDBACK POPUP LOGIC ---
+const feedbackBtn = document.getElementById("feedbackBtn");
+const feedbackModal = document.getElementById("feedbackModal");
+const closeFeedbackX = document.getElementById("closeFeedbackX");
+const feedbackForm = document.getElementById("feedbackForm");
+const feedbackResult = document.getElementById("feedbackResult");
+const submitFeedbackBtn = document.getElementById("submitFeedbackBtn");
+
+// Open Popup
+if (feedbackBtn) feedbackBtn.addEventListener("click", () => feedbackModal.style.display = "flex");
+
+// Close Popup
+function closeFeedback() {
+  if (feedbackModal) feedbackModal.style.display = "none";
+}
+if (closeFeedbackX) closeFeedbackX.addEventListener("click", closeFeedback);
+if (feedbackModal) feedbackModal.addEventListener("click", (e) => { if (e.target === feedbackModal) closeFeedback(); });
+
+// Submit Logic
+if (feedbackForm) {
+  feedbackForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    submitFeedbackBtn.textContent = "Sending...";
+    submitFeedbackBtn.disabled = true;
+
+    const formData = new FormData(feedbackForm);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", { method: "POST", body: formData });
+      if (response.status === 200) {
+        feedbackResult.style.display = "block";
+        feedbackResult.style.color = "#16a34a"; 
+        feedbackResult.innerHTML = "Feedback sent! Thanks ❤️";
+        submitFeedbackBtn.style.display = "none";
+        
+        setTimeout(() => { 
+          closeFeedback(); 
+          feedbackForm.reset(); 
+          submitFeedbackBtn.style.display="flex"; 
+          submitFeedbackBtn.textContent="🚀 Send Feedback"; 
+          submitFeedbackBtn.disabled=false; 
+          feedbackResult.style.display="none"; 
+        }, 2500);
+      } else throw new Error("Failed");
+    } catch (error) {
+      feedbackResult.style.display = "block";
+      feedbackResult.style.color = "#dc2626";
+      feedbackResult.textContent = "Error sending. Please try again.";
+      submitFeedbackBtn.textContent = "🚀 Send Feedback";
+      submitFeedbackBtn.disabled = false;
+    }
+  });
+}
     })();
 // ---------------------------------------------------------
     // PDF IMPORTER INTEGRATION
@@ -3627,7 +3710,62 @@ if ("serviceWorker" in navigator) {
     <button id="newFeatureCloseBtn" class="btn small">Okay!</button>
   </div>
 </div>
+<div id="feedbackModal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.8); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+  <div class="card" style="width:min(420px, 95%); max-height:90vh; overflow-y:auto; position:relative; padding:24px; animation: slideUp 0.3s ease-out; border:1px solid var(--accent);">
+    
+    <button id="closeFeedbackX" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.4rem; line-height:1;">✕</button>
+    
+    <h2 style="margin-top:0; color:var(--accent); font-size:1.5rem;">Help me improve Attrack!!</h2>
+    <p class="hint" style="font-size:0.9rem;">I see you're using the app! Your honest feedback helps me build better features.</p>
 
+    <form id="feedbackForm">
+      <input type="hidden" name="access_key" value="fddddb78-1128-4200-9aef-abd2b896e26c">
+      <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+
+      <div class="field" style="margin-top:16px;">
+        <label style="font-weight:600;">Name (Optional)</label>
+        <input type="text" name="name" placeholder="Your name" style="width:100%; box-sizing:border-box;">
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label style="font-weight:600;">How would you rate Attrack?</label>
+        <div class="emoji-rating">
+          <input type="radio" name="Rating" value="Bad" id="rate1"><label for="rate1">😫</label>
+          <input type="radio" name="Rating" value="Okay" id="rate2"><label for="rate2">😐</label>
+          <input type="radio" name="Rating" value="Good" id="rate3"><label for="rate3">🙂</label>
+          <input type="radio" name="Rating" value="Amazing" id="rate4"><label for="rate4">🤩</label>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label style="font-weight:600;">Likely to refer a friend?</label>
+        <div style="display:flex; justify-content:space-between; gap:4px; margin-top:6px;">
+           <label class="scale-radio"><input type="radio" name="Referral" value="1"><span>1</span></label>
+           <label class="scale-radio"><input type="radio" name="Referral" value="3"><span>3</span></label>
+           <label class="scale-radio"><input type="radio" name="Referral" value="5"><span>5</span></label>
+           <label class="scale-radio"><input type="radio" name="Referral" value="7"><span>7</span></label>
+           <label class="scale-radio"><input type="radio" name="Referral" value="9"><span>9</span></label>
+           <label class="scale-radio"><input type="radio" name="Referral" value="10"><span>10</span></label>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--muted); margin-top:2px;">
+          <span>No way</span>
+          <span>Definitely</span>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label style="font-weight:600;">What should I improve next?</label>
+        <textarea name="message" required placeholder="Be honest! Features, bugs, or vibes..." style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-soft); color:var(--text); font-family:inherit; resize:none; margin-top:4px; box-sizing:border-box;"></textarea>
+      </div>
+
+      <button type="submit" id="submitFeedbackBtn" class="btn" style="width:100%; margin-top:20px; padding:12px; font-size:1rem; justify-content:center;">
+        🚀 Send Feedback
+      </button>
+
+      <div id="feedbackResult" style="text-align:center; margin-top:12px; font-size:0.95rem; font-weight:600; display:none;"></div>
+    </form>
+  </div>
+</div>
 <script>
 document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
   document.getElementById("newFeaturePopup").style.display = "none";
@@ -3637,6 +3775,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
