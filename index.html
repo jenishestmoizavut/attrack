@@ -3279,34 +3279,7 @@ if (closeNotesBtn) closeNotesBtn.addEventListener("click", () => notesModalBackd
 if (notesModalBackdrop) notesModalBackdrop.addEventListener("click", (e) => {
     if(e.target === notesModalBackdrop) notesModalBackdrop.style.display = "none";
 });
-		// --- VERSION ANNOUNCEMENT LOGIC ---
-(function checkVersionPopup() {
-  const VERSION_KEY = "attrack_update_v2_seen"; // Unique key for this specific update
-  const modal = document.getElementById("versionModalBackdrop");
-  const closeBtn = document.getElementById("closeVersionBtn");
-  const closeX = document.getElementById("closeVersionX");
-
-  // If user hasn't seen this specific update yet
-  if (!localStorage.getItem(VERSION_KEY)) {
-    // Small delay so it doesn't pop up instantly on load
-    setTimeout(() => {
-      if (modal) modal.style.display = "flex";
-    }, 1500);
-  }
-
-  function dismiss() {
-    if (modal) modal.style.display = "none";
-    localStorage.setItem(VERSION_KEY, "true");
-  }
-
-  if (closeBtn) closeBtn.addEventListener("click", dismiss);
-  if (closeX) closeX.addEventListener("click", dismiss);
-  
-  // Close on backdrop click
-  if (modal) modal.addEventListener("click", (e) => {
-    if (e.target === modal) dismiss();
-  });
-})();
+();
 			  // --- FEEDBACK POPUP LOGIC ---
 const feedbackBtn = document.getElementById("feedbackBtn");
 const feedbackModal = document.getElementById("feedbackModal");
@@ -3629,19 +3602,6 @@ setTimeout(() => {
 
 //document.getElementById("popupCloseBtn").onclick = () => {
   //document.getElementById("shareInfoPopup").style.display = "none";
-
-
-function showNewFeaturePopupIfNeeded() {
-  const KEY = "attrack_seen_share_popup_V2";
-
-  // If you want it once per browser:
-  if (localStorage.getItem(KEY) === "yes") return;
-
-//  document.getElementById("newFeaturePopup").style.display = "flex";
-  //document.getElementById("newFeatureCloseBtn").onclick = () => 
-   // document.getElementById("newFeaturePopup").style.display = "none";
-    localStorage.setItem(KEY, "yes");
-  };
 </script><img
   src="https://hits.sh/jenishestmoizavut.github.io/attrack/.svg?view=today-total"
   alt="Hits"
@@ -3863,9 +3823,30 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
     });
   }
 })();
+	// --- AUTOMATIC FEEDBACK PROMPT ---
+(function autoAskForFeedback() {
+  // Unique key to ensure we only ask once per user
+  const FEEDBACK_SEEN_KEY = "attrack_feedback_autoshow_v1";
+  
+  const hasSeen = localStorage.getItem(FEEDBACK_SEEN_KEY);
+  
+  if (!hasSeen) {
+    // Wait 3 seconds so the user isn't bombarded immediately upon opening
+    setTimeout(() => {
+      const feedbackModal = document.getElementById("feedbackModal");
+      if (feedbackModal) {
+        feedbackModal.style.display = "flex";
+        
+        // Mark as seen so we don't show it again on next refresh
+        localStorage.setItem(FEEDBACK_SEEN_KEY, "true");
+      }
+    }, 3000);
+  }
+})();
 </script>
 </body>
 	</html>
+
 
 
 
