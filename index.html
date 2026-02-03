@@ -1227,13 +1227,13 @@ Attrack by Jenish
 
     <div id="homeView" class="view active">
 <div class="card" style="margin-bottom:12px; border:1px solid var(--accent); background:var(--accent-soft); cursor:pointer;" onclick="window.open(
-  'https://jenishestmoizavut.github.io/simulating-statistics/?utm_source=attrack&utm_medium=internal&utm_campaign=cross_promo',
+  'https://jenishestmoizavut.github.io/jenish.one/?utm_source=attrack&utm_medium=internal&utm_campaign=cross_promo',
   '_blank')">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-            <h3 style="margin:0; color:var(--accent); font-size:1rem;">New: Simulating Statistics 📊</h3>
+            <h3 style="margin:0; color:var(--accent); font-size:1rem;">New: My Collections </h3>
             <div style="font-size:0.85rem; opacity:0.9; margin-top:2px;">
-                Visualize concepts interactively. Built by Jenish.
+             A single place for me to store my projects. 
             </div>
         </div>
         <span style="font-size:1.4rem;">👉</span>
@@ -1465,7 +1465,7 @@ When you add or load lectures, they’re marked attended by default.
 	  <div id="assignmentsView" class="view">
 <div class="card">
   <h3>Add Assignment 📝</h3>
-  <div class="hint">Tap subjects to select (one or more).</div>
+  <div class="hint">Tap subjects to select (one or more). Click 📅 to save on Google Calendar!</div>
   
   <div class="field" style="margin-top:12px;">
     <label>Subjects:</label>
@@ -3051,18 +3051,32 @@ const addAssignmentBtn = document.getElementById("addAssignmentBtn");
 const noPendingMsg = document.getElementById("noPendingMsg");
 
 // 1. Google Calendar Helper
+// 1. Google Calendar Helper (Fixed Date Logic)
 function addToGCal(ass, subjectName) {
   if (!ass.dueDate) return alert("Please set a due date first.");
   
   const title = encodeURIComponent(`Due: ${ass.title || "Assignment"} (${subjectName})`);
   const details = encodeURIComponent("Reminder from Attrack App");
-  const dateStr = ass.dueDate.replace(/-/g, '');
-  const dates = `${dateStr}/${dateStr}`;
+  
+  // 1. Start Date: YYYYMMDD
+  const startStr = ass.dueDate.replace(/-/g, '');
+
+  // 2. End Date: Must be Start Date + 1 Day for GCal to show it as a full day
+  const parts = ass.dueDate.split("-");
+  // Create date object (Year, Month-1, Day)
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  d.setDate(d.getDate() + 1); // Jump to next day
+
+  const endStr = d.getFullYear() + 
+                 String(d.getMonth() + 1).padStart(2, '0') + 
+                 String(d.getDate()).padStart(2, '0');
+
+  // Format: Start / NextDay
+  const dates = `${startStr}/${endStr}`;
 
   const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${dates}`;
   window.open(url, '_blank');
 }
-
 // 2. Edit Modal Logic
 let currentEditAssId = null;
 const editAssBackdrop = document.getElementById("editAssBackdrop");
@@ -3951,6 +3965,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </script>
 </body>
 	</html>
+
 
 
 
