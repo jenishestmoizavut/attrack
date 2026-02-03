@@ -2366,7 +2366,7 @@ function regenerateFromSchedules() {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Happy New Year <span>${escapeHtml(state.studentName)}</span>! Let’s keep your attendance streak going strong. 🌟`
+        ? `Progress is slow <span>${escapeHtml(state.studentName)}</span>, keep attending :)`
         : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
     }
 
@@ -3991,6 +3991,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 
 </body>
 	</html>
+
 
 
 
