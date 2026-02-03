@@ -3949,9 +3949,34 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
   }
 })();
 </script>
+<div id="editAssBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+  <div class="card" style="width:min(360px,90%); padding:20px; animation: slideUp 0.2s ease-out; background: var(--card-bg); border: 1px solid var(--border);">
+    <h3 style="margin-top:0;">Edit Task ✏️</h3>
+    
+    <div class="field" style="margin-top:12px;">
+      <label>Subject</label>
+      <select id="editAssSubject" style="width:100%; padding: 8px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border);"></select>
+    </div>
 
+    <div class="field" style="margin-top:12px;">
+      <label>Title</label>
+      <input type="text" id="editAssTitle" style="width:100%; box-sizing:border-box;">
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Due Date</label>
+      <input type="date" id="editAssDate" style="width:100%; box-sizing:border-box;">
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="cancelEditAssBtn" class="btn small secondary">Cancel</button>
+      <button id="saveEditAssBtn" class="btn small">Save Changes</button>
+    </div>
+  </div>
+</div>
 </body>
 	</html>
+
 
 
 
