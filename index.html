@@ -3050,25 +3050,101 @@ const newAssTitle = document.getElementById("newAssTitle");
 const addAssignmentBtn = document.getElementById("addAssignmentBtn");
 const noPendingMsg = document.getElementById("noPendingMsg");
 
+// 1. Google Calendar Helper
+function addToGCal(ass, subjectName) {
+  if (!ass.dueDate) return alert("Please set a due date first.");
+  
+  const title = encodeURIComponent(`Due: ${ass.title || "Assignment"} (${subjectName})`);
+  const details = encodeURIComponent("Reminder from Attrack App");
+  const dateStr = ass.dueDate.replace(/-/g, '');
+  const dates = `${dateStr}/${dateStr}`;
+
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${dates}`;
+  window.open(url, '_blank');
+}
+
+// 2. Edit Modal Logic
+let currentEditAssId = null;
+const editAssBackdrop = document.getElementById("editAssBackdrop");
+const editAssSubject = document.getElementById("editAssSubject");
+const editAssTitle = document.getElementById("editAssTitle");
+const editAssDate = document.getElementById("editAssDate");
+const saveEditAssBtn = document.getElementById("saveEditAssBtn");
+const cancelEditAssBtn = document.getElementById("cancelEditAssBtn");
+
+function openEditAssignmentModal(ass) {
+  currentEditAssId = ass.id;
+  
+  // Populate Subject Dropdown
+  editAssSubject.innerHTML = "";
+  state.subjects.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.name;
+    if (s.id === ass.subjectId) opt.selected = true;
+    editAssSubject.appendChild(opt);
+  });
+
+  // Populate Fields
+  editAssTitle.value = ass.title || "";
+  editAssDate.value = ass.dueDate || "";
+
+  // Show Modal
+  if(editAssBackdrop) editAssBackdrop.style.display = "flex";
+}
+
+function closeEditAssignmentModal() {
+  if(editAssBackdrop) editAssBackdrop.style.display = "none";
+  currentEditAssId = null;
+}
+
+// Save Changes
+if (saveEditAssBtn) {
+  saveEditAssBtn.addEventListener("click", () => {
+    if (!currentEditAssId) return;
+
+    const ass = state.assignments.find(a => a.id === currentEditAssId);
+    if (ass) {
+      ass.subjectId = editAssSubject.value;
+      ass.title = editAssTitle.value || "Assignment";
+      ass.dueDate = editAssDate.value;
+      
+      saveState();
+      renderAssignments();
+      closeEditAssignmentModal();
+    }
+  });
+}
+
+// Cancel / Close Listeners
+if (cancelEditAssBtn) cancelEditAssBtn.addEventListener("click", closeEditAssignmentModal);
+if (editAssBackdrop) editAssBackdrop.addEventListener("click", (e) => {
+  if (e.target === editAssBackdrop) closeEditAssignmentModal();
+});
+
+
+// 3. Render Function (Updated)
 function renderAssignments() {
   if (!assignmentsListPending) return; 
   assignmentsListPending.innerHTML = "";
   assignmentsListDone.innerHTML = "";
   
   const sorted = (state.assignments || []).slice().sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
-
   let pendingCount = 0;
 
   sorted.forEach(ass => {
     const subj = state.subjects.find(s => s.id === ass.subjectId);
     const row = document.createElement("div");
     row.className = "subject-stat-row";
+    
+    // CSS Grid: Checkbox | Text | Action Buttons
     row.style.display = "grid"; 
     row.style.gridTemplateColumns = "24px 1fr auto"; 
     row.style.gap = "10px";
     row.style.marginBottom = "8px";
     row.style.alignItems = "center";
 
+    // Checkbox
     const cb = document.createElement("input");
     cb.type = "checkbox"; cb.checked = ass.completed;
     cb.style.width = "18px"; cb.style.height = "18px";
@@ -3078,12 +3154,12 @@ function renderAssignments() {
       saveState(); renderAssignments();
     });
 
+    // Info Text
     const info = document.createElement("div");
     const dateDisp = ass.dueDate ? formatDisplayDate(ass.dueDate) : "No date";
     const subjName = subj ? escapeHtml(subj.name) : "Unknown Subject";
     const titleText = escapeHtml(ass.title) || "Assignment";
 
-    // 👇 THE FIX: Subject is now BOLD at the top. Title is smaller below.
     info.innerHTML = `
       <div style="font-weight:700; font-size:0.95rem; color:var(--text); text-decoration:${ass.completed ? 'line-through' : 'none'}">
         ${subjName}
@@ -3093,53 +3169,61 @@ function renderAssignments() {
       </div>
     `;
 
+    // Actions Container
+    const actionsDiv = document.createElement("div");
+    actionsDiv.style.display = "flex";
+    actionsDiv.style.gap = "6px";
+
+    // Google Calendar Button (only if not completed & has date)
+    if (!ass.completed && ass.dueDate) {
+      const calBtn = document.createElement("button");
+      calBtn.className = "btn small secondary";
+      calBtn.innerHTML = "📅";
+      calBtn.title = "Add to Google Calendar";
+      calBtn.onclick = () => addToGCal(ass, subjName);
+      actionsDiv.appendChild(calBtn);
+    }
+
+    // Edit Button
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn small secondary";
+    editBtn.innerHTML = "✏️";
+    editBtn.onclick = () => openEditAssignmentModal(ass);
+    actionsDiv.appendChild(editBtn);
+
+    // Delete Button
     const delBtn = document.createElement("button");
     delBtn.className = "btn small danger"; 
-    delBtn.textContent = "✕";
-    delBtn.style.height = "24px"; 
-    delBtn.addEventListener("click", () => {
+    delBtn.innerHTML = "✕"; 
+    delBtn.onclick = () => {
       if(confirm("Delete task?")) {
         state.assignments = state.assignments.filter(x => x.id !== ass.id);
         saveState(); renderAssignments();
       }
-    });
+    };
+    actionsDiv.appendChild(delBtn);
 
-    row.appendChild(cb); row.appendChild(info); row.appendChild(delBtn);
+    row.appendChild(cb); row.appendChild(info); row.appendChild(actionsDiv);
 
     if (ass.completed) assignmentsListDone.appendChild(row);
     else { assignmentsListPending.appendChild(row); pendingCount++; }
   });
 
   if(noPendingMsg) noPendingMsg.style.display = pendingCount === 0 ? "block" : "none";
-  
-  // Refresh Dropdown (if used elsewhere, though we use chips now)
-  if(newAssSubject) {
-    newAssSubject.innerHTML = "";
-    state.subjects.forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s.id; opt.textContent = s.name;
-      newAssSubject.appendChild(opt);
-    });
-  }
 }
 
 if (addAssignmentBtn) {
   addAssignmentBtn.addEventListener("click", () => {
-    // 1. Validation: Must have at least one subject
     if (selectedAssSubjects.size === 0) {
       alert("Please select at least one subject.");
       return;
     }
 
-    // 2. Title is now Optional
     let titleText = newAssTitle.value.trim();
-    if (!titleText) {
-      titleText = "Assignment"; // Default text if empty
-    }
+    if (!titleText) titleText = "Assignment"; 
 
     const dueDateVal = newAssDate.value || toISODate(new Date());
 
-    // 3. Loop through ALL selected subjects and add a task for each
     selectedAssSubjects.forEach(subjectId => {
       state.assignments.push({
         id: genId("ass"),
@@ -3150,18 +3234,15 @@ if (addAssignmentBtn) {
       });
     });
 
-    // 4. Reset UI
     newAssTitle.value = "";
-    selectedAssSubjects.clear(); // Unselect all
-    renderAssignmentChips();     // Redraw chips (to remove color)
-    renderAssignments();         // Show new tasks
+    selectedAssSubjects.clear(); 
+    renderAssignmentChips();     
+    renderAssignments();         
     saveState();
     
-    // Optional: Feedback
     alert("Task(s) added successfully!");
   });
 }
-    // Boot
     (function init() {
       checkUrlForImport(); // <--- MAGIC LINK CHECK HAPPENS HERE
       
@@ -3731,6 +3812,31 @@ if ("serviceWorker" in navigator) {
     </form>
   </div>
 </div>
+	<div id="editAssBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+  <div class="card" style="width:min(360px,90%); padding:20px; animation: slideUp 0.2s ease-out;">
+    <h3 style="margin-top:0;">Edit Task ✏️</h3>
+    
+    <div class="field" style="margin-top:12px;">
+      <label>Subject</label>
+      <select id="editAssSubject" style="width:100%;"></select>
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Title</label>
+      <input type="text" id="editAssTitle" style="width:100%; box-sizing:border-box;">
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Due Date</label>
+      <input type="date" id="editAssDate" style="width:100%; box-sizing:border-box;">
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="cancelEditAssBtn" class="btn small secondary">Cancel</button>
+      <button id="saveEditAssBtn" class="btn small">Save Changes</button>
+    </div>
+  </div>
+</div>
 <script>
 document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
   document.getElementById("newFeaturePopup").style.display = "none";
@@ -3845,6 +3951,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </script>
 </body>
 	</html>
+
 
 
 
