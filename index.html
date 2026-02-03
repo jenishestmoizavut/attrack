@@ -3077,65 +3077,75 @@ function addToGCal(ass, subjectName) {
   const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${dates}`;
   window.open(url, '_blank');
 }
-// 2. Edit Modal Logic
+//// 2. Edit Modal Logic (Robust Version)
 let currentEditAssId = null;
-const editAssBackdrop = document.getElementById("editAssBackdrop");
-const editAssSubject = document.getElementById("editAssSubject");
-const editAssTitle = document.getElementById("editAssTitle");
-const editAssDate = document.getElementById("editAssDate");
-const saveEditAssBtn = document.getElementById("saveEditAssBtn");
-const cancelEditAssBtn = document.getElementById("cancelEditAssBtn");
+
+// Helper to get elements freshly when needed
+function getEditElements() {
+  return {
+    backdrop: document.getElementById("editAssBackdrop"),
+    subject: document.getElementById("editAssSubject"),
+    title: document.getElementById("editAssTitle"),
+    date: document.getElementById("editAssDate"),
+  };
+}
 
 function openEditAssignmentModal(ass) {
   currentEditAssId = ass.id;
-  
+  const els = getEditElements();
+
+  if (!els.backdrop) return console.error("Edit Modal HTML not found!");
+
   // Populate Subject Dropdown
-  editAssSubject.innerHTML = "";
+  els.subject.innerHTML = "";
   state.subjects.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.id;
     opt.textContent = s.name;
     if (s.id === ass.subjectId) opt.selected = true;
-    editAssSubject.appendChild(opt);
+    els.subject.appendChild(opt);
   });
 
   // Populate Fields
-  editAssTitle.value = ass.title || "";
-  editAssDate.value = ass.dueDate || "";
+  els.title.value = ass.title || "";
+  els.date.value = ass.dueDate || "";
 
   // Show Modal
-  if(editAssBackdrop) editAssBackdrop.style.display = "flex";
+  els.backdrop.style.display = "flex";
 }
 
 function closeEditAssignmentModal() {
-  if(editAssBackdrop) editAssBackdrop.style.display = "none";
+  const backdrop = document.getElementById("editAssBackdrop");
+  if(backdrop) backdrop.style.display = "none";
   currentEditAssId = null;
 }
 
-// Save Changes
-if (saveEditAssBtn) {
-  saveEditAssBtn.addEventListener("click", () => {
-    if (!currentEditAssId) return;
+// Global Event Listener (Handles clicks even if HTML is loaded late)
+document.addEventListener("click", (e) => {
+  if (!e.target) return;
 
+  // Save Button Click
+  if (e.target.id === "saveEditAssBtn") {
+    if (!currentEditAssId) return;
+    const els = getEditElements();
+    
     const ass = state.assignments.find(a => a.id === currentEditAssId);
     if (ass) {
-      ass.subjectId = editAssSubject.value;
-      ass.title = editAssTitle.value || "Assignment";
-      ass.dueDate = editAssDate.value;
+      ass.subjectId = els.subject.value;
+      ass.title = els.title.value || "Assignment";
+      ass.dueDate = els.date.value;
       
       saveState();
       renderAssignments();
       closeEditAssignmentModal();
     }
-  });
-}
-
-// Cancel / Close Listeners
-if (cancelEditAssBtn) cancelEditAssBtn.addEventListener("click", closeEditAssignmentModal);
-if (editAssBackdrop) editAssBackdrop.addEventListener("click", (e) => {
-  if (e.target === editAssBackdrop) closeEditAssignmentModal();
+  }
+  
+  // Cancel / Close Clicks
+  if (e.target.id === "cancelEditAssBtn" || e.target.id === "editAssBackdrop") {
+    closeEditAssignmentModal();
+  }
 });
-
 
 // 3. Render Function (Updated)
 function renderAssignments() {
@@ -3826,31 +3836,7 @@ if ("serviceWorker" in navigator) {
     </form>
   </div>
 </div>
-	<div id="editAssBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
-  <div class="card" style="width:min(360px,90%); padding:20px; animation: slideUp 0.2s ease-out;">
-    <h3 style="margin-top:0;">Edit Task ✏️</h3>
-    
-    <div class="field" style="margin-top:12px;">
-      <label>Subject</label>
-      <select id="editAssSubject" style="width:100%;"></select>
-    </div>
-
-    <div class="field" style="margin-top:12px;">
-      <label>Title</label>
-      <input type="text" id="editAssTitle" style="width:100%; box-sizing:border-box;">
-    </div>
-
-    <div class="field" style="margin-top:12px;">
-      <label>Due Date</label>
-      <input type="date" id="editAssDate" style="width:100%; box-sizing:border-box;">
-    </div>
-
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-      <button id="cancelEditAssBtn" class="btn small secondary">Cancel</button>
-      <button id="saveEditAssBtn" class="btn small">Save Changes</button>
-    </div>
-  </div>
-</div>
+	
 <script>
 document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
   document.getElementById("newFeaturePopup").style.display = "none";
@@ -3988,9 +3974,9 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
     </div>
   </div>
 </div>
-
 </body>
 	</html>
+
 
 
 
