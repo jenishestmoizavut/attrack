@@ -2075,51 +2075,6 @@ markHolidayBtn.addEventListener("click", () => {
     const wrapExportBtn = document.getElementById("wrapExportBtn");
     const wrapResetBtn = document.getElementById("wrapResetBtn");
 
-    if (generateWrappedBtn) {
-   
-        // 1. Calculate overall stats
-        const start = state.startDate || toISODate(new Date());
-        const validLectures = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
-        
-        const total = validLectures.length;
-        const attended = validLectures.filter(l => l.attended).length;
-        const missed = total - attended;
-        const pct = total > 0 ? ((attended / total) * 100).toFixed(1) : "0.0";
-
-        const completedTasks = (state.assignments || []).filter(a => a.completed).length;
-
-        // 2. Calculate Subject Extremes (Most Attended vs Most Bunked)
-        let subjectStats = [];
-        state.subjects.forEach(subj => {
-          const subLecs = validLectures.filter(l => l.subjectId === subj.id);
-          const subTotal = subLecs.length;
-          if (subTotal > 0) {
-            const subAtt = subLecs.filter(l => l.attended).length;
-            subjectStats.push({
-              name: subj.name,
-              pct: (subAtt / subTotal) * 100,
-              missed: subTotal - subAtt
-            });
-          }
-        });
-
-        // Sort by percentage
-        subjectStats.sort((a, b) => b.pct - a.pct);
-        const mostAttended = subjectStats.length > 0 ? subjectStats[0].name : "N/A";
-        const mostBunked = subjectStats.length > 0 ? subjectStats[subjectStats.length - 1].name : "N/A";
-
-        // 3. Populate UI
-        document.getElementById("wrapTotalLectures").textContent = total;
-        document.getElementById("wrapTotalBunks").textContent = missed;
-        document.getElementById("wrapFinalPct").textContent = `${pct}%`;
-        document.getElementById("wrapTasksDone").textContent = completedTasks;
-        document.getElementById("wrapMostAttended").textContent = mostAttended;
-        document.getElementById("wrapMostBunked").textContent = mostBunked;
-
-        // 4. Switch to the view
-        switchView("wrappedView");
-      };
-    }
 
     // Ensure they export before wiping data
     if (wrapExportBtn) {
@@ -3441,6 +3396,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
