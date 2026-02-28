@@ -2826,6 +2826,69 @@ if (feedbackForm) {
     // PDF IMPORTER INTEGRATION
     // ---------------------------------------------------------
 
+
+function getPersonalizedMessage(pct, target) {
+  const diff = pct - target;
+  if (diff >= 10) return "You didn't just meet your goal; you crushed it. Absolute academic weapon!";
+  if (diff >= 0) return `Mission accomplished! You stayed above your ${target}% goal with room to spare.`;
+  if (diff >= -5) return `You fought hard. Just a few classes away from the ${target}% mark. You'll get it next term!`;
+  return "This semester had its hurdles, but every end is a new beginning. Rest up for the next one.";
+}
+
+// 2. The Vibrant View function
+function showVibrantWrapped() {
+  const stats = calculateStats();
+  const target = settings.targetPercentage || 75; 
+  const wrappedView = document.getElementById('wrappedView');
+  
+  // Hide all other views
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  wrappedView.classList.add('active');
+
+  let statusColor = "var(--accent)";
+  let achievementText = "";
+  
+  if (stats.overall >= target) {
+    statusColor = "#10b981"; 
+    achievementText = `You beat your ${target}% goal!`;
+  } else if (stats.overall >= target - 5) {
+    statusColor = "#f59e0b"; 
+    achievementText = `So close to your ${target}% goal!`;
+  } else {
+    statusColor = "#ef4444"; 
+    achievementText = `Target was ${target}%`;
+  }
+
+  wrappedView.innerHTML = `
+    <div style="min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; animation: fadeIn 0.8s ease-out;">
+      <div class="card" style="background: linear-gradient(145deg, var(--card-bg), var(--accent-soft)); border: 3px solid ${statusColor}; box-shadow: var(--shadow); padding: 40px 20px; width: 100%; max-width: 400px; border-radius: 24px; position: relative; overflow: hidden;">
+        <h1 style="font-size: 1.6rem; margin-bottom: 5px; color: var(--accent);">Semester Wrapped ✨</h1>
+        <p style="opacity: 0.7; font-size: 0.85rem; margin-bottom: 25px;">${achievementText}</p>
+        <div style="margin: 25px 0;">
+          <div style="font-size: 5rem; font-weight: 800; line-height: 1; color: ${statusColor};">${stats.overall}%</div>
+          <p style="font-weight: 700; letter-spacing: 1px; margin-top: 10px; opacity: 0.8;">FINAL ATTENDANCE</p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; text-align: left;">
+          <div style="background: var(--bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
+            <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Classes Met</div>
+            <div style="font-size: 1.1rem; font-weight: 700;">${stats.totalPresent}</div>
+          </div>
+          <div style="background: var(--bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
+            <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Safety Used</div>
+            <div style="font-size: 1.1rem; font-weight: 700;">${stats.totalAbsent}</div>
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-style: italic; font-size: 0.95rem; line-height: 1.4;">
+           "${getPersonalizedMessage(stats.overall, target)}"
+        </div>
+        <button class="btn" onclick="location.reload()" style="width: 100%; justify-content: center; padding: 12px; background: ${statusColor}; color: white; border: none;">Back to Dashboard</button>
+      </div>
+    </div>
+  `;
+}
+
+// 3. The actual trigger
+document.getElementById('generateWrappedBtn').onclick = showVibrantWrapped;
     // 1. Your Helper Functions (Adapted from pdfImporter.js)
     async function extractTextFromPDF(file) {
       const buffer = await file.arrayBuffer();
@@ -3079,68 +3142,7 @@ setTimeout(() => {
 
   })();
 // 1. The message logic
-function getPersonalizedMessage(pct, target) {
-  const diff = pct - target;
-  if (diff >= 10) return "You didn't just meet your goal; you crushed it. Absolute academic weapon!";
-  if (diff >= 0) return `Mission accomplished! You stayed above your ${target}% goal with room to spare.`;
-  if (diff >= -5) return `You fought hard. Just a few classes away from the ${target}% mark. You'll get it next term!`;
-  return "This semester had its hurdles, but every end is a new beginning. Rest up for the next one.";
-}
 
-// 2. The Vibrant View function
-function showVibrantWrapped() {
-  const stats = calculateStats();
-  const target = settings.targetPercentage || 75; 
-  const wrappedView = document.getElementById('wrappedView');
-  
-  // Hide all other views
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  wrappedView.classList.add('active');
-
-  let statusColor = "var(--accent)";
-  let achievementText = "";
-  
-  if (stats.overall >= target) {
-    statusColor = "#10b981"; 
-    achievementText = `You beat your ${target}% goal!`;
-  } else if (stats.overall >= target - 5) {
-    statusColor = "#f59e0b"; 
-    achievementText = `So close to your ${target}% goal!`;
-  } else {
-    statusColor = "#ef4444"; 
-    achievementText = `Target was ${target}%`;
-  }
-
-  wrappedView.innerHTML = `
-    <div style="min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; animation: fadeIn 0.8s ease-out;">
-      <div class="card" style="background: linear-gradient(145deg, var(--card-bg), var(--accent-soft)); border: 3px solid ${statusColor}; box-shadow: var(--shadow); padding: 40px 20px; width: 100%; max-width: 400px; border-radius: 24px; position: relative; overflow: hidden;">
-        <h1 style="font-size: 1.6rem; margin-bottom: 5px; color: var(--accent);">Semester Wrapped ✨</h1>
-        <p style="opacity: 0.7; font-size: 0.85rem; margin-bottom: 25px;">${achievementText}</p>
-        <div style="margin: 25px 0;">
-          <div style="font-size: 5rem; font-weight: 800; line-height: 1; color: ${statusColor};">${stats.overall}%</div>
-          <p style="font-weight: 700; letter-spacing: 1px; margin-top: 10px; opacity: 0.8;">FINAL ATTENDANCE</p>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; text-align: left;">
-          <div style="background: var(--bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
-            <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Classes Met</div>
-            <div style="font-size: 1.1rem; font-weight: 700;">${stats.totalPresent}</div>
-          </div>
-          <div style="background: var(--bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
-            <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Safety Used</div>
-            <div style="font-size: 1.1rem; font-weight: 700;">${stats.totalAbsent}</div>
-          </div>
-        </div>
-        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-style: italic; font-size: 0.95rem; line-height: 1.4;">
-           "${getPersonalizedMessage(stats.overall, target)}"
-        </div>
-        <button class="btn" onclick="location.reload()" style="width: 100%; justify-content: center; padding: 12px; background: ${statusColor}; color: white; border: none;">Back to Dashboard</button>
-      </div>
-    </div>
-  `;
-}
-
-// 3. The actual trigger
-document.getElementById('generateWrappedBtn').onclick = showVibrantWrapped;
 //function showSharePopup(magicLink) {
 //  document.getElementById("popupLinkInput").value = magicLink;
   //document.getElementById("shareInfoPopup").style.display = "flex";
@@ -3423,6 +3425,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
