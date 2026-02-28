@@ -2165,6 +2165,150 @@ markHolidayBtn.addEventListener("click", () => {
     function showTutorialReminder() {
        // Simple reminder logic (omitted for brevity, code provided in original was fine)
     }
+	  // ---------------- FRONT-DOOR ONBOARDING WIZARD ----------------
+(function initWizard() {
+  const backdrop = document.getElementById("onboardingWizardBackdrop");
+  if (!backdrop) return;
+
+  // Only show the wizard if the user is brand new (no subjects)
+  if (state.isInitialized && state.subjects.length > 0) {
+    backdrop.style.display = "none";
+    return;
+  }
+
+  // Lock the screen and show the wizard
+  backdrop.style.display = "flex";
+
+  // Elements
+  const step1 = document.getElementById("wizardStep1");
+  const step2 = document.getElementById("wizardStep2");
+  const step3 = document.getElementById("wizardStep3");
+
+  const wizName = document.getElementById("wizName");
+  const wizDate = document.getElementById("wizDate");
+  const wizTarget = document.getElementById("wizTarget");
+  const wizSubInput = document.getElementById("wizSubInput");
+  const wizAddSubBtn = document.getElementById("wizAddSubBtn");
+  const wizSubList = document.getElementById("wizSubList");
+
+  const btn1 = document.getElementById("wizBtn1");
+  const btn2 = document.getElementById("wizBtn2");
+  const btn3 = document.getElementById("wizBtn3");
+  const back1 = document.getElementById("wizBack1");
+  const back2 = document.getElementById("wizBack2");
+
+  let tempSubjects = [];
+
+  // Default to today's date
+  wizDate.value = toISODate(new Date());
+
+  // --- STEP 1: Name & Date ---
+  btn1.addEventListener("click", () => {
+    state.studentName = wizName.value.trim();
+    state.startDate = wizDate.value || toISODate(new Date());
+    step1.style.display = "none";
+    step2.style.display = "block";
+  });
+
+  // --- STEP 2: Target Percentage ---
+  back1.addEventListener("click", () => {
+    step2.style.display = "none";
+    step1.style.display = "block";
+  });
+
+  btn2.addEventListener("click", () => {
+    let t = parseInt(wizTarget.value, 10);
+    if (isNaN(t) || t < 50) t = 50;
+    if (t > 100) t = 100;
+    
+    // Save target as a decimal (e.g., 75% -> "0.75") to match app logic
+    localStorage.setItem("attrack_target_attendance", (t / 100).toString());
+    
+    step2.style.display = "none";
+    step3.style.display = "block";
+  });
+
+  // --- STEP 3: Subjects ---
+  back2.addEventListener("click", () => {
+    step3.style.display = "none";
+    step2.style.display = "block";
+  });
+
+  function renderTempSubjects() {
+    wizSubList.innerHTML = "";
+    tempSubjects.forEach((sub, index) => {
+      const chip = document.createElement("div");
+      chip.className = "subject-chip selected";
+      chip.innerHTML = `${escapeHtml(sub)} <span style="margin-left:6px; font-weight:bold;">✕</span>`;
+      chip.addEventListener("click", () => {
+        tempSubjects.splice(index, 1);
+        renderTempSubjects();
+      });
+      wizSubList.appendChild(chip);
+    });
+    // Unlock finish button only if they have at least 1 subject
+    btn3.disabled = tempSubjects.length === 0;
+  }
+
+  wizAddSubBtn.addEventListener("click", () => {
+    const val = wizSubInput.value.trim();
+    if (val && !tempSubjects.includes(val)) {
+      tempSubjects.push(val);
+      wizSubInput.value = "";
+      renderTempSubjects();
+    }
+  });
+
+  // Allow pressing "Enter" to add a subject
+  wizSubInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      wizAddSubBtn.click();
+    }
+  });
+
+  // --- FINISH: Save & Build App ---
+  btn3.addEventListener("click", () => {
+    tempSubjects.forEach(name => {
+      state.subjects.push({
+        id: genId("sub"),
+        name: name,
+        schedule: { weeklyPattern: [] }
+      });
+    });
+
+    state.isInitialized = true;
+    saveState();
+
+    // Hide wizard and unlock app
+    backdrop.style.display = "none";
+
+    // Re-render everything with the new data
+    renderStudent();
+    renderSubjectsList();
+    renderSetupTarget();
+    renderTimetable();
+    renderSummary();
+    renderSubjectStats();
+    
+    // Pre-load the calendar for today
+    switchView("dayView");
+    
+    setTimeout(() => {
+      alert("All set! Update your weekly timetable in the 'Setup' tab whenever you get your schedule.");
+    }, 500);
+  });
+
+  // Optional: Class Rep Import Bypass
+  const wizImportLink = document.getElementById("wizImportLink");
+  if (wizImportLink) {
+    wizImportLink.addEventListener("click", () => {
+      backdrop.style.display = "none";
+      document.getElementById("triggerImportBtn")?.click();
+    });
+  }
+
+})();
 // --- ASSIGNMENT TRACKER LOGIC ---
 const assignmentsListPending = document.getElementById("assignmentsListPending");
 const assignmentsListDone = document.getElementById("assignmentsListDone");
@@ -2968,34 +3112,6 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js");
   });
 }
-
-// Ensure they export before wiping data
-if (wrapExportBtn) {
-  wrapExportBtn.addEventListener("click", () => {
-    exportScheduleFile(); // Re-use your existing JSON export function
-    // Unlock the reset button
-    wrapResetBtn.disabled = false;
-    wrapResetBtn.textContent = "🧹 2. Erase Data & Reset App (Unlock)";
-  });
-}
-
-// The Nuke Button
-if (wrapResetBtn) {
-  wrapResetBtn.addEventListener("click", () => {
-    if (confirm("🚨 WARNING: This will permanently delete all subjects, timetable, and attendance history on this device. Make sure your backup JSON downloaded successfully.\n\nAre you absolutely sure?")) {
-      
-      // Clear local storage completely
-      localStorage.removeItem("attrack_v1");
-      localStorage.removeItem("attrack_target_attendance");
-      localStorage.removeItem("attrack_lastView");
-      
-      alert("System wiped clean. Enjoy your break! 🏖️");
-      
-      // Hard refresh to reload the app in a fresh state
-      window.location.reload();
-    }
-  });
-}
 </script>
 <div id="newFeaturePopup" class="popup-overlay" style="display:none;">
   <div class="popup-body">
@@ -3207,6 +3323,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
