@@ -2076,7 +2076,7 @@ markHolidayBtn.addEventListener("click", () => {
     const wrapResetBtn = document.getElementById("wrapResetBtn");
 
     if (generateWrappedBtn) {
-      generateWrappedBtn.addEventListener("click", () => {
+   
         // 1. Calculate overall stats
         const start = state.startDate || toISODate(new Date());
         const validLectures = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
@@ -2837,8 +2837,24 @@ function getPersonalizedMessage(pct, target) {
 
 // 2. The Vibrant View function
 function showVibrantWrapped() {
-  const stats = calculateStats();
-  const target = settings.targetPercentage || 75; 
+  const start = state.startDate || toISODate(new Date());
+
+const validLectures = state.lectures.filter(
+  lec => lec.date && lec.date >= start && !lec.isCancelled
+);
+
+const total = validLectures.length;
+const present = validLectures.filter(l => l.attended).length;
+const absent = total - present;
+const overall = total ? ((present / total) * 100).toFixed(1) : "0.0";
+
+const stats = {
+  overall,
+  totalPresent: present,
+  totalAbsent: absent
+};
+const raw = parseFloat(localStorage.getItem("attrack_target_attendance"));
+const target = (!isNaN(raw) ? raw : 0.75) * 100;
   const wrappedView = document.getElementById('wrappedView');
   
   // Hide all other views
@@ -3425,6 +3441,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
