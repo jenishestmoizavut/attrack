@@ -486,9 +486,6 @@ Attrack by Jenish
     <button id="darkToggle" class="btn small secondary" type="button" style="flex:1; justify-content:center;">
       <span id="darkIcon">🌙</span> <span id="darkLabel">Dark mode</span>
     </button>
-    <button id="showTutorialNavBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center;">
-      🎓 Tutorial
-    </button>
   </div>
 </div>
 
@@ -541,7 +538,6 @@ Attrack by Jenish
       🔗 Share Schedule Link
     </button>
     
-    <button id="exportScheduleBtn" class="btn small secondary" style="display:none">Export File</button>
     <button id="triggerImportBtn" class="btn small secondary">
       📥 Import File
     </button>
@@ -2061,12 +2057,7 @@ markHolidayBtn.addEventListener("click", () => {
     });
 	  // --- File Export/Import Events ---
     
-    // 1. Export
-    const exportScheduleBtn = document.getElementById("exportScheduleBtn");
-    if (exportScheduleBtn) {
-      exportScheduleBtn.addEventListener("click", exportScheduleFile);
-    }
-
+    
     // 2. Import (Trigger the hidden input)
     const triggerImportBtn = document.getElementById("triggerImportBtn");
     const importScheduleInput = document.getElementById("importScheduleInput");
@@ -2161,10 +2152,6 @@ markHolidayBtn.addEventListener("click", () => {
     // --- END SEMESTER WRAPPED LOGIC ---
 
 // ---------------- Onboarding: single guided tour + early attendance prompt ----------------
-    
-    function showTutorialReminder() {
-       // Simple reminder logic (omitted for brevity, code provided in original was fine)
-    }
 	  // ---------------- FRONT-DOOR ONBOARDING WIZARD ----------------
 (function initWizard() {
   const backdrop = document.getElementById("onboardingWizardBackdrop");
@@ -3323,6 +3310,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
