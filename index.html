@@ -2655,7 +2655,14 @@ const needToAttend = Math.ceil((target * total - attended) / (1 - target));
       if (summaryDiv) {
         let statusHtml = '';
         
-if (pct >= target * 100) {
+if (total === 0) {
+  // NEUTRAL STARTING STATE
+  statusHtml = `
+    <div style="background:var(--bg-soft); color:var(--text-soft); padding:16px; border-radius:12px; margin-top:12px; border: 1px dashed var(--border);">
+      <strong>No lectures tracked yet 📅</strong><br>
+      Head over to Setup to add subjects, or load a day to begin!
+    </div>`;
+} else if (pct >= target * 100) {
   // GREEN GOOD NEWS
   statusHtml = `
     <div style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
@@ -2896,15 +2903,16 @@ markHolidayBtn.addEventListener("click", () => {
 // REPLACE YOUR EXISTING (function onboardingInit() { ... })(); WITH THIS:
 
 (function onboardingInit() {
-  const tourSteps = [
-    { view: "homeView", selector: "#studentName", title: "Enter your name", text: "Start by entering your name here." },
-    { view: "homeView", selector: "#startDate", title: "Start Date", text: "This is when attendance tracking begins." },
-    { view: "homeView", selector: "#ATTENDANCE_PROMPT", title: "Set Target", text: "Choose your goal percentage." },
-    { view: "setupView", selector: "#subjectsList", title: "Subjects", text: "Add your subjects here first." },
-    { view: "setupView", selector: "#timetableBody", title: "Timetable", text: "Then set your weekly schedule here." },
-    { view: "dayView", selector: "#loadDayBtn", title: "Load Lectures", text: "Click this to generate the schedule for the selected day." },
-    { view: "homeView", selector: "#finalAttendanceSummary", title: "Your progress", text: "See how many lectures you can safely miss here." }
-  ];
+const tourSteps = [
+  { view: "homeView", selector: "#studentName", title: "Welcome to Attrack! 👋", text: "Let's personalize your setup. Start by entering your name and semester start date." },
+  { view: "homeView", selector: "#ATTENDANCE_PROMPT", title: "Set Your Goal 🎯", text: "Choose your target attendance percentage so the app can calculate your bunk stats." },
+  { view: "setupView", selector: "#subjectsList", title: "Add Subjects 📚", text: "Set up your subjects here, then scroll down to map out your weekly timetable." },
+  { view: "setupView", selector: "#shareLinkBtn", title: "Class Rep Mode ⚡️", text: "New: Create the schedule once and share a Magic Link with your whole class!" },
+  { view: "dayView", selector: "#loadDayBtn", title: "Daily Tracking ✅", text: "Load your schedule for any day. Mark attendance, add lecture notes, or log holidays." },
+  { view: "dayView", selector: "#findNotesBtn", title: "Notes & Absences 🔍", text: "New: Quickly find lectures where you left a note, or review your missed classes log." },
+  { view: "assignmentsView", selector: "#addAssignmentBtn", title: "Track Tasks 📝", text: "New: Keep track of assignments and add deadlines directly to Google Calendar." },
+  { view: "homeView", selector: "#finalAttendanceSummary", title: "Bunk Calculator 🧮", text: "Check back here to see exactly how many lectures you can safely skip. You're all set!" }
+];
 
   let tourIndex = 0;
   let tourTooltip = null;
@@ -4073,3 +4081,4 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
