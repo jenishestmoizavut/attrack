@@ -2149,10 +2149,7 @@ markHolidayBtn.addEventListener("click", () => {
         }
       });
     }
-    // --- END SEMESTER WRAPPED LOGIC ---
-
-// ---------------- Onboarding: single guided tour + early attendance prompt ----------------
-	  // ---------------- FRONT-DOOR ONBOARDING WIZARD ----------------
+    // ---------------- FRONT-DOOR ONBOARDING WIZARD ----------------
 (function initWizard() {
   const backdrop = document.getElementById("onboardingWizardBackdrop");
   if (!backdrop) return;
@@ -2177,6 +2174,15 @@ markHolidayBtn.addEventListener("click", () => {
   const wizSubInput = document.getElementById("wizSubInput");
   const wizAddSubBtn = document.getElementById("wizAddSubBtn");
   const wizSubList = document.getElementById("wizSubList");
+
+  // Re-style the list to hold timetable cards instead of inline chips
+  wizSubList.style.display = "flex";
+  wizSubList.style.flexDirection = "column";
+  wizSubList.style.gap = "8px";
+  wizSubList.style.justifyContent = "flex-start";
+  wizSubList.style.maxHeight = "260px";
+  wizSubList.style.overflowY = "auto";
+  wizSubList.style.paddingRight = "4px";
 
   const btn1 = document.getElementById("wizBtn1");
   const btn2 = document.getElementById("wizBtn2");
@@ -2208,45 +2214,94 @@ markHolidayBtn.addEventListener("click", () => {
     if (isNaN(t) || t < 50) t = 50;
     if (t > 100) t = 100;
     
-    // Save target as a decimal (e.g., 75% -> "0.75") to match app logic
     localStorage.setItem("attrack_target_attendance", (t / 100).toString());
     
     step2.style.display = "none";
     step3.style.display = "block";
   });
 
-  // --- STEP 3: Subjects ---
+  // --- STEP 3: Subjects & Tap-Timetable ---
   back2.addEventListener("click", () => {
     step3.style.display = "none";
     step2.style.display = "block";
   });
 
+  // Global helper to remove a subject from the temp array
+  window.removeTempSub = function(index) {
+    tempSubjects.splice(index, 1);
+    renderTempSubjects();
+  };
+
   function renderTempSubjects() {
     wizSubList.innerHTML = "";
+    
+    if (tempSubjects.length > 0) {
+        const hint = document.createElement("div");
+        hint.className = "hint";
+        hint.style.marginBottom = "6px";
+        hint.textContent = "Tap the days to set your lecture count!";
+        wizSubList.appendChild(hint);
+    }
+
     tempSubjects.forEach((sub, index) => {
-      const chip = document.createElement("div");
-      chip.className = "subject-chip selected";
-      chip.innerHTML = `${escapeHtml(sub)} <span style="margin-left:6px; font-weight:bold;">✕</span>`;
-      chip.addEventListener("click", () => {
-        tempSubjects.splice(index, 1);
-        renderTempSubjects();
+      // 1. Create the Card
+      const row = document.createElement("div");
+      row.style.cssText = "background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:left;";
+
+      // 2. Header (Subject Name + Delete)
+      const header = document.createElement("div");
+      header.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;";
+      header.innerHTML = `<strong style="font-size:0.95rem; color:var(--text);">${escapeHtml(sub.name)}</strong>
+                          <span style="color:var(--muted); cursor:pointer; font-size:1.1rem; padding:0 4px;" onclick="removeTempSub(${index})">✕</span>`;
+
+      // 3. Bubbles (Mon - Sat)
+      const daysRow = document.createElement("div");
+      daysRow.style.cssText = "display:flex; gap:6px; justify-content:space-between;";
+
+      const days = ["M", "T", "W", "T", "F", "S"];
+      days.forEach((d, i) => {
+         const dayNum = i + 1; // 1=Mon, 6=Sat
+         const count = sub.pattern[dayNum];
+         const btn = document.createElement("div");
+         
+         // Style dynamic based on count
+         let bg = "var(--card-bg)", color = "var(--muted)", border = "var(--border)";
+         if(count === 1) { bg = "var(--accent-soft)"; color = "var(--accent)"; border = "var(--accent)"; }
+         else if(count > 1) { bg = "var(--accent)"; color = "#fff"; border = "var(--accent)"; }
+
+         btn.style.cssText = `flex:1; text-align:center; padding:8px 0; border-radius:8px; border:1px solid ${border}; background:${bg}; color:${color}; font-size:0.85rem; font-weight:700; cursor:pointer; user-select:none; transition:all 0.15s;`;
+         
+         // Show 'M/T/W' if 0, else show the number of lectures
+         btn.innerHTML = count === 0 ? d : count;
+
+         // Tap to increment (max 4 lectures per day)
+         btn.addEventListener("click", () => {
+            sub.pattern[dayNum] = (sub.pattern[dayNum] + 1) % 5; 
+            renderTempSubjects();
+         });
+         daysRow.appendChild(btn);
       });
-      wizSubList.appendChild(chip);
+
+      row.appendChild(header);
+      row.appendChild(daysRow);
+      wizSubList.appendChild(row);
     });
-    // Unlock finish button only if they have at least 1 subject
+    
     btn3.disabled = tempSubjects.length === 0;
   }
 
   wizAddSubBtn.addEventListener("click", () => {
     const val = wizSubInput.value.trim();
-    if (val && !tempSubjects.includes(val)) {
-      tempSubjects.push(val);
+    if (val && !tempSubjects.some(s => s.name === val)) {
+      tempSubjects.push({
+        name: val,
+        pattern: { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 } // Track days inside temp object
+      });
       wizSubInput.value = "";
       renderTempSubjects();
     }
   });
 
-  // Allow pressing "Enter" to add a subject
   wizSubInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -2256,21 +2311,26 @@ markHolidayBtn.addEventListener("click", () => {
 
   // --- FINISH: Save & Build App ---
   btn3.addEventListener("click", () => {
-    tempSubjects.forEach(name => {
+    // Convert temp subjects to Attrack's internal state format
+    tempSubjects.forEach(sub => {
+      const weeklyPattern = [];
+      for(let d=1; d<=6; d++) {
+         if(sub.pattern[d] > 0) {
+             weeklyPattern.push({ day: d, count: sub.pattern[d] });
+         }
+      }
       state.subjects.push({
         id: genId("sub"),
-        name: name,
-        schedule: { weeklyPattern: [] }
+        name: sub.name,
+        schedule: { weeklyPattern: weeklyPattern }
       });
     });
 
     state.isInitialized = true;
     saveState();
 
-    // Hide wizard and unlock app
     backdrop.style.display = "none";
 
-    // Re-render everything with the new data
     renderStudent();
     renderSubjectsList();
     renderSetupTarget();
@@ -2278,15 +2338,13 @@ markHolidayBtn.addEventListener("click", () => {
     renderSummary();
     renderSubjectStats();
     
-    // Pre-load the calendar for today
     switchView("dayView");
     
     setTimeout(() => {
-      alert("All set! Update your weekly timetable in the 'Setup' tab whenever you get your schedule.");
+      alert("All set! Your timetable is generated and ready to go 🎉");
     }, 500);
   });
 
-  // Optional: Class Rep Import Bypass
   const wizImportLink = document.getElementById("wizImportLink");
   if (wizImportLink) {
     wizImportLink.addEventListener("click", () => {
@@ -2294,7 +2352,6 @@ markHolidayBtn.addEventListener("click", () => {
       document.getElementById("triggerImportBtn")?.click();
     });
   }
-
 })();
 // --- ASSIGNMENT TRACKER LOGIC ---
 const assignmentsListPending = document.getElementById("assignmentsListPending");
@@ -3310,6 +3367,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
