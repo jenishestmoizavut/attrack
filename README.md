@@ -63,8 +63,11 @@ The code is publicly visible but remains the intellectual property of the author
 
 Built by **Jenish**  
 Made with 💻, care, and a student-first mindset. 
-<img width="829" height="503" alt="image" src="https://github.com/user-attachments/assets/4c16f825-a9f1-4160-a486-975e28082d6e" />
-<img width="762" height="523" alt="image" src="https://github.com/user-attachments/assets/f8787641-8b3c-46c3-bc61-5b79378dd8fc" /
+Introductory Screen 
+<img width="829" height="503" alt="Introductory Screen" src="https://github.com/user-attachments/assets/4c16f825-a9f1-4160-a486-975e28082d6e"/>
+Easily add your schedule
+<img width="762" height="523" alt="image" src="https://github.com/user-attachments/assets/f8787641-8b3c-46c3-bc61-5b79378dd8fc" />
+If your friends or CRs have a schedule already, import it directly! 
 <img width="1902" height="445" alt="image" src="https://github.com/user-attachments/assets/57fd1ba8-887d-4d9c-8a4a-219c60bd31a9" />
 
 
