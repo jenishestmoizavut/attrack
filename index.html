@@ -1140,6 +1140,47 @@ body.dark .promo-card {
   border-color: var(--accent);
   font-weight: bold;
 }
+	  /* ---------- Semester Wrapped Styles ---------- */
+.wrapped-card {
+  background: linear-gradient(145deg, var(--card-bg), var(--bg-soft));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.15);
+  margin: 20px auto;
+  max-width: 500px;
+}
+
+.wrapped-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.wrapped-stat {
+  background: var(--card-bg);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.wrapped-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.wrapped-label {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1167,6 +1208,15 @@ Attrack by Jenish
         <div class="summary-main" id="summaryMain">0 / 0 lectures tracked</div>
         <div class="summary-sub" id="summarySub">Set your start date and add lectures to begin.</div>
       </div>
+		<div class="card" style="margin-top: 12px; border: 1px dashed var(--accent);">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h3 style="margin:0;">Semester Ended? 🎓</h3>
+      <div class="hint">Generate your final summary and reset the app.</div>
+    </div>
+    <button id="generateWrappedBtn" class="btn">Wrap It Up ✨</button>
+  </div>
+</div>
     </div>
 
 <div class="nav" role="navigation" aria-label="Main navigation">
@@ -1289,7 +1339,55 @@ Attrack by Jenish
   
   <div id="importPreview" style="display:none; margin-top:10px; padding:10px; background:var(--bg-soft); border-radius:8px; max-height:150px; overflow-y:auto; font-size:0.75rem;"></div>
 </div>
+<div id="wrappedView" class="view">
+  <div class="wrapped-card">
+    <h2 style="font-size: 2rem; margin-bottom: 5px;">Semester Wrapped 🎁</h2>
+    <p style="color: var(--text-soft); margin-top: 0;">Here is how you survived this semester.</p>
 
+    <div class="wrapped-stats-grid">
+      <div class="wrapped-stat">
+        <div class="wrapped-value" id="wrapTotalLectures">0</div>
+        <div class="wrapped-label">Total Lectures Survived</div>
+      </div>
+      <div class="wrapped-stat">
+        <div class="wrapped-value" id="wrapTotalBunks" style="color: var(--danger);">0</div>
+        <div class="wrapped-label">Lectures Missed</div>
+      </div>
+      <div class="wrapped-stat">
+        <div class="wrapped-value" id="wrapFinalPct" style="color: var(--accent);">0%</div>
+        <div class="wrapped-label">Final Attendance</div>
+      </div>
+      <div class="wrapped-stat">
+        <div class="wrapped-value" id="wrapTasksDone">0</div>
+        <div class="wrapped-label">Tasks Completed</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px; text-align: left; background: var(--bg-soft);">
+      <h3 style="margin-bottom: 8px;">Hall of Fame 🏆</h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span><strong>Most Attended:</strong></span>
+        <span id="wrapMostAttended">---</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span><strong>Most Bunked:</strong></span>
+        <span id="wrapMostBunked">---</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
+      <button id="wrapExportBtn" class="btn" style="justify-content: center; font-size: 1rem; padding: 10px;">
+        📊 1. Download Final Backup
+      </button>
+      <button id="wrapResetBtn" class="btn danger" style="justify-content: center; font-size: 1rem; padding: 10px;" disabled>
+        🧹 2. Erase Data & Reset App
+      </button>
+    </div>
+    <div class="hint" style="margin-top: 12px; text-align: center;">
+      You must download your backup before erasing the data.
+    </div>
+  </div>
+</div>
 <div id="setupView" class="view">
   <div class="card">
     <h3>Setup</h3>
@@ -2911,7 +3009,7 @@ const tourSteps = [
   { view: "dayView", selector: "#loadDayBtn", title: "Daily Tracking ✅", text: "Load your schedule for any day. Mark attendance, add lecture notes, or log holidays." },
   { view: "dayView", selector: "#findNotesBtn", title: "Notes & Absences 🔍", text: "New: Quickly find lectures where you left a note, or review your missed classes log." },
   { view: "assignmentsView", selector: "#addAssignmentBtn", title: "Track Tasks 📝", text: "New: Keep track of assignments and add deadlines directly to Google Calendar." },
-  { view: "homeView", selector: "#finalAttendanceSummary", title: "Bunk Calculator 🧮", text: "Check back here to see exactly how many lectures you can safely skip. You're all set!" }
+  { view: "homeView", selector: "#finalAttendanceSummary", title: "Miss Calculator 🧮", text: "Check back here to see exactly how many lectures you can safely skip. You're all set!" }
 ];
 
   let tourIndex = 0;
@@ -3870,6 +3968,84 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js");
   });
 }
+	// --- SEMESTER WRAPPED LOGIC ---
+const generateWrappedBtn = document.getElementById("generateWrappedBtn");
+const wrapExportBtn = document.getElementById("wrapExportBtn");
+const wrapResetBtn = document.getElementById("wrapResetBtn");
+
+if (generateWrappedBtn) {
+  generateWrappedBtn.addEventListener("click", () => {
+    // 1. Calculate overall stats
+    const start = state.startDate || toISODate(new Date());
+    const validLectures = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
+    
+    const total = validLectures.length;
+    const attended = validLectures.filter(l => l.attended).length;
+    const missed = total - attended;
+    const pct = total > 0 ? ((attended / total) * 100).toFixed(1) : "0.0";
+
+    const completedTasks = (state.assignments || []).filter(a => a.completed).length;
+
+    // 2. Calculate Subject Extremes (Most Attended vs Most Bunked)
+    let subjectStats = [];
+    state.subjects.forEach(subj => {
+      const subLecs = validLectures.filter(l => l.subjectId === subj.id);
+      const subTotal = subLecs.length;
+      if (subTotal > 0) {
+        const subAtt = subLecs.filter(l => l.attended).length;
+        subjectStats.push({
+          name: subj.name,
+          pct: (subAtt / subTotal) * 100,
+          missed: subTotal - subAtt
+        });
+      }
+    });
+
+    // Sort by percentage
+    subjectStats.sort((a, b) => b.pct - a.pct);
+    const mostAttended = subjectStats.length > 0 ? subjectStats[0].name : "N/A";
+    const mostBunked = subjectStats.length > 0 ? subjectStats[subjectStats.length - 1].name : "N/A";
+
+    // 3. Populate UI
+    document.getElementById("wrapTotalLectures").textContent = total;
+    document.getElementById("wrapTotalBunks").textContent = missed;
+    document.getElementById("wrapFinalPct").textContent = `${pct}%`;
+    document.getElementById("wrapTasksDone").textContent = completedTasks;
+    document.getElementById("wrapMostAttended").textContent = mostAttended;
+    document.getElementById("wrapMostBunked").textContent = mostBunked;
+
+    // 4. Switch to the view
+    switchView("wrappedView");
+  });
+}
+
+// Ensure they export before wiping data
+if (wrapExportBtn) {
+  wrapExportBtn.addEventListener("click", () => {
+    exportScheduleFile(); // Re-use your existing JSON export function
+    // Unlock the reset button
+    wrapResetBtn.disabled = false;
+    wrapResetBtn.textContent = "🧹 2. Erase Data & Reset App (Unlock)";
+  });
+}
+
+// The Nuke Button
+if (wrapResetBtn) {
+  wrapResetBtn.addEventListener("click", () => {
+    if (confirm("🚨 WARNING: This will permanently delete all subjects, timetable, and attendance history on this device. Make sure your backup JSON downloaded successfully.\n\nAre you absolutely sure?")) {
+      
+      // Clear local storage completely
+      localStorage.removeItem("attrack_v1");
+      localStorage.removeItem("attrack_target_attendance");
+      localStorage.removeItem("attrack_lastView");
+      
+      alert("System wiped clean. Enjoy your break! 🏖️");
+      
+      // Hard refresh to reload the app in a fresh state
+      window.location.reload();
+    }
+  });
+}
 </script>
 <div id="newFeaturePopup" class="popup-overlay" style="display:none;">
   <div class="popup-body">
@@ -4081,4 +4257,5 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
