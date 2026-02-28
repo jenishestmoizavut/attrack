@@ -1372,8 +1372,9 @@ let selectedAssSubjects = new Set();
     const homeView = document.getElementById("homeView");
     const dayView = document.getElementById("dayView");
     const timetableView = document.getElementById("timetableView");
-    const setupView = document.getElementById("setupView");
-	  const assignmentsView = document.getElementById("assignmentsView");
+   const setupView = document.getElementById("setupView");
+    const assignmentsView = document.getElementById("assignmentsView");
+    const wrappedView = document.getElementById("wrappedView"); // <-- ADD THIS
     const navButtons = Array.from(document.querySelectorAll(".nav-btn"));
     const studentNameInput = document.getElementById("studentName");
     const startDateInput = document.getElementById("startDate");
@@ -1898,7 +1899,7 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
     }
 
 function switchView(viewId) {
-	[homeView, dayView, timetableView, setupView, assignmentsView].forEach(v =>
+	[homeView, dayView, timetableView, setupView, assignmentsView,wrappedView].forEach(v =>
     v.classList.toggle("active", v.id === viewId)
   );
 
@@ -2052,7 +2053,85 @@ markHolidayBtn.addEventListener("click", () => {
 
 // ---------------- Onboarding: single guided tour + early attendance prompt ----------------
 // REPLACE YOUR EXISTING (function onboardingInit() { ... })(); WITH THIS:
+// Wire up the button
+    const shareLinkBtn = document.getElementById("shareLinkBtn");
+    if (shareLinkBtn) shareLinkBtn.addEventListener("click", shareScheduleViaLink);
 
+    // --- SEMESTER WRAPPED LOGIC (MOVED HERE!) ---
+    const generateWrappedBtn = document.getElementById("generateWrappedBtn");
+    const wrapExportBtn = document.getElementById("wrapExportBtn");
+    const wrapResetBtn = document.getElementById("wrapResetBtn");
+
+    if (generateWrappedBtn) {
+      generateWrappedBtn.addEventListener("click", () => {
+        // 1. Calculate overall stats
+        const start = state.startDate || toISODate(new Date());
+        const validLectures = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
+        
+        const total = validLectures.length;
+        const attended = validLectures.filter(l => l.attended).length;
+        const missed = total - attended;
+        const pct = total > 0 ? ((attended / total) * 100).toFixed(1) : "0.0";
+
+        const completedTasks = (state.assignments || []).filter(a => a.completed).length;
+
+        // 2. Calculate Subject Extremes (Most Attended vs Most Bunked)
+        let subjectStats = [];
+        state.subjects.forEach(subj => {
+          const subLecs = validLectures.filter(l => l.subjectId === subj.id);
+          const subTotal = subLecs.length;
+          if (subTotal > 0) {
+            const subAtt = subLecs.filter(l => l.attended).length;
+            subjectStats.push({
+              name: subj.name,
+              pct: (subAtt / subTotal) * 100,
+              missed: subTotal - subAtt
+            });
+          }
+        });
+
+        // Sort by percentage
+        subjectStats.sort((a, b) => b.pct - a.pct);
+        const mostAttended = subjectStats.length > 0 ? subjectStats[0].name : "N/A";
+        const mostBunked = subjectStats.length > 0 ? subjectStats[subjectStats.length - 1].name : "N/A";
+
+        // 3. Populate UI
+        document.getElementById("wrapTotalLectures").textContent = total;
+        document.getElementById("wrapTotalBunks").textContent = missed;
+        document.getElementById("wrapFinalPct").textContent = `${pct}%`;
+        document.getElementById("wrapTasksDone").textContent = completedTasks;
+        document.getElementById("wrapMostAttended").textContent = mostAttended;
+        document.getElementById("wrapMostBunked").textContent = mostBunked;
+
+        // 4. Switch to the view
+        switchView("wrappedView");
+      });
+    }
+
+    // Ensure they export before wiping data
+    if (wrapExportBtn) {
+      wrapExportBtn.addEventListener("click", () => {
+        exportScheduleFile(); 
+        wrapResetBtn.disabled = false;
+        wrapResetBtn.textContent = "🧹 2. Erase Data & Reset App (Unlock)";
+      });
+    }
+
+    // The Nuke Button
+    if (wrapResetBtn) {
+      wrapResetBtn.addEventListener("click", () => {
+        if (confirm("🚨 WARNING: This will permanently delete all subjects, timetable, and attendance history on this device. Make sure your backup JSON downloaded successfully.\n\nAre you absolutely sure?")) {
+          localStorage.removeItem("attrack_v1");
+          localStorage.removeItem("attrack_target_attendance");
+          localStorage.removeItem("attrack_lastView");
+          alert("System wiped clean. Enjoy your break! 🏖️");
+          window.location.reload();
+        }
+      });
+    }
+    // --- END SEMESTER WRAPPED LOGIC ---
+
+// ---------------- Onboarding: single guided tour + early attendance prompt ----------------
 (function onboardingInit() {
 const tourSteps = [
   { view: "homeView", selector: "#studentName", title: "Welcome to Attrack! 👋", text: "Let's personalize your setup. Start by entering your name and semester start date." },
@@ -3021,56 +3100,6 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js");
   });
 }
-	// --- SEMESTER WRAPPED LOGIC ---
-const generateWrappedBtn = document.getElementById("generateWrappedBtn");
-const wrapExportBtn = document.getElementById("wrapExportBtn");
-const wrapResetBtn = document.getElementById("wrapResetBtn");
-
-if (generateWrappedBtn) {
-  generateWrappedBtn.addEventListener("click", () => {
-    // 1. Calculate overall stats
-    const start = state.startDate || toISODate(new Date());
-    const validLectures = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
-    
-    const total = validLectures.length;
-    const attended = validLectures.filter(l => l.attended).length;
-    const missed = total - attended;
-    const pct = total > 0 ? ((attended / total) * 100).toFixed(1) : "0.0";
-
-    const completedTasks = (state.assignments || []).filter(a => a.completed).length;
-
-    // 2. Calculate Subject Extremes (Most Attended vs Most Bunked)
-    let subjectStats = [];
-    state.subjects.forEach(subj => {
-      const subLecs = validLectures.filter(l => l.subjectId === subj.id);
-      const subTotal = subLecs.length;
-      if (subTotal > 0) {
-        const subAtt = subLecs.filter(l => l.attended).length;
-        subjectStats.push({
-          name: subj.name,
-          pct: (subAtt / subTotal) * 100,
-          missed: subTotal - subAtt
-        });
-      }
-    });
-
-    // Sort by percentage
-    subjectStats.sort((a, b) => b.pct - a.pct);
-    const mostAttended = subjectStats.length > 0 ? subjectStats[0].name : "N/A";
-    const mostBunked = subjectStats.length > 0 ? subjectStats[subjectStats.length - 1].name : "N/A";
-
-    // 3. Populate UI
-    document.getElementById("wrapTotalLectures").textContent = total;
-    document.getElementById("wrapTotalBunks").textContent = missed;
-    document.getElementById("wrapFinalPct").textContent = `${pct}%`;
-    document.getElementById("wrapTasksDone").textContent = completedTasks;
-    document.getElementById("wrapMostAttended").textContent = mostAttended;
-    document.getElementById("wrapMostBunked").textContent = mostBunked;
-
-    // 4. Switch to the view
-    switchView("wrappedView");
-  });
-}
 
 // Ensure they export before wiping data
 if (wrapExportBtn) {
@@ -3310,6 +3339,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
+
 
 
 
