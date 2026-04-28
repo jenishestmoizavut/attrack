@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.1.7"; // Bumped version to force update
+const CACHE_VERSION = "v1.1.8"; // Bumped version to force update
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
