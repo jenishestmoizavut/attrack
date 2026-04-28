@@ -188,6 +188,163 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
 .linkedin-btn { display:inline-block; padding:10px 16px; border-radius:12px; background:#0a66c2; color:white; font-weight:600; text-decoration:none; }
 .linkedin-btn:hover { filter:brightness(1.05); }
 
+
+/* --- Calm UI polish: hierarchy, disclosure, motion, and optional sound --- */
+@keyframes attrackFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes attrackPop { 0% { transform:scale(0.98); } 70% { transform:scale(1.012); } 100% { transform:scale(1); } }
+.app { animation:attrackFadeUp 0.38s ease-out both; }
+.view.active { animation:attrackFadeUp 0.26s ease-out both; }
+.card, .subject-stat-row, .cal-cell, .btn, .share-btn, .nav-btn { will-change:transform; }
+.card { transition:border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease; }
+.card:focus-within { border-color:rgba(79,70,229,0.45); box-shadow:0 8px 24px rgba(79,70,229,0.10); }
+.btn:active, .share-btn:active, .nav-btn:active { transform:translateY(1px) scale(0.99); }
+.nav-btn.active { animation:attrackPop 0.22s ease-out; }
+.quiet-note { font-size:0.78rem; color:var(--muted); line-height:1.45; }
+.setup-stack { display:flex; flex-direction:column; gap:10px; }
+.setup-section { padding:0; overflow:hidden; }
+.setup-section > summary, .actions-menu > summary, .quiet-details > summary {
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px;
+  font-weight:700;
+  color:var(--text);
+}
+.setup-section > summary::-webkit-details-marker,
+.actions-menu > summary::-webkit-details-marker,
+.quiet-details > summary::-webkit-details-marker { display:none; }
+.setup-section > summary::after, .actions-menu > summary::after, .quiet-details > summary::after {
+  content:"+";
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--accent);
+  background:var(--accent-soft);
+  flex:0 0 auto;
+}
+.setup-section[open] > summary::after, .actions-menu[open] > summary::after, .quiet-details[open] > summary::after { content:"-"; }
+.setup-section-body { padding:0 14px 14px; animation:attrackFadeUp 0.22s ease-out both; }
+.setup-section .card { background:var(--card-bg); }
+.daily-actions { align-items:center; }
+.actions-menu { position:relative; display:inline-flex; }
+.actions-menu > summary {
+  border-radius:999px;
+  border:1px solid var(--border);
+  padding:5px 10px;
+  font-size:0.75rem;
+  background:var(--bg-soft);
+  color:var(--text-soft);
+}
+.actions-menu > summary::after { display:none; }
+.actions-menu-panel {
+  position:absolute;
+  right:0;
+  top:calc(100% + 6px);
+  z-index:30;
+  min-width:190px;
+  padding:8px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--card-bg);
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  animation:attrackFadeUp 0.16s ease-out both;
+}
+.actions-menu-panel .btn { justify-content:flex-start; width:100%; }
+.creator-card { margin:14px auto 0; }
+.quiet-details.creator-card { max-width:720px; }
+.home-grid .profile-card { opacity:0.94; }
+.sound-state { font-weight:700; color:var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:0.001ms !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+}
+@media (max-width:600px) {
+  .actions-menu { width:100%; }
+  .actions-menu > summary { width:100%; justify-content:center; }
+  .actions-menu-panel { left:0; right:auto; width:calc(100% - 18px); }
+}
+
+/* --- Phone PWA compile pass: denser dashboard and setup hub --- */
+.dashboard-card { display:flex; flex-direction:column; gap:10px; }
+.dashboard-topline { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.dashboard-actions { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+.dashboard-action { justify-content:center; min-height:36px; text-decoration:none; }
+.profile-compact { border:1px solid var(--border); border-radius:10px; background:var(--card-bg); overflow:hidden; }
+.profile-compact > summary { list-style:none; cursor:pointer; padding:10px 12px; font-weight:700; display:flex; justify-content:space-between; align-items:center; }
+.profile-compact > summary::-webkit-details-marker { display:none; }
+.profile-compact > summary::after { content:"+"; color:var(--accent); }
+.profile-compact[open] > summary::after { content:"-"; }
+.profile-compact-body { padding:0 12px 12px; }
+.setup-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+.setup-section.is-wide { grid-column:1 / -1; }
+.setup-section > summary { min-height:42px; padding:10px 12px; }
+.setup-section-body { padding:0 12px 12px; }
+.setup-section-body.compact-tools { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
+.setup-section-body.compact-tools .hint { grid-column:1 / -1; }
+.setup-inline { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.tutorial-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; margin-top:14px; text-align:left; }
+.tutorial-card { border:1px solid var(--border); border-radius:10px; background:var(--bg-soft); padding:10px; }
+.tutorial-card strong { display:block; color:var(--text); font-size:0.88rem; margin-bottom:3px; }
+.tutorial-card span { color:var(--muted); font-size:0.78rem; line-height:1.35; }
+@media (max-width:768px) {
+  body { padding:8px; }
+  .app { border-radius:12px; padding:10px 10px 76px; }
+  .header { margin:-10px -10px 6px; padding:10px; gap:8px; }
+  .title { font-size:1rem; }
+  .badge { display:none; }
+  .summary { min-width:0; font-size:0.82rem; }
+  .nav { position:sticky; top:0; z-index:40; margin:0 -10px 8px; padding:5px 8px 7px; background:var(--card-bg); }
+  .nav-btn { min-width:0; padding:7px 2px; font-size:0.74rem; }
+  .home-grid, .grid { gap:8px; }
+  .card { padding:10px; border-radius:10px; }
+  .card h3 { font-size:0.96rem; margin-bottom:6px; }
+  .field { margin-bottom:6px; }
+  .hint, .quiet-note { font-size:0.76rem; line-height:1.35; }
+  .dashboard-actions { grid-template-columns:1fr 1fr; }
+  .dashboard-action.primary-mobile { grid-column:1 / -1; }
+  .setup-stack { gap:8px; }
+  .setup-grid { grid-template-columns:1fr; gap:8px; }
+  .setup-section > summary { padding:9px 10px; min-height:38px; }
+  .setup-section-body { padding:0 10px 10px; }
+  .setup-section-body.compact-tools { grid-template-columns:1fr 1fr; }
+  .subjects-list { max-height:128px; }
+  .subject-stats-list { max-height:190px; }
+  .toolbar { gap:6px; margin:8px 0; }
+  .toolbar::after { margin-top:6px; }
+  .daily-actions .btn, .actions-menu > summary { flex:1 1 calc(50% - 6px); justify-content:center; }
+  .tutorial-grid { grid-template-columns:1fr; }
+  #onboardingWizardBackdrop { align-items:flex-end !important; padding:10px !important; }
+  #onboardingWizardBackdrop > .card { width:100% !important; max-height:92vh; overflow:auto; padding:16px !important; border-radius:16px 16px 12px 12px !important; }
+  .footer { margin-left:-10px; margin-right:-10px; }
+}
+
+/* --- Guided tour --- */
+.tour-backdrop { backdrop-filter:blur(1px); }
+.tour-spotlight { position:fixed; border-radius:14px; box-shadow:0 0 0 9999px rgba(2,6,23,0.62), 0 0 0 3px var(--accent), 0 10px 30px rgba(0,0,0,0.22); pointer-events:none; transition:all 0.22s ease; z-index:3001; }
+.tour-tooltip { position:fixed; width:min(300px, calc(100vw - 24px)); max-width:300px; background:var(--card-bg); color:var(--text); border:1px solid var(--border); border-radius:14px; padding:12px; box-shadow:0 18px 50px rgba(0,0,0,0.28); font-size:0.86rem; z-index:3002; animation:attrackFadeUp 0.18s ease-out both; }
+.tour-tooltip h4 { margin:0 0 5px; font-size:0.95rem; }
+.tour-tooltip p { margin:0; color:var(--text-soft); line-height:1.42; }
+.tour-progress { color:var(--muted); font-size:0.74rem; margin-top:10px; }
+.tour-actions { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:12px; }
+.tour-actions-left, .tour-actions-right { display:flex; gap:6px; align-items:center; }
+.tour-actions .btn { font-size:0.75rem; padding:5px 9px; }
+@media (max-width:600px) {
+  .tour-tooltip { left:12px !important; right:12px !important; top:auto !important; bottom:14px !important; width:auto; max-width:none; }
+  .tour-actions { align-items:stretch; }
+  .tour-actions .btn { flex:1; justify-content:center; }
+}
+@media (max-width:600px) {
+  .setup-app-actions { grid-template-columns:1fr 1fr !important; }
+  .setup-app-actions #startTourBtn { grid-column:1 / -1; }
+}
 /* --- 11. MEDIA QUERIES (Consolidated) --- */
 @media (max-width:900px) {
   .grid, .home-grid { grid-template-columns:1fr; }
@@ -243,17 +400,15 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
 </head>
 <body>
   <div class="app">
-
     <div class="header">
       <div class="title-block">
         <div class="title">
           <img src="./icon-192.png.png" alt="Attrack logo" style="height:22px; vertical-align:middle; margin-right:6px;">
-Attrack by Jenish
-
+          Attrack by Jenish
           <span class="badge">Student-first UI</span>
         </div>
         <div id="cheerMessage" class="cheer">
-          Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊
+          Welcome! Tell me your name below and we'll keep your attendance happy and healthy.
         </div>
       </div>
 
@@ -261,19 +416,9 @@ Attrack by Jenish
         <div class="summary-main" id="summaryMain">0 / 0 lectures tracked</div>
         <div class="summary-sub" id="summarySub">Set your start date and add lectures to begin.</div>
       </div>
-		<div class="card" style="margin-top: 12px; border: 1px dashed var(--accent);">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <div>
-      <h3 style="margin:0;">Semester Ended? 🎓</h3>
-      <div class="hint">Generate your final summary and reset the app.</div>
     </div>
-    <button id="generateWrappedBtn" class="btn">Wrap It Up ✨</button>
-  </div>
-</div>
-    </div>
-
 <div class="nav" role="navigation" aria-label="Main navigation">
-  <button class="nav-btn active" data-view="homeView" type="button">🏠 Home</button>
+  <button class="nav-btn active" data-view="homeView" type="button">Dashboard</button>
   <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
   <button class="nav-btn" data-view="assignmentsView" type="button">📝 Tasks </button>
   <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
@@ -310,8 +455,14 @@ Attrack by Jenish
   <div class="card" style="width:min(420px, 90%); padding:24px; text-align:center; position:relative; overflow:hidden;">
     
     <div id="wizardStep1">
-      <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Welcome to Attrack 👋</h2>
-      <p class="hint">Let's get your attendance tracker set up in 30 seconds.</p>
+            <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Welcome to Attrack</h2>
+      <p class="hint">A phone-first attendance dashboard: check status, log today, manage tasks, and keep setup tucked away.</p>
+      <div class="tutorial-grid">
+        <div class="tutorial-card"><strong>Dashboard</strong><span>Your overall status, subject overview, and quick actions live first.</span></div>
+        <div class="tutorial-card"><strong>Daily</strong><span>Log lectures fast. Extra tools live under More actions.</span></div>
+        <div class="tutorial-card"><strong>Tasks</strong><span>Add assignments by subject and save due dates to Calendar.</span></div>
+        <div class="tutorial-card"><strong>Setup hub</strong><span>Target, subjects, timetable, sharing, reminders, dark mode, and sound.</span></div>
+      </div>
       
       <div class="field" style="margin-top: 20px; text-align: left;">
         <label>What should I call you?</label>
@@ -346,7 +497,7 @@ Attrack by Jenish
 
     <div id="wizardStep3" style="display:none;">
       <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Add Subjects 📚</h2>
-      <p class="hint">Add at least one subject to continue.</p>
+      <p class="hint">Add subjects, then tap day bubbles to set weekly lecture counts. This keeps the PWA ready for quick daily logging.</p>
       
       <div style="display: flex; gap: 8px; margin-top: 20px;">
         <input type="text" id="wizSubInput" placeholder="e.g. Finance" style="flex: 1;">
@@ -364,47 +515,55 @@ Attrack by Jenish
 
   </div>
 </div>
-    <div id="homeView" class="view active">
-
-
+        <div id="homeView" class="view active">
       <div class="home-grid">
-        <div class="card">
-          <h3>Welcome back 👋</h3>
-          <div class="field">
-            <label for="studentName">Your name</label>
-            <input id="studentName" type="text" placeholder="e.g. Jenish, Chill Math Nerd 😄" />
+        <div class="card dashboard-card">
+          <div class="dashboard-topline">
+            <div>
+              <h3>Dashboard</h3>
+              <div class="quiet-note">Status first, edits tucked away.</div>
+            </div>
           </div>
-          <div class="field">
-            <label for="startDate">Start tracking from</label>
-            <input id="startDate" type="date" />
-          </div>
-                  <div class="hint" style="margin-top:8px;">
-            Set your semester start date (dd-mm-yyyy in text).  
-            You can also load any single future day from the Daily view.
-          </div>
-<div id="finalAttendanceSummary"></div>
 
-</div>
+          <div id="finalAttendanceSummary"></div>
+
+          <div class="dashboard-actions">
+            <button class="btn dashboard-action primary-mobile" id="quickLogTodayBtn" type="button">Log today</button>
+            <button class="btn secondary dashboard-action" id="quickTasksBtn" type="button">Tasks</button>
+            <button class="btn secondary dashboard-action" id="quickSetupBtn" type="button">Setup</button>
+          </div>
+
+          <details class="profile-compact">
+            <summary>Profile</summary>
+            <div class="profile-compact-body">
+              <div class="field">
+                <label for="studentName">Your name</label>
+                <input id="studentName" type="text" placeholder="e.g. Jenish, Chill Math Nerd" />
+              </div>
+              <div class="field">
+                <label for="startDate">Start tracking from</label>
+                <input id="startDate" type="date" />
+              </div>
+              <div class="hint">Change these only when your semester setup changes.</div>
+            </div>
+          </details>
+        </div>
+
         <div class="card">
-          <h3>Subject overview 📊</h3>
+          <h3>Subject overview</h3>
           <div class="subject-stats-list" id="subjectStatsList"></div>
-
-          <div class="hint" style="margin-top:8px;">
-            These stats are based on all generated + manual lectures since your start date.  
-            You can tweak lectures in the Daily view.
-          </div>
+          <div class="hint" style="margin-top:8px;">Based on generated and manual lectures since your start date.</div>
         </div>
       </div>
-		<section style="position:absolute; left:-9999px; height:0; overflow:hidden;">
-  <h1>Attendance Tracker for College Students</h1>
-  <p>
-    Attrack is a free attendance tracker designed for college students.
-    It helps track daily lectures, calculate attendance percentage,
-    and shows how many classes you can miss while staying above the target attendance.
-    The app works offline and does not require login.
-  </p>
-</section>
-
+      <section style="position:absolute; left:-9999px; height:0; overflow:hidden;">
+        <h1>Attendance Tracker for College Students</h1>
+        <p>
+          Attrack is a free attendance tracker designed for college students.
+          It helps track daily lectures, calculate attendance percentage,
+          and shows how many classes you can miss while staying above the target attendance.
+          The app works offline and does not require login.
+        </p>
+      </section>
     </div>
 <div class="card" style="display:none">  
 <h3>Import Attendance (SAP PDF) 📥</h3>
@@ -466,102 +625,79 @@ Attrack by Jenish
   </div>
 </div>
 <div id="setupView" class="view">
-  <div class="card">
-    <h3>Setup</h3>
-    <div class="card" style="margin-top:12px;">
-  <h3>App Settings 🛠️</h3>
-  <div style="display:flex; gap:10px; margin-top:10px;">
-    <button id="darkToggle" class="btn small secondary" type="button" style="flex:1; justify-content:center;">
-      <span id="darkIcon">🌙</span> <span id="darkLabel">Dark mode</span>
-    </button>
-  </div>
-</div>
-
-  </div>
-
-  <div class="card" style="margin-top:12px;">
-    <h3>Attendance rules 🎯</h3>
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px;">
-      <div>
-        <div style="font-size:0.8rem; color:var(--muted);">Attendance target (updates instantly, just refresh)! </div>
-        <div id="setupTargetValue" style="font-size:1.05rem; font-weight:700;">
-          Target: 75%
+  <div class="setup-stack">
+    <div class="card">
+      <div class="setup-inline">
+        <div>
+          <h3>Setup hub</h3>
+          <div class="quiet-note">Everything is still here, grouped for phone use.</div>
         </div>
+        <button id="generateWrappedBtn" class="btn small secondary" type="button">Wrap</button>
       </div>
-      <button id="changeTargetBtn" class="btn small secondary" type="button">Change</button>
+    </div>
+
+    <div class="setup-grid">
+      <details class="card setup-section" open>
+        <summary>Goal & app</summary>
+        <div class="setup-section-body">
+          <div class="setup-inline" style="margin-bottom:8px;">
+            <div>
+              <div style="font-size:0.78rem; color:var(--muted);">Attendance target</div>
+              <div id="setupTargetValue" style="font-size:1.05rem; font-weight:700;">Target: 75%</div>
+            </div>
+            <button id="changeTargetBtn" class="btn small secondary" type="button">Change</button>
+          </div>
+          <div class="setup-app-actions" style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
+            <button id="darkToggle" class="btn small secondary" type="button">
+              <span id="darkIcon">Moon</span> <span id="darkLabel">Dark</span>
+            </button>
+            <button id="soundToggle" class="btn small secondary" type="button">
+              Sound: <span id="soundState" class="sound-state">Off</span>
+            </button>
+            <button id="startTourBtn" class="btn small secondary" type="button">Tour</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="card setup-section">
+        <summary>Subjects</summary>
+        <div class="setup-section-body">
+          <div class="subjects-list" id="subjectsList"></div>
+          <button class="btn small secondary" id="addSubjectBtn" type="button" style="margin-top:8px;">+ Add subject</button>
+        </div>
+      </details>
+
+      <details class="card setup-section is-wide">
+        <summary>Timetable</summary>
+        <div class="setup-section-body">
+          <div style="overflow-x:auto;">
+            <table class="timetable-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Subject</th>
+                  <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+                </tr>
+              </thead>
+              <tbody id="timetableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="card setup-section is-wide">
+        <summary>Share, import & reminders</summary>
+        <div class="setup-section-body compact-tools">
+          <button id="shareLinkBtn" class="btn small" style="background:var(--accent);">Share schedule</button>
+          <button id="triggerImportBtn" class="btn small secondary">Import file</button>
+          <button id="downloadIcsBtn" class="btn small secondary">Calendar reminder</button>
+          <button id="openGcalBtn" class="btn small secondary">Google Calendar</button>
+          <input type="file" id="importScheduleInput" accept=".json" style="display:none" />
+          <div id="shareLinkStatus" class="hint" style="margin-top:2px; display:none; color:#166534; font-weight:bold;"></div>
+          <div class="hint">Class reps can share schedules. Students can import them. Reminders create an 8:00 PM daily calendar event.</div>
+        </div>
+      </details>
     </div>
   </div>
-	<div class="card" style="margin-top:12px;">
-  <h3>⏰ Daily Reminders</h3>
-  <div class="hint">
-    Since Attrack runs offline, use your phone's calendar to get notified.
-  </div>
-  
-  <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-    <button id="downloadIcsBtn" class="btn small" style="justify-content:center;">
-      📅 Add to Calendar (Recommended)
-    </button>
-    
-    <button id="openGcalBtn" class="btn small secondary" style="justify-content:center;">
-      🔗 Open Google Calendar
-    </button>
-  </div>
-  
-  <div class="hint" style="margin-top:8px;">
-    This sets a daily event at <strong>8:00 PM</strong> to remind you to log attendance.
-  </div>
-</div>
-
-
-	<div class="card" style="margin-top:12px; border-color: var(--accent);">
-  <h3>⚡️ Class Rep / Backup</h3>
-  <div class="hint">
-    <strong>Class Reps:</strong> Click "Share Schedule Link" to generate a magic link. Send that link to the class group.
-    <br>
-    <strong>Students:</strong> Just click the link you received to set up the app instantly.
-  </div>
-  
-  <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
-    <button id="shareLinkBtn" class="btn small" style="background:var(--accent);">
-      🔗 Share Schedule Link
-    </button>
-    
-    <button id="triggerImportBtn" class="btn small secondary">
-      📥 Import File
-    </button>
-    
-    <input type="file" id="importScheduleInput" accept=".json" style="display:none" />
-  </div>
-  <div id="shareLinkStatus" class="hint" style="margin-top:8px; display:none; color:#166534; font-weight:bold;"></div>
-</div>
-          <div class="card" style="margin-bottom:8px;">
-            <h3>Subjects 🧠</h3>
-            <div class="subjects-list" id="subjectsList"></div>
-            <button class="btn small secondary" id="addSubjectBtn" type="button" style="margin-top:8px;">+ Add a subject</button>
-            <div class="hint" style="margin-top:8px;">
-              These start with your timetable, but you can rename them or add new ones.
-            </div>
-          </div>
-      <div class="card">
-        <h3>Your timetable editor 🗓</h3>
-        <div class="hint">
-          Set how many lectures of each subject happen on each day.  
-          Changing this will auto-regenerate lectures (old manual + special ones stay).
-        </div>
-        <div style="overflow-x:auto; margin-top:6px;">
-          <table class="timetable-table">
-            <thead>
-              <tr>
-                <th style="text-align:left;">Subject</th>
-                <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
-              </tr>
-            </thead>
-            <tbody id="timetableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-
 </div>
     <div id="dayView" class="view">
       <div class="grid">
@@ -579,7 +715,7 @@ Attrack by Jenish
             </div>
             <div class="hint" style="margin-top:8px;">
               Tap on a date to see or edit the lectures for that day. Green dots = days with lectures.  
-              For future days, use “Load lectures of this day” below.
+              For future days, use “Load day” below.
             </div>
           </div>
         </div>
@@ -596,18 +732,21 @@ Attrack by Jenish
             </select>
           </div>
 
-          <div class="toolbar">
+          <div class="toolbar daily-actions">
          	<button class="btn small secondary" id="loadDayBtn" type="button">
-  Load lectures of this day
+  Load day
 </button>
             <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
-            <button class="btn small" id="markAllAttendedBtn" type="button">PRESENT in all</button>
-            <button class="btn small secondary" id="markAllAbsentBtn" type="button">ABSENT in all</button>
-<button class="btn small danger" id="markHolidayBtn" type="button">
-  No Lectures on this day 
-</button>
-<button class="btn small secondary" id="findNotesBtn" type="button">🔍 All Notes</button>
-<button class="btn small danger" id="findAbsentBtn" type="button" style="outline: 1px solid var(--danger); background:transparent; color: var(--danger);">❌ Absent Log</button>
+            <button class="btn small" id="markAllAttendedBtn" type="button">Present all</button>
+            <button class="btn small secondary" id="markAllAbsentBtn" type="button">Absent all</button>
+<details class="actions-menu">
+  <summary>More actions</summary>
+  <div class="actions-menu-panel">
+    <button class="btn small danger" id="markHolidayBtn" type="button">No lectures today</button>
+    <button class="btn small secondary" id="findNotesBtn" type="button">All notes</button>
+    <button class="btn small danger" id="findAbsentBtn" type="button" style="outline:1px solid var(--danger); background:transparent; color:var(--danger);">Absent log</button>
+  </div>
+</details>
 
           </div>
 
@@ -674,35 +813,24 @@ When you add or load lectures, they’re marked attended by default.
   </div>
 </div>
 
-	 <div class="card creator-card">
-  <h3>From the creator 👋</h3>
-
-  <p class="muted" style="margin: 8px 0 14px;">
-    Building Attrack with a student-first mindset.  
-    Check out my other tools and projects below.
-  </p>
-
-  <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-      <a
-        href="https://jenishestmoizavut.github.io/jenish.one/"
-        target="_blank"
-        rel="noopener"
-        class="btn"
-        style="padding: 10px 16px; border-radius: 12px; font-size: 0.95rem; font-weight: 600; text-decoration: none;"
-      >
-        Visit Jenish.one →
-      </a>
-  </div>
-
-  <div class="hint" style="margin-top:10px;">
-    External links • open in new tab
-  </div>
-</div>
-  <div class="hint" style="margin-top:10px;">
-    External links • open in new tab
-  </div>
-</div>
-
+	     <details class="card creator-card quiet-details">
+      <summary>About Attrack</summary>
+      <div style="padding:0 14px 14px; text-align:center;">
+        <p class="muted" style="margin:8px 0 14px;">
+          Building Attrack with a student-first mindset. Check out my other tools and projects below.
+        </p>
+        <a
+          href="https://jenishestmoizavut.github.io/jenish.one/"
+          target="_blank"
+          rel="noopener"
+          class="btn"
+          style="padding:10px 16px; border-radius:12px; font-size:0.95rem; font-weight:600; text-decoration:none;"
+        >
+          Visit Jenish.one
+        </a>
+        <div class="hint" style="margin-top:10px;">External links open in a new tab</div>
+      </div>
+    </details>
    <div class="footer">
   <div class="footer-actions">
     <span class="version-badge">Attrack v1.0 (Dec 2025)</span>
@@ -793,7 +921,7 @@ Source code is not licensed for reuse or redistribution.
   <div class="card" style="width:min(440px,90%); padding:24px; animation: slideUp 0.3s ease-out;">
     
     <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px;">
-      <h2 style="margin:0; font-size:1.4rem;">What’s New 🚀</h2>
+      <h2 style="margin:0; font-size:1.4rem;">Quick tour</h2>
       <button id="closeVersionX" style="background:none; border:none; font-size:1.2rem; color:var(--muted); cursor:pointer;">✕</button>
     </div>
 
@@ -801,15 +929,15 @@ Source code is not licensed for reuse or redistribution.
       <li style="display:flex; gap:10px; align-items:start;">
         <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">📝</span>
         <div>
-          <strong style="display:block; color:var(--text);">Tasks & Assignments</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Track deadlines. Group by subject. Bulk add.</span>
+          <strong style="display:block; color:var(--text);">Compact dashboard</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Status, quick logging, tasks, and setup are one tap away.</span>
         </div>
       </li>
       <li style="display:flex; gap:10px; align-items:start;">
         <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">🔍</span>
         <div>
-          <strong style="display:block; color:var(--text);">Notes Finder</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Instantly find "ask ma'am for attendance" notes.</span>
+          <strong style="display:block; color:var(--text);">Daily More actions</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Notes, absent log, and no-lecture days are tucked into one menu.</span>
         </div>
       </li>
     </ul>
@@ -838,6 +966,223 @@ Source code is not licensed for reuse or redistribution.
     const THEME_KEY   = "attrack_theme";
     const VIEW_KEY    = "attrack_lastView";
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
+const SOUND_KEY = "attrack_sound_enabled";
+let attrackAudioCtx = null;
+
+function soundEnabled() {
+  return localStorage.getItem(SOUND_KEY) === "true";
+}
+
+function playUiSound(kind = "tap") {
+  if (!soundEnabled()) return;
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    attrackAudioCtx = attrackAudioCtx || new AudioContext();
+    const now = attrackAudioCtx.currentTime;
+    const osc = attrackAudioCtx.createOscillator();
+    const gain = attrackAudioCtx.createGain();
+    const freq = kind === "success" ? 660 : kind === "soft" ? 420 : 520;
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.035, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
+    osc.connect(gain);
+    gain.connect(attrackAudioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.085);
+  } catch (err) {
+    localStorage.setItem(SOUND_KEY, "false");
+  }
+}
+
+function refreshSoundToggle() {
+  const soundState = document.getElementById("soundState");
+  if (soundState) soundState.textContent = soundEnabled() ? "On" : "Off";
+}
+
+document.addEventListener("click", (event) => {
+  const target = event.target && event.target.closest ? event.target.closest("button, summary") : null;
+  if (!target || target.disabled) return;
+  playUiSound(target.classList.contains("danger") ? "soft" : "tap");
+}, true);
+
+
+const TOUR_KEY = "attrack_guided_tour_seen_v2";
+let activeTour = null;
+
+function closeActionsMenu() {
+  document.querySelectorAll(".actions-menu[open]").forEach(menu => menu.open = false);
+}
+
+function openSetupSection(labelText) {
+  document.querySelectorAll("#setupView .setup-section").forEach(section => {
+    const summary = section.querySelector("summary");
+    section.open = !!summary && summary.textContent.trim().toLowerCase().includes(labelText.toLowerCase());
+  });
+}
+
+function buildTourSteps() {
+  return [
+    {
+      target: ".dashboard-card",
+      title: "Dashboard first",
+      body: "This is the phone home base: attendance status, quick actions, and profile edits without extra scrolling.",
+      before: () => switchView("homeView")
+    },
+    {
+      target: "#quickLogTodayBtn",
+      title: "Log today",
+      body: "Use this as the daily muscle-memory button. It jumps straight into lecture logging.",
+      before: () => switchView("homeView")
+    },
+    {
+      target: ".subject-stats-list",
+      title: "Subject overview",
+      body: "Subject health stays visible, but compact, so you can spot trouble subjects quickly.",
+      before: () => switchView("homeView")
+    },
+    {
+      target: "#dayView .day-lectures .card",
+      title: "Daily logging",
+      body: "The common actions are up front: load a day, add a lecture, and mark the whole day present or absent.",
+      before: () => switchView("dayView")
+    },
+    {
+      target: ".actions-menu",
+      title: "More actions",
+      body: "Less frequent tools are tucked here: no-lecture days, all notes, and the absent log.",
+      before: () => { switchView("dayView"); setTimeout(() => { const menu = document.querySelector(".actions-menu"); if (menu) menu.open = true; }, 40); }
+    },
+    {
+      target: "#assignmentsView .card",
+      title: "Tasks",
+      body: "Assignments live separately so attendance logging stays clean. Add by subject and save due dates to Calendar.",
+      before: () => { closeActionsMenu(); switchView("assignmentsView"); }
+    },
+    {
+      target: "#setupView .setup-grid",
+      title: "Setup hub",
+      body: "Target, subjects, timetable, sharing, imports, reminders, dark mode, sound, and this tour are grouped here.",
+      before: () => { closeActionsMenu(); switchView("setupView"); openSetupSection("Goal"); }
+    },
+    {
+      target: "#installAppBtn",
+      fallback: ".nav",
+      title: "Install as a PWA",
+      body: "When your browser supports install, the Install button appears here. On iPhone, it shows Add to Home Screen steps.",
+      before: () => switchView("homeView")
+    }
+  ];
+}
+
+function getTourTarget(step) {
+  let el = document.querySelector(step.target);
+  if ((!el || el.offsetParent === null) && step.fallback) el = document.querySelector(step.fallback);
+  return el;
+}
+
+function positionTour(step, index, total) {
+  const target = getTourTarget(step);
+  if (!target || !activeTour) return;
+
+  target.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
+
+  setTimeout(() => {
+    if (!activeTour) return;
+    const rect = target.getBoundingClientRect();
+    const pad = 8;
+    activeTour.spotlight.style.left = Math.max(8, rect.left - pad) + "px";
+    activeTour.spotlight.style.top = Math.max(8, rect.top - pad) + "px";
+    activeTour.spotlight.style.width = Math.min(window.innerWidth - 16, rect.width + pad * 2) + "px";
+    activeTour.spotlight.style.height = Math.min(window.innerHeight - 16, rect.height + pad * 2) + "px";
+
+    activeTour.tooltip.innerHTML = `
+      <h4>${step.title}</h4>
+      <p>${step.body}</p>
+      <div class="tour-progress">${index + 1} of ${total}</div>
+      <div class="tour-actions">
+        <div class="tour-actions-left">
+          <button class="btn small secondary" type="button" data-tour="skip">Skip</button>
+        </div>
+        <div class="tour-actions-right">
+          <button class="btn small secondary" type="button" data-tour="back" ${index === 0 ? "disabled" : ""}>Back</button>
+          <button class="btn small" type="button" data-tour="next">${index === total - 1 ? "Done" : "Next"}</button>
+        </div>
+      </div>
+    `;
+
+    const tipRect = activeTour.tooltip.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    let top = rect.bottom + 12;
+    if (spaceBelow < tipRect.height + 24) top = rect.top - tipRect.height - 12;
+    if (top < 12) top = 12;
+
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    left = Math.max(12, Math.min(left, window.innerWidth - tipRect.width - 12));
+    activeTour.tooltip.style.left = left + "px";
+    activeTour.tooltip.style.top = top + "px";
+  }, 180);
+}
+
+function endGuidedTour(markSeen = true) {
+  closeActionsMenu();
+  if (activeTour) {
+    activeTour.backdrop.remove();
+    activeTour.spotlight.remove();
+    activeTour.tooltip.remove();
+    window.removeEventListener("resize", activeTour.onResize);
+    activeTour = null;
+  }
+  if (markSeen) localStorage.setItem(TOUR_KEY, "true");
+}
+
+function startGuidedTour(force = false) {
+  if (!force && localStorage.getItem(TOUR_KEY) === "true") return;
+  endGuidedTour(false);
+
+  const steps = buildTourSteps();
+  const backdrop = document.createElement("div");
+  const spotlight = document.createElement("div");
+  const tooltip = document.createElement("div");
+  backdrop.className = "tour-backdrop";
+  spotlight.className = "tour-spotlight";
+  tooltip.className = "tour-tooltip";
+  document.body.append(backdrop, spotlight, tooltip);
+
+  activeTour = {
+    index: 0,
+    steps,
+    backdrop,
+    spotlight,
+    tooltip,
+    onResize: () => positionTour(steps[activeTour.index], activeTour.index, steps.length)
+  };
+  window.addEventListener("resize", activeTour.onResize);
+
+  tooltip.addEventListener("click", (event) => {
+    const action = event.target && event.target.dataset ? event.target.dataset.tour : "";
+    if (!action) return;
+    if (action === "skip") return endGuidedTour(true);
+    if (action === "back") activeTour.index = Math.max(0, activeTour.index - 1);
+    if (action === "next") {
+      if (activeTour.index >= steps.length - 1) return endGuidedTour(true);
+      activeTour.index += 1;
+    }
+    showTourStep();
+  });
+  backdrop.addEventListener("click", () => endGuidedTour(true));
+
+  function showTourStep() {
+    const step = steps[activeTour.index];
+    if (step.before) step.before();
+    setTimeout(() => positionTour(step, activeTour.index, steps.length), 90);
+  }
+
+  showTourStep();
+}
+
   const NOTIF_ASKED_KEY = "attrack_notif_permission_asked";
 // ---------------- Full Schedule Export/Import (Class Rep Mode) ----------------
     // ---------------------------------------------------------
@@ -1047,7 +1392,7 @@ function openGoogleCalendar() {
             renderSetupSummaries();
             
             alert("Schedule imported successfully! ✅");
-            switchView("dayView");
+            switchView("homeView");
           }
         } catch (err) {
           console.error(err);
@@ -1408,6 +1753,7 @@ let selectedAssSubjects = new Set();
     const targetMessageEl = document.getElementById("targetMessage");
 const setupTargetValue = document.getElementById("setupTargetValue");
 const changeTargetBtn = document.getElementById("changeTargetBtn");
+const soundToggle = document.getElementById("soundToggle");
     const subjectsListEl = document.getElementById("subjectsList");
 if (changeTargetBtn) {
   changeTargetBtn.addEventListener("click", () => {
@@ -1924,6 +2270,7 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
     }
 
 function switchView(viewId) {
+  playUiSound("soft");
 	[homeView, dayView, timetableView, setupView, assignmentsView,wrappedView].forEach(v =>
     v.classList.toggle("active", v.id === viewId)
   );
@@ -2043,11 +2390,26 @@ markHolidayBtn.addEventListener("click", () => {
   renderSummary();
 });
     subjectFilterEl.addEventListener("change", renderLectures);
+const quickLogTodayBtn = document.getElementById("quickLogTodayBtn");
+const quickTasksBtn = document.getElementById("quickTasksBtn");
+const quickSetupBtn = document.getElementById("quickSetupBtn");
+const startTourBtn = document.getElementById("startTourBtn");
+if (quickLogTodayBtn) quickLogTodayBtn.addEventListener("click", () => switchView("dayView"));
+if (quickTasksBtn) quickTasksBtn.addEventListener("click", () => switchView("assignmentsView"));
+if (quickSetupBtn) quickSetupBtn.addEventListener("click", () => switchView("setupView"));
+if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(true));
     navButtons.forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
     darkToggle.addEventListener("click", () => {
       const isDark = document.body.classList.contains("dark");
       setTheme(isDark ? "light" : "dark");
     });
+    if (soundToggle) {
+      soundToggle.addEventListener("click", () => {
+        localStorage.setItem(SOUND_KEY, soundEnabled() ? "false" : "true");
+        refreshSoundToggle();
+        playUiSound("success");
+      });
+    }
 	  // --- File Export/Import Events ---
     
     
@@ -2187,7 +2549,7 @@ markHolidayBtn.addEventListener("click", () => {
         const hint = document.createElement("div");
         hint.className = "hint";
         hint.style.marginBottom = "6px";
-        hint.textContent = "Tap the days to set your lecture count!";
+        hint.textContent = "Tap days to cycle lecture count. 0 means no lecture.";
         wizSubList.appendChild(hint);
     }
 
@@ -2282,15 +2644,14 @@ markHolidayBtn.addEventListener("click", () => {
     renderStudent();
     renderSubjectsList();
     renderSetupTarget();
+refreshSoundToggle();
     renderTimetable();
     renderSummary();
     renderSubjectStats();
     
-    switchView("dayView");
+    switchView("homeView");
     
-    setTimeout(() => {
-      alert("All set! Your timetable is generated and ready to go 🎉");
-    }, 500);
+    setTimeout(() => { startGuidedTour(true); }, 650);
   });
 
   const wizImportLink = document.getElementById("wizImportLink");
@@ -2549,6 +2910,7 @@ if (addAssignmentBtn) {
       renderTimetable();
       renderSummary();
 renderSetupTarget();
+refreshSoundToggle();
  //showNewFeaturePopupIfNeeded();
 // --- Calendar Reminder Listeners ---
 const downloadIcsBtn = document.getElementById("downloadIcsBtn");
@@ -2564,6 +2926,7 @@ if (openGcalBtn) {
 
 		// This forces the app to open 'Home View' every time, regardless of button order
       switchView("homeView"); 
+      setTimeout(() => startGuidedTour(false), 900);
 // Add this inside your init() or at the bottom of your script
 document.addEventListener('click', async () => {
   // Only ask once, ever
@@ -3018,6 +3381,7 @@ function cleanSubjectName(name) {
       renderLectures();
       renderSummary();
 renderSetupTarget();
+refreshSoundToggle();
 
       renderSubjectStats();
       renderTimetable();
@@ -3354,6 +3718,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
   const FEEDBACK_SEEN_KEY = "attrack_feedback_autoshow_v1";
   
   const hasSeen = localStorage.getItem(FEEDBACK_SEEN_KEY);
+  if (!localStorage.getItem("attrack_guided_tour_seen_v2")) return;
   
   if (!hasSeen) {
     // Wait 3 seconds so the user isn't bombarded immediately upon opening
@@ -3396,21 +3761,3 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 </body>
 	</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
