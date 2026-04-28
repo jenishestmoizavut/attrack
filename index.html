@@ -2227,7 +2227,41 @@ function renderSetupSummaries() {
 }
 
     function formatPct(pct) { return pct.toFixed(2).replace(/\.00$/, "") + "%"; }
+// --- APP BADGING API LOGIC ---
+function updateAppBadge() {
+  // 1. Check if the browser/device actually supports badging
+  if (!('setAppBadge' in navigator)) return;
 
+  try {
+    // 2. Calculate Attendance Health
+    const start = state.startDate || toISODate(new Date());
+    const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
+    const attended = all.filter(lec => lec.attended).length;
+    const total = all.length;
+    
+    const rawTarget = parseFloat(localStorage.getItem("attrack_target_attendance"));
+    const target = (!isNaN(rawTarget) ? rawTarget : 0.75);
+    
+    const needToAttend = Math.ceil((target * total - attended) / (1 - target));
+
+    // 3. Count Pending Tasks
+    const pendingTasks = (state.assignments || []).filter(a => !a.completed).length;
+
+    // 4. Smart Priority Logic
+    if (needToAttend > 0) {
+      // Priority 1: Attendance is in the red. Show how many classes to recover.
+      navigator.setAppBadge(needToAttend);
+    } else if (pendingTasks > 0) {
+      // Priority 2: Attendance is safe. Show pending assignments.
+      navigator.setAppBadge(pendingTasks);
+    } else {
+      // Everything is perfect. Clear the badge.
+      navigator.clearAppBadge();
+    }
+  } catch (error) {
+    console.error("App Badging failed:", error);
+  }
+}
         function renderSummary() {
       // 1. Calculate Basic Stats
       const start = state.startDate || toISODate(new Date());
@@ -2293,6 +2327,7 @@ if (total === 0) {
           ${statusHtml}
         `;
       }
+			updateAppBadge();
     }
 
 
@@ -3049,6 +3084,7 @@ function renderAssignments() {
   });
 
   if(noPendingMsg) noPendingMsg.style.display = pendingCount === 0 ? "block" : "none";
+	updateAppBadge();
 }
 
 if (addAssignmentBtn) {
