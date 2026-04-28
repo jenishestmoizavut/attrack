@@ -60,7 +60,7 @@ h1, h2, h3 { margin:0 0 8px; }
 /* --- 4. HEADER & NAV --- */
 .header { display:flex; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:12px; background:transparent; border-bottom:1px solid var(--border); box-shadow:none; margin:-16px -20px 8px; padding:12px 20px; border-radius:16px 16px 0 0; }
 .title-block { display:flex; flex-direction:column; gap:4px; min-width:0; }
-.title { font-size:1.08rem; font-weight:700; display:flex; align-items:center; gap:8px; line-height:1; }
+.title { font-size:1.08rem; font-weight:700; display:flex; align-items:center; gap:8px; line-height:1; margin-left: 4px;}
 .badge, .version-badge { font-size:0.75rem; padding:2px 8px; border-radius:999px; background:var(--accent-soft); color:var(--accent); }
 .version-badge { font-size:0.7rem; }
 .cheer { font-size:0.88rem; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56vw; }
@@ -345,6 +345,28 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   .setup-app-actions { grid-template-columns:1fr 1fr !important; }
   .setup-app-actions #startTourBtn { grid-column:1 / -1; }
 }
+
+/* --- Tour clarity + better subject editor --- */
+.tour-backdrop { background:rgba(2,6,23,0.44) !important; backdrop-filter:none !important; }
+.tour-spotlight { box-shadow:0 0 0 9999px rgba(2,6,23,0.44), 0 0 0 3px var(--accent), 0 8px 26px rgba(0,0,0,0.22) !important; }
+.tour-tooltip { backdrop-filter:none !important; }
+.subject-modal-backdrop { position:fixed; inset:0; z-index:3100; display:none; align-items:center; justify-content:center; padding:14px; background:rgba(2,6,23,0.5); }
+.subject-modal { width:min(420px, 100%); background:var(--card-bg); color:var(--text); border:1px solid var(--border); border-radius:18px; box-shadow:0 22px 70px rgba(0,0,0,0.28); padding:18px; animation:attrackFadeUp 0.18s ease-out both; }
+.subject-modal h3 { text-align:center; font-size:1.2rem; margin-bottom:6px; }
+.subject-modal-days { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:6px; margin:12px 0 14px; }
+.subject-day-btn { border:1px solid var(--border); background:var(--bg-soft); color:var(--text-soft); border-radius:10px; padding:8px 4px; min-height:48px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-weight:700; }
+.subject-day-btn.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.subject-day-btn strong { font-size:0.74rem; }
+.subject-day-btn span { font-size:0.9rem; }
+.subject-modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.wizard-day-btn { min-height:50px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.wizard-day-btn strong { font-size:0.72rem; opacity:0.85; }
+.wizard-day-btn span { font-size:0.94rem; }
+@media (max-width:600px) {
+  .subject-modal-backdrop { align-items:flex-end; }
+  .subject-modal { border-radius:18px 18px 12px 12px; }
+  .subject-modal-days { grid-template-columns:repeat(3, minmax(0,1fr)); }
+}
 /* --- 11. MEDIA QUERIES (Consolidated) --- */
 @media (max-width:900px) {
   .grid, .home-grid { grid-template-columns:1fr; }
@@ -390,6 +412,47 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   .card, .stats-grid, .view, .view-header { margin-bottom:24px!important; gap:15px!important; }
   .subject-stat-row { background:var(--bg-soft); padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border); }
   #lecturesTableBody td::before { content:attr(data-label); font-weight:bold; color:var(--muted); font-size:0.8rem; }
+}
+
+/* --- Mobile daily density: visible key tools + compact lecture cards --- */
+@media (max-width:768px) {
+  #dayView .day-lectures .card { padding:10px; }
+  #dayView .filter-row { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; }
+  #dayView .filter-row span:nth-child(3) { display:none; }
+  #dayView .filter-row #subjectFilter { min-width:92px; max-width:112px; }
+  #dayView .toolbar.daily-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  #dayView .toolbar.daily-actions::after { display:none; }
+  #dayView .toolbar.daily-actions > .btn { width:100%; justify-content:center; padding:6px 8px; min-height:32px; font-size:0.78rem; }
+  #dayView .actions-menu { display:block; grid-column:1 / -1; width:100%; }
+  #dayView .actions-menu > summary { display:none; }
+  #dayView .actions-menu-panel { position:static; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; min-width:0; width:100%; padding:0; border:0; box-shadow:none; background:transparent; animation:none; }
+  #dayView .actions-menu-panel .btn { width:100%; justify-content:center; min-height:30px; padding:5px 6px; font-size:0.72rem; border-radius:999px; white-space:normal; line-height:1.1; }
+  #dayView table { margin-top:8px; }
+  #dayView #lecturesTableBody tr { display:grid; grid-template-columns:1fr 1fr auto; gap:7px; padding:10px; margin-bottom:10px; }
+  #dayView #lecturesTableBody td { display:block; padding:0; min-width:0; }
+  #dayView #lecturesTableBody td::before { display:block; margin:0 0 3px; font-size:0.66rem; letter-spacing:0.02em; color:var(--muted); text-transform:uppercase; }
+  #dayView #lecturesTableBody td[data-label="Date"] { grid-column:1; }
+  #dayView #lecturesTableBody td[data-label="Subject"] { grid-column:2; }
+  #dayView #lecturesTableBody td[data-label="Topic"] { grid-column:1 / -1; }
+  #dayView #lecturesTableBody td[data-label="Type"] { grid-column:1; }
+  #dayView #lecturesTableBody td[data-label="Status"] { grid-column:2; }
+  #dayView #lecturesTableBody td[data-label="Action"] { grid-column:3; grid-row:1 / span 2; align-self:start; justify-self:end; border-top:0; margin-top:0; padding-top:0; }
+  #dayView #lecturesTableBody td[data-label="Action"]::before { display:none; }
+  #dayView #lecturesTableBody td input[type="text"],
+  #dayView #lecturesTableBody td input[type="date"],
+  #dayView #lecturesTableBody td select {
+    width:100% !important;
+    max-width:none;
+    min-height:30px;
+    text-align:left;
+    font-size:0.76rem;
+    border-radius:8px;
+  }
+  #dayView #lecturesTableBody td[data-label="Type"] .btn { width:100%; justify-content:center; min-height:30px; font-size:0.7rem; }
+  #dayView #lecturesTableBody td[data-label="Status"] { display:flex; align-items:end; justify-content:center; min-height:48px; }
+  #dayView #lecturesTableBody td[data-label="Status"]::before { position:absolute; transform:translateY(-20px); }
+  #dayView #lecturesTableBody td[data-label="Status"] input { width:20px; height:20px; }
+  #dayView #lecturesTableBody td[data-label="Action"] .btn { width:30px; height:30px; padding:0; justify-content:center; border-radius:999px; }
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -451,7 +514,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   </div>
 </div>
 
-<div id="onboardingWizardBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+<div id="onboardingWizardBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:3000; align-items:center; justify-content:center; ">
   <div class="card" style="width:min(420px, 90%); padding:24px; text-align:center; position:relative; overflow:hidden;">
     
     <div id="wizardStep1">
@@ -887,6 +950,22 @@ Source code is not licensed for reuse or redistribution.
     </div>
   </div>
 </div>
+
+<div id="subjectModalBackdrop" class="subject-modal-backdrop" aria-hidden="true">
+  <div class="subject-modal" role="dialog" aria-modal="true" aria-labelledby="subjectModalTitle">
+    <h3 id="subjectModalTitle">Add subject</h3>
+    <p class="hint" style="text-align:center; margin-top:0;">Name it, then tap days to cycle lecture count.</p>
+    <div class="field">
+      <label for="subjectModalName">Subject name</label>
+      <input id="subjectModalName" type="text" placeholder="e.g. Finance" />
+    </div>
+    <div id="subjectModalDays" class="subject-modal-days"></div>
+    <div class="subject-modal-actions">
+      <button id="cancelSubjectModalBtn" class="btn secondary" type="button" style="justify-content:center;">Cancel</button>
+      <button id="saveSubjectModalBtn" class="btn" type="button" style="justify-content:center;">Add subject</button>
+    </div>
+  </div>
+</div>
 <div id="notesModalBackdrop" style="position:fixed; inset:0; background:rgba(2,6,23,0.45); display:none; align-items:center; justify-content:center; z-index:1400;">
   <div class="card" style="width:min(500px,95%); max-height:80vh; display:flex; flex-direction:column; padding:16px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
@@ -1013,6 +1092,7 @@ const TOUR_KEY = "attrack_guided_tour_seen_v2";
 let activeTour = null;
 
 function closeActionsMenu() {
+  if (window.matchMedia("(max-width: 768px)").matches) return;
   document.querySelectorAll(".actions-menu[open]").forEach(menu => menu.open = false);
 }
 
@@ -1050,9 +1130,9 @@ function buildTourSteps() {
       before: () => switchView("dayView")
     },
     {
-      target: ".actions-menu",
-      title: "More actions",
-      body: "Less frequent tools are tucked here: no-lecture days, all notes, and the absent log.",
+      target: ".actions-menu-panel",
+      title: "Key tools stay visible",
+      body: "No-lecture day, notes, and absent log are visible chips on phone, so they are not buried while logging.",
       before: () => { switchView("dayView"); setTimeout(() => { const menu = document.querySelector(".actions-menu"); if (menu) menu.open = true; }, 40); }
     },
     {
@@ -1139,6 +1219,8 @@ function endGuidedTour(markSeen = true) {
 }
 
 function startGuidedTour(force = false) {
+  const onboarding = document.getElementById("onboardingWizardBackdrop");
+  if (!force && onboarding && onboarding.style.display !== "none") return;
   if (!force && localStorage.getItem(TOUR_KEY) === "true") return;
   endGuidedTour(false);
 
@@ -1735,6 +1817,7 @@ const isoStart = toISODate(new Date());
     let currentMonthDate = new Date();
     let selectedDate = new Date();
 let selectedAssSubjects = new Set();
+let editingSubjectId = null; // 👈 Add this to track if we are editing or adding
     // Elements
     const cheerMessageEl = document.getElementById("cheerMessage");
     const summaryMainEl = document.getElementById("summaryMain");
@@ -1932,8 +2015,7 @@ function regenerateFromSchedules() {
 
         const timetableBtn = document.createElement("button");
         timetableBtn.className = "btn small secondary"; timetableBtn.textContent = "Timetable";
-        timetableBtn.addEventListener("click", () => switchView("timetableView"));
-
+timetableBtn.addEventListener("click", () => openSubjectModal(subj.id));
         const delBtn = document.createElement("button");
         delBtn.className = "btn small danger"; delBtn.textContent = "✕";
         delBtn.addEventListener("click", () => {
@@ -2324,6 +2406,124 @@ renderAssignmentChips();
 }
 
 
+
+const subjectModalBackdrop = document.getElementById("subjectModalBackdrop");
+const subjectModalName = document.getElementById("subjectModalName");
+const subjectModalDays = document.getElementById("subjectModalDays");
+const cancelSubjectModalBtn = document.getElementById("cancelSubjectModalBtn");
+const saveSubjectModalBtn = document.getElementById("saveSubjectModalBtn");
+let subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+
+function renderSubjectModalDays() {
+  if (!subjectModalDays) return;
+  const days = [
+    ["Mon", 1], ["Tue", 2], ["Wed", 3],
+    ["Thu", 4], ["Fri", 5], ["Sat", 6]
+  ];
+  subjectModalDays.innerHTML = "";
+  days.forEach(([label, day]) => {
+    const count = subjectModalPattern[day] || 0;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "subject-day-btn" + (count ? " active" : "");
+    btn.innerHTML = `<strong>${label}</strong><span>${count ? count + " lec" : "Off"}</span>`;
+    btn.addEventListener("click", () => {
+      subjectModalPattern[day] = (count + 1) % 5;
+      renderSubjectModalDays();
+    });
+    subjectModalDays.appendChild(btn);
+  });
+}
+
+function openSubjectModal(subjId = null) {
+  if (!subjectModalBackdrop) return;
+  
+  editingSubjectId = subjId;
+  const modalTitle = document.getElementById("subjectModalTitle");
+  const saveBtn = document.getElementById("saveSubjectModalBtn");
+
+  if (subjId) {
+    // EDIT MODE
+    if (modalTitle) modalTitle.textContent = "Edit Subject";
+    if (saveBtn) saveBtn.textContent = "Save Changes";
+    
+    const subj = state.subjects.find(s => s.id === subjId);
+    if (subjectModalName) subjectModalName.value = subj.name;
+    
+    // Reconstruct the pattern for the bubbles
+    subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+    if (subj.schedule && subj.schedule.weeklyPattern) {
+      subj.schedule.weeklyPattern.forEach(p => {
+        subjectModalPattern[p.day] = p.count;
+      });
+    }
+  } else {
+    // ADD MODE
+    if (modalTitle) modalTitle.textContent = "Add subject";
+    if (saveBtn) saveBtn.textContent = "Add subject";
+    subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+    if (subjectModalName) subjectModalName.value = "";
+  }
+
+  renderSubjectModalDays();
+  subjectModalBackdrop.style.display = "flex";
+  subjectModalBackdrop.setAttribute("aria-hidden", "false");
+  setTimeout(() => subjectModalName && subjectModalName.focus(), 80);
+}
+function closeSubjectModal() {
+  if (!subjectModalBackdrop) return;
+  subjectModalBackdrop.style.display = "none";
+  subjectModalBackdrop.setAttribute("aria-hidden", "true");
+}
+
+function saveSubjectFromModal() {
+  const name = subjectModalName ? subjectModalName.value.trim() : "";
+  if (!name) {
+    alert("Please enter a subject name.");
+    return;
+  }
+  
+  const weeklyPattern = [];
+  for (let d = 1; d <= 6; d++) {
+    if (subjectModalPattern[d] > 0) weeklyPattern.push({ day:d, count:subjectModalPattern[d] });
+  }
+
+  if (editingSubjectId) {
+    // Update existing subject
+    const subj = state.subjects.find(s => s.id === editingSubjectId);
+    if (subj) {
+      subj.name = name;
+      subj.schedule = { weeklyPattern };
+    }
+  } else {
+    // Create new subject
+    state.subjects.push({ id: genId("sub"), name, schedule: { weeklyPattern } });
+  }
+
+  if (state.isInitialized) {
+    regenerateFromSchedules();
+  }
+  saveState();
+  renderSubjectsList();
+  renderTimetable(); 
+  renderCalendar();
+  closeSubjectModal();
+}
+
+if (cancelSubjectModalBtn) cancelSubjectModalBtn.addEventListener("click", closeSubjectModal);
+if (saveSubjectModalBtn) saveSubjectModalBtn.addEventListener("click", saveSubjectFromModal);
+if (subjectModalBackdrop) {
+  subjectModalBackdrop.addEventListener("click", (event) => {
+    if (event.target === subjectModalBackdrop) closeSubjectModal();
+  });
+}
+if (subjectModalName) {
+  subjectModalName.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") saveSubjectFromModal();
+    if (event.key === "Escape") closeSubjectModal();
+  });
+}
+
     // Events
     studentNameInput.addEventListener("input", () => { state.studentName = studentNameInput.value; saveState(); renderStudent(); });
     startDateInput.addEventListener("change", () => {
@@ -2346,13 +2546,7 @@ state.startDate = startDateInput.value || toISODate(new Date());      state.isIn
       renderCalendar(); 
       renderLectures();
     });
-    addSubjectBtn.addEventListener("click", () => {
-      const name = prompt("Subject name:");
-      if (name) {
-        state.subjects.push({ id: genId("sub"), name: name.trim(), schedule: { weeklyPattern: [] } });
-        saveState(); renderSubjectsList(); renderTimetable();
-      }
-    });
+    addSubjectBtn.addEventListener("click", openSubjectModal);
 
     prevMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()-1); renderCalendar(); });
     nextMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()+1); renderCalendar(); });
@@ -2579,10 +2773,10 @@ if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(t
          if(count === 1) { bg = "var(--accent-soft)"; color = "var(--accent)"; border = "var(--accent)"; }
          else if(count > 1) { bg = "var(--accent)"; color = "#fff"; border = "var(--accent)"; }
 
-         btn.style.cssText = `flex:1; text-align:center; padding:8px 0; border-radius:8px; border:1px solid ${border}; background:${bg}; color:${color}; font-size:0.85rem; font-weight:700; cursor:pointer; user-select:none; transition:all 0.15s;`;
-         
-         // Show 'M/T/W' if 0, else show the number of lectures
-         btn.innerHTML = count === 0 ? d : count;
+         btn.className = "wizard-day-btn";
+         btn.style.cssText = `flex:1; text-align:center; padding:7px 0; border-radius:10px; border:1px solid ${border}; background:${bg}; color:${color}; font-weight:700; cursor:pointer; user-select:none; transition:all 0.15s;`;
+         const fullDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+         btn.innerHTML = `<strong>${fullDays[i]}</strong><span>${count === 0 ? "Off" : count + " lec"}</span>`;
 
          // Tap to increment (max 4 lectures per day)
          btn.addEventListener("click", () => {
@@ -2926,14 +3120,12 @@ if (openGcalBtn) {
 
 		// This forces the app to open 'Home View' every time, regardless of button order
       switchView("homeView"); 
-      setTimeout(() => startGuidedTour(false), 900);
+      setTimeout(() => {
+        const onboarding = document.getElementById("onboardingWizardBackdrop");
+        if (!onboarding || onboarding.style.display === "none") startGuidedTour(false);
+      }, 900);
 // Add this inside your init() or at the bottom of your script
-document.addEventListener('click', async () => {
-  // Only ask once, ever
-  if (Notification.permission === 'default') {
-    await Notification.requestPermission();
-  }
-}, { once: true });
+// Notification permission is no longer requested automatically. Calendar reminders use downloadable calendar events.
 		// --- NOTES FINDER LOGIC ---
 const findNotesBtn = document.getElementById("findNotesBtn");
 const notesModalBackdrop = document.getElementById("notesModalBackdrop");
@@ -3411,23 +3603,7 @@ refreshSoundToggle();
       }
     });
   }
-// Gentle daily reminder (post-load)
-setTimeout(() => {
-  if (!("Notification" in window)) return;
-
-  const askedBefore = localStorage.getItem(NOTIF_ASKED_KEY);
-
-  if (Notification.permission === "default" && !askedBefore) {
-    Notification.requestPermission().then(p => {
-      localStorage.setItem(NOTIF_ASKED_KEY, "1");
-      if (p === "granted" && shouldSendDailyReminder()) {
-        sendDailyReminder();
-      }
-    });
-  } else if (Notification.permission === "granted" && shouldSendDailyReminder()) {
-    sendDailyReminder();
-  }
-}, 2000);
+// Browser notification permission is intentionally not requested automatically.
 	  // --- 📲 INSTALLATION LOGIC (Android & iOS) ---
   
   const installAppBtn = document.getElementById("installAppBtn");
@@ -3502,18 +3678,8 @@ if ("serviceWorker" in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register("./sw.js");
+      // Notification permission is not requested automatically.
 
-      // Function to request permission
-      const askPermission = async () => {
-        if (Notification.permission === "default") {
-          const permission = await Notification.requestPermission();
-          if (permission === "granted") {
-            console.log("Permission granted!");
-            // Remove the listeners once permission is handled
-            document.removeEventListener('click', askPermission);
-          }
-        }
-      };
 
       // Listen for the FIRST click anywhere on the app to trigger the popup
 // Permission will be requested only when reminder logic runs
@@ -3558,7 +3724,7 @@ if ("serviceWorker" in navigator) {
     <button id="newFeatureCloseBtn" class="btn small">Okay!</button>
   </div>
 </div>
-<div id="feedbackModal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.8); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+<div id="feedbackModal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.8); z-index:2000; align-items:center; justify-content:center; ">
   <div class="card" style="width:min(420px, 95%); max-height:90vh; overflow-y:auto; position:relative; padding:24px; animation: slideUp 0.3s ease-out; border:1px solid var(--accent);">
     
     <button id="closeFeedbackX" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.4rem; line-height:1;">✕</button>
