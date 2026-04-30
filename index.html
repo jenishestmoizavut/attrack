@@ -31,8 +31,7 @@
 </title>
 	<link rel="icon" href="./icon-192.png.png">
 <link rel="manifest" href="manifest.json">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />  <style>
 /* --- 1. THEME VARIABLES --- */
 :root { --bg:#f4f6ff; --bg-soft:#fafbff; --card-bg:#ffffff; --border:#e5e7eb; --text:#111827; --text-soft:#4b5563; --muted:#6b7280; --accent:#4f46e5; --accent-soft:#eef2ff; --danger:#b91c1c; --danger-soft:#fee2e2; --shadow:0 4px 18px rgba(0,0,0,0.08); }
 body.dark { --bg:#020617; --bg-soft:#020617; --card-bg:#0b1120; --border:#1f2937; --text:#e5e7eb; --text-soft:#cbd5f5; --muted:#9ca3af; --accent:#6366f1; --accent-soft:#111827; --danger:#ef4444; --danger-soft:#7f1d1d; --shadow:0 4px 18px rgba(15,23,42,0.9); }
@@ -388,8 +387,9 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   .tour-tooltip { border-radius:14px; font-size:0.85rem; box-shadow:0 -10px 30px rgba(0,0,0,0.35); }
   .app { padding-bottom:90px; }
   .footer { position:sticky; bottom:0; z-index:50; background:var(--card-bg); border-top:1px solid var(--border); padding:8px 10px; margin-top:12px; }
-  .footer-actions { display:flex; flex-direction:column; gap:8px; align-items:stretch; }
-  .footer-actions .share-btn, .footer-actions .version-badge { width:100%; text-align:center; justify-content:center; }
+.footer-actions { display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; }
+  .footer-actions .share-btn { flex: 1 1 auto; justify-content:center; }
+  .footer-actions .version-badge { width:100%; text-align:center; }
   #tutorialModal { padding:12px; font-size:0.9rem; }
   /* Mobile Day View Overrides */
   #dayView thead { display:none; }
@@ -433,10 +433,12 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   #dayView #lecturesTableBody td::before { display:block; margin:0 0 3px; font-size:0.66rem; letter-spacing:0.02em; color:var(--muted); text-transform:uppercase; }
   #dayView #lecturesTableBody td[data-label="Date"] { grid-column:1; }
   #dayView #lecturesTableBody td[data-label="Subject"] { grid-column:2; }
-  #dayView #lecturesTableBody td[data-label="Topic"] { grid-column:1 / -1; }
-  #dayView #lecturesTableBody td[data-label="Type"] { grid-column:1; }
-  #dayView #lecturesTableBody td[data-label="Status"] { grid-column:2; }
-  #dayView #lecturesTableBody td[data-label="Action"] { grid-column:3; grid-row:1 / span 2; align-self:start; justify-self:end; border-top:0; margin-top:0; padding-top:0; }
+#dayView #lecturesTableBody td[data-label="Topic"] { grid-column:1; }
+  #dayView #lecturesTableBody td[data-label="Type"] { grid-column:2; }
+  #dayView #lecturesTableBody td[data-label="Present"] { grid-column:1 / 3; display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px; min-height:auto; }
+  #dayView #lecturesTableBody td[data-label="Present"]::before { position:static; transform:none; }
+  #dayView #lecturesTableBody td[data-label="Present"] input { width:20px; height:20px; margin:0; }
+  #dayView #lecturesTableBody td[data-label="Action"] { grid-column:3; grid-row:1 / span 3; align-self:center; justify-self:end; border-top:0; margin:0; padding:0; }
   #dayView #lecturesTableBody td[data-label="Action"]::before { display:none; }
   #dayView #lecturesTableBody td input[type="text"],
   #dayView #lecturesTableBody td input[type="date"],
@@ -589,9 +591,8 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
 
           <div id="finalAttendanceSummary"></div>
 
-          <div class="dashboard-actions">
+          <div class="dashboard-actions" style="grid-template-columns: 1fr 1fr;">
             <button class="btn dashboard-action primary-mobile" id="quickLogTodayBtn" type="button">Log today</button>
-            <button class="btn secondary dashboard-action" id="quickTasksBtn" type="button">Assignments</button>
             <button class="btn secondary dashboard-action" id="quickSetupBtn" type="button">Setup</button>
           </div>
 
@@ -736,8 +737,8 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
             <table class="timetable-table">
               <thead>
                 <tr>
-                  <th style="text-align:left;">Subject</th>
-                  <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+              <th style="text-align:left;">Subject</th>
+                  <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
                 </tr>
               </thead>
               <tbody id="timetableBody"></tbody>
@@ -776,8 +777,8 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
               <div class="cal-grid" id="calGrid"></div>
             </div>
             <div class="hint" style="margin-top:8px;">
-              Tap on a date to see or edit the lectures for that day. Green dots = days with lectures.  
-              For future days, use “Load day” below.
+              Tap a date to view or edit its lectures. Green dots indicate scheduled classes. 
+              To populate a day's classes, use the "Load day" button in the Lectures section below.
             </div>
           </div>
         </div>
@@ -2140,7 +2141,7 @@ function renderAssignmentChips() {
     tdSpec.appendChild(specBtn); tr.appendChild(tdSpec);
 
     // REWRITE: Attendance
-    const tdAtt = document.createElement("td"); tdAtt.className = "center"; tdAtt.setAttribute("data-label", "Status");
+const tdAtt = document.createElement("td"); tdAtt.className = "center"; tdAtt.setAttribute("data-label", "Present");
     const cb = document.createElement("input"); cb.type="checkbox"; cb.checked = !!lec.attended;
     cb.addEventListener("change", () => { lec.attended = cb.checked; saveState(); renderSummary(); renderSubjectStats(); });
     tdAtt.appendChild(cb); tr.appendChild(tdAtt);
@@ -2306,7 +2307,7 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
         
         if (!subj.schedule) subj.schedule = { weeklyPattern: [] };
         
-        for (let d = 1; d <= 6; d++) {
+        for (let d = 0; d <= 6; d++) {
           const td = document.createElement("td");
           const existing = subj.schedule.weeklyPattern.find(p => p.day === d);
           const count = existing ? existing.count : 0;
@@ -2398,7 +2399,7 @@ let subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
 function renderSubjectModalDays() {
   if (!subjectModalDays) return;
   const days = [
-    ["Mon", 1], ["Tue", 2], ["Wed", 3],
+    ["Sun", 0], ["Mon", 1], ["Tue", 2], ["Wed", 3],
     ["Thu", 4], ["Fri", 5], ["Sat", 6]
   ];
   subjectModalDays.innerHTML = "";
@@ -2432,7 +2433,7 @@ function openSubjectModal(subjId = null) {
     if (subjectModalName) subjectModalName.value = subj.name;
     
     // Reconstruct the pattern for the bubbles
-    subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+    subjectModalPattern = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
     if (subj.schedule && subj.schedule.weeklyPattern) {
       subj.schedule.weeklyPattern.forEach(p => {
         subjectModalPattern[p.day] = p.count;
@@ -2465,7 +2466,7 @@ function saveSubjectFromModal() {
   }
   
   const weeklyPattern = [];
-  for (let d = 1; d <= 6; d++) {
+  for (let d = 0; d <= 6; d++) {
     if (subjectModalPattern[d] > 0) weeklyPattern.push({ day:d, count:subjectModalPattern[d] });
   }
 
@@ -2742,9 +2743,9 @@ if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(t
       const daysRow = document.createElement("div");
       daysRow.style.cssText = "display:flex; gap:6px; justify-content:space-between;";
 
-      const days = ["M", "T", "W", "T", "F", "S"];
+      const days = ["S","M", "T", "W", "T", "F", "S"];
       days.forEach((d, i) => {
-         const dayNum = i + 1; // 1=Mon, 6=Sat
+         const dayNum = i; // 1=Mon, 6=Sat
          const count = sub.pattern[dayNum];
          const btn = document.createElement("div");
          
@@ -2779,7 +2780,7 @@ if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(t
     if (val && !tempSubjects.some(s => s.name === val)) {
       tempSubjects.push({
         name: val,
-        pattern: { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 } // Track days inside temp object
+        pattern: { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 } // Track days inside temp object
       });
       wizSubInput.value = "";
       renderTempSubjects();
@@ -2798,7 +2799,7 @@ if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(t
     // Convert temp subjects to Attrack's internal state format
     tempSubjects.forEach(sub => {
       const weeklyPattern = [];
-      for(let d=1; d<=6; d++) {
+      for(let d=0; d<=6; d++) {
          if(sub.pattern[d] > 0) {
              weeklyPattern.push({ day: d, count: sub.pattern[d] });
          }
