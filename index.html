@@ -433,8 +433,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   #dayView #lecturesTableBody td::before { display:block; margin:0 0 3px; font-size:0.66rem; letter-spacing:0.02em; color:var(--muted); text-transform:uppercase; }
   #dayView #lecturesTableBody td[data-label="Date"] { grid-column:1; }
   #dayView #lecturesTableBody td[data-label="Subject"] { grid-column:2; }
-#dayView #lecturesTableBody td[data-label="Topic"] { grid-column:1; }
-  #dayView #lecturesTableBody td[data-label="Type"] { grid-column:2; }
+#dayView #lecturesTableBody td[data-label="Topic"] { grid-column:1 / 3; }
   #dayView #lecturesTableBody td[data-label="Present"] { grid-column:1 / 3; display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px; min-height:auto; }
   #dayView #lecturesTableBody td[data-label="Present"]::before { position:static; transform:none; }
   #dayView #lecturesTableBody td[data-label="Present"] input { width:20px; height:20px; margin:0; }
@@ -450,7 +449,6 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     font-size:0.76rem;
     border-radius:8px;
   }
-  #dayView #lecturesTableBody td[data-label="Type"] .btn { width:100%; justify-content:center; min-height:30px; font-size:0.7rem; }
   #dayView #lecturesTableBody td[data-label="Status"] { display:flex; align-items:end; justify-content:center; min-height:48px; }
   #dayView #lecturesTableBody td[data-label="Status"]::before { position:absolute; transform:translateY(-20px); }
   #dayView #lecturesTableBody td[data-label="Status"] input { width:20px; height:20px; }
@@ -819,8 +817,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
                 <th style="width: 98px;">Date</th>
                 <th style="width: 120px;">Subject</th>
                 <th>Lecture title / note</th>
-                <th style="width: 70px;">Special</th>
-                <th style="width: 80px;">Attended?</th>
+                                <th style="width: 80px;">Attended?</th>
                 <th style="width: 60px;">Remove</th>
               </tr>
             </thead>
@@ -906,8 +903,7 @@ When you add or load lectures, they’re marked attended by default.
 
 
 
-  
-</div>
+  </div>
 
   </div>
 <div id="iosInstallModal" class="ios-modal-backdrop" style="display:none;">
@@ -2129,14 +2125,7 @@ function renderAssignmentChips() {
     tInput.addEventListener("input", () => { lec.title = tInput.value; saveState(); });
     tdTitle.appendChild(tInput); tr.appendChild(tdTitle);
 
-    // REWRITE: Special
-    const tdSpec = document.createElement("td"); tdSpec.className = "center"; tdSpec.setAttribute("data-label", "Type");
-    const specBtn = document.createElement("button"); specBtn.className="btn small secondary"; specBtn.textContent = lec.isSpecial ? "Special" : "Normal";
-    if(lec.isSpecial) specBtn.style.background = "var(--accent-soft)";
-    specBtn.addEventListener("click", () => { lec.isSpecial = !lec.isSpecial; saveState(); renderLectures(); });
-    tdSpec.appendChild(specBtn); tr.appendChild(tdSpec);
-
-    // REWRITE: Attendance
+        // REWRITE: Attendance
 const tdAtt = document.createElement("td"); tdAtt.className = "center"; tdAtt.setAttribute("data-label", "Present");
     const cb = document.createElement("input"); cb.type="checkbox"; cb.checked = !!lec.attended;
     cb.addEventListener("change", () => { lec.attended = cb.checked; saveState(); renderSummary(); renderSubjectStats(); });
