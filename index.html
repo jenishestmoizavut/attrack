@@ -860,22 +860,22 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
             </select>
           </div>
 
+         <!-- Added 'daily-actions' class so your mobile CSS grid catches it -->
           <div class="toolbar daily-actions">
-         	<button class="btn small secondary" id="loadDayBtn" type="button">
-  Load day
-</button>
+            <button class="btn small secondary" id="loadDayBtn" type="button">Load day</button>
             <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
             <button class="btn small" id="markAllAttendedBtn" type="button">Present all</button>
             <button class="btn small secondary" id="markAllAbsentBtn" type="button">Absent all</button>
-<details class="actions-menu">
-  <summary>More actions</summary>
-  <div class="actions-menu-panel">
-    <button class="btn small danger" id="markHolidayBtn" type="button">No lectures today</button>
-    <button class="btn small secondary" id="findNotesBtn" type="button">All notes</button>
-    <button class="btn small danger" id="findAbsentBtn" type="button" style="outline:1px solid var(--danger); background:transparent; color:var(--danger);">Absent log</button>
-  </div>
-</details>
-
+            
+            <!-- Tucked extra tools into the More Actions drawer -->
+            <details class="actions-menu">
+              <summary>More actions</summary>
+              <div class="actions-menu-panel">
+                <button class="btn small danger" id="markHolidayBtn" type="button">No lectures today</button>
+                <button class="btn small secondary" id="findNotesBtn" type="button">🔍 All notes</button>
+                <button class="btn small danger" id="findAbsentBtn" type="button" style="outline:1px solid var(--danger); background:transparent; color:var(--danger);">❌ Absent log</button>
+              </div>
+            </details>
           </div>
 
           <table>
