@@ -467,8 +467,8 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
       <div class="title-block">
         <div class="title">
           <img src="./icon-192.png.png" alt="Attrack logo" style="height:22px; vertical-align:middle; margin-right:6px;">
-          Attrack by Jenish
-          <span class="badge">Student-first UI</span>
+Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none !important; display: inline-block;">Jenish</a> 
+         <span class="badge">Student-first UI</span>
         </div>
         <div id="cheerMessage" class="cheer">
           Welcome! Tell me your name below and we'll keep your attendance happy and healthy.
@@ -698,6 +698,20 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     </div>
 
     <div class="setup-grid">
+<!-- GOOGLE SYNC BAR -->
+      <div id="googleAuthBar" class="promo-card" style="grid-column: 1 / -1; margin-bottom: 4px;" onclick="loginToFirebase()">
+        <svg width="24" height="24" viewBox="0 0 48 48" style="flex-shrink: 0;">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <div style="flex: 1; text-align: left;">
+          <div id="authStatusTitle" style="font-weight: 700; color: var(--text); font-size: 1rem;">Backup to Google</div>
+          <div id="authStatusSub" style="font-size: 0.85rem; color: var(--text-soft);">Sync attendance across devices</div>
+        </div>
+        <div id="authActionArrow" style="color: var(--accent); font-size: 1.2rem; font-weight: bold;">→</div>
+      </div>
       <details class="card setup-section" open>
         <summary>Goal & app</summary>
         <div class="setup-section-body">
@@ -708,7 +722,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
             </div>
             <button id="changeTargetBtn" class="btn small secondary" type="button">Change</button>
           </div>
-          <div class="setup-app-actions" style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
+<div class="setup-app-actions" style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px;">
             <button id="darkToggle" class="btn small secondary" type="button">
               <span id="darkIcon">Moon</span> <span id="darkLabel">Dark</span>
             </button>
@@ -716,6 +730,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
               Sound: <span id="soundState" class="sound-state">Off</span>
             </button>
             <button id="startTourBtn" class="btn small secondary" type="button">Tour</button>
+            <button id="login-btn" onclick="loginToFirebase()" class="btn small" type="button" style="background: var(--accent); color: white;">Sync</button>
           </div>
         </div>
       </details>
@@ -3891,5 +3906,61 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
     </div>
   </div>
 </div>
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
+            authDomain: "attrack-sync.firebaseapp.com",
+            projectId: "attrack-sync",
+            storageBucket: "attrack-sync.firebasestorage.app",
+            messagingSenderId: "392011507811",
+            appId: "1:392011507811:web:89c0b23e571c46b9647056"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Enable Offline Sync
+        enableIndexedDbPersistence(db).catch((err) => {
+            console.warn("Offline sync issue:", err.code);
+        });
+
+        // The Login Function triggered by the new Bar
+        window.loginToFirebase = async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Login failed:", error.message);
+                alert("Login failed. Check console.");
+            }
+        };
+
+        // Monitor Login State to update the UI
+        onAuthStateChanged(auth, (user) => {
+            const authTitle = document.getElementById('authStatusTitle');
+            const authSub = document.getElementById('authStatusSub');
+            const authArrow = document.getElementById('authActionArrow');
+            const authBar = document.getElementById('googleAuthBar');
+
+            if (user) {
+                console.log("Firebase Auth Active:", user.uid);
+                if (authTitle) authTitle.textContent = "Synced with Google";
+                if (authSub) authSub.textContent = user.email; // Shows their email
+                if (authArrow) authArrow.textContent = "✅";
+                if (authBar) {
+                    authBar.style.borderColor = "#16a34a"; // Green border
+                    authBar.style.background = "var(--bg-soft)";
+                    authBar.onclick = null; // Disable clicking again
+                    authBar.style.cursor = "default";
+                }
+                window.db = db; // Unlock database writes
+            }
+        });
+    </script>
 </body>
-	</html>
+</html>
