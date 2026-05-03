@@ -506,6 +506,121 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     border-radius: 8px;
     box-sizing: border-box; 
   }
+	/* ========================================================================= */
+/* THE ULTIMATE MOBILE OVERRIDE - PLACED AT THE BOTTOM TO GUARANTEE IT WORKS */
+/* ========================================================================= */
+@media (max-width: 768px) {
+  /* Force the table to behave like a block and prevent screen bleed */
+  #dayView table, #dayView tbody { 
+    display: block !important; 
+    width: 100% !important; 
+    box-sizing: border-box !important; 
+  }
+  
+  /* Hide the old table header */
+  #dayView thead { 
+    display: none !important; 
+  }
+  
+  /* The Lecture Card Container */
+  #dayView #lecturesTableBody tr { 
+    display: grid !important; 
+    grid-template-columns: 1fr 1fr !important; 
+    gap: 12px !important; 
+    padding: 14px !important; 
+    margin-bottom: 14px !important; 
+    box-sizing: border-box !important;
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    width: 100% !important;
+    overflow: hidden !important; /* Catch any stray pixels */
+  }
+  
+  /* Reset every cell inside the card so they span properly */
+  #dayView #lecturesTableBody td { 
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important; 
+    min-width: 0 !important; 
+    border: none !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    margin: 0 !important;
+  }
+  
+  /* Restore the Labels (Date, Subject, Topic) */
+  #dayView #lecturesTableBody td::before { 
+    content: attr(data-label) !important; 
+    display: block !important; 
+    margin: 0 0 6px 0 !important; 
+    font-size: 0.7rem !important; 
+    letter-spacing: 0.03em !important; 
+    color: var(--muted) !important; 
+    text-transform: uppercase !important; 
+    font-weight: 700 !important;
+    text-align: left !important;
+    position: static !important; 
+    transform: none !important;
+  }
+  
+  /* Grid Placement */
+  #dayView #lecturesTableBody td[data-label="Date"] { grid-column: 1; }
+  #dayView #lecturesTableBody td[data-label="Subject"] { grid-column: 2; }
+  #dayView #lecturesTableBody td[data-label="Topic"] { grid-column: 1 / -1; }
+  
+  /* Align the Checkbox */
+  #dayView #lecturesTableBody td[data-label="Present"] { 
+    grid-column: 1; 
+    flex-direction: row !important; 
+    align-items: center !important; 
+    justify-content: flex-start !important; 
+    gap: 12px !important; 
+  }
+  #dayView #lecturesTableBody td[data-label="Present"]::before { margin: 0 !important; }
+  #dayView #lecturesTableBody td[data-label="Present"] input { 
+    width: 24px !important; 
+    height: 24px !important; 
+    margin: 0 !important; 
+  }
+  
+  /* Restore the Delete Button */
+  #dayView #lecturesTableBody td[data-label="Action"] { 
+    grid-column: 2; 
+    flex-direction: row !important;
+    align-items: center !important; 
+    justify-content: flex-end !important; 
+  }
+  #dayView #lecturesTableBody td[data-label="Action"]::before { display: none !important; }
+  #dayView #lecturesTableBody td[data-label="Action"] .btn { 
+    display: inline-flex !important;
+    width: 36px !important; 
+    height: 36px !important; 
+    padding: 0 !important; 
+    justify-content: center !important; 
+    align-items: center !important;
+    border-radius: 8px !important; 
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+  }
+
+  /* Fix Inputs (Solves the Arabic typing issue and the squishing) */
+  #dayView #lecturesTableBody td input[type="text"],
+  #dayView #lecturesTableBody td input[type="date"],
+  #dayView #lecturesTableBody td select {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+    font-size: 0.9rem !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important; 
+    text-align: left !important; 
+    direction: ltr !important;   
+  }
+}
+/* ========================================================================= */
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
