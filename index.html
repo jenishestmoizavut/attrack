@@ -415,101 +415,69 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
 }
 
 /* --- Mobile daily density: visible key tools + compact lecture cards --- */
-@media (max-width:768px) {
+	/* ========================================================================= */
+/* THE ULTIMATE MOBILE OVERRIDE + MORE BUTTON FIX */
+/* ========================================================================= */
+@media (max-width: 768px) {
   #dayView .day-lectures .card { padding:10px; }
   #dayView .filter-row { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; }
   #dayView .filter-row span:nth-child(3) { display:none; }
   #dayView .filter-row #subjectFilter { min-width:92px; max-width:112px; }
-  #dayView .toolbar.daily-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  
+  /* --- TOOLBAR & MORE MENU FIX --- */
+  #dayView .toolbar.daily-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   #dayView .toolbar.daily-actions::after { display:none; }
-  #dayView .toolbar.daily-actions > .btn { width:100%; justify-content:center; padding:6px 8px; min-height:32px; font-size:0.78rem; }
+  #dayView .toolbar.daily-actions > .btn { width:100%; justify-content:center; padding:8px; min-height:38px; font-size:0.85rem; border-radius:8px; margin:0; }
+  
   #dayView .actions-menu { display:block; grid-column:1 / -1; width:100%; }
-  #dayView .actions-menu > summary { display:none; }
-  #dayView .actions-menu-panel { position:static; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; min-width:0; width:100%; padding:0; border:0; box-shadow:none; background:transparent; animation:none; }
-  #dayView .actions-menu-panel .btn { width:100%; justify-content:center; min-height:30px; padding:5px 6px; font-size:0.72rem; border-radius:999px; white-space:normal; line-height:1.1; }
-  #dayView table { margin-top:8px; }
-  #dayView #lecturesTableBody tr { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 12px; 
-    padding: 14px; 
-    margin-bottom: 12px; 
-    box-sizing: border-box; /* Fixes the screen bleed */
+  
+  /* Unhide the summary so the 'More' button exists */
+  #dayView .actions-menu > summary { 
+    display:flex; 
+    justify-content:center; 
+    align-items:center;
+    width:100%; 
+    padding:8px; 
+    min-height:38px;
+    background:var(--bg-soft); 
+    border:1px solid var(--border); 
+    border-radius:8px; 
+    font-size:0.85rem;
+    font-weight:600;
+    box-sizing:border-box;
   }
   
-  #dayView #lecturesTableBody td { 
-    display: block; 
-    padding: 0; 
-    min-width: 0; 
-    border: none;
+  /* Format the opened drawer items into a neat grid */
+  #dayView .actions-menu-panel { 
+    position:static; 
+    display:grid; 
+    grid-template-columns:1fr 1fr; 
+    gap:8px; 
+    margin-top:8px; 
+    width:100%; 
+    padding:12px; 
+    border:1px solid var(--border); 
+    border-radius:10px; 
+    background:var(--card-bg); 
+    box-sizing:border-box;
+    box-shadow:none;
+    animation:attrackFadeUp 0.15s ease-out;
   }
   
-  #dayView #lecturesTableBody td::before { 
-    display: block; 
-    margin: 0 0 4px; 
-    font-size: 0.7rem; 
-    letter-spacing: 0.03em; 
-    color: var(--muted); 
-    text-transform: uppercase; 
-    font-weight: 600;
-  }
-  
-  /* Top Row */
-  #dayView #lecturesTableBody td[data-label="Date"] { grid-column: 1; }
-  #dayView #lecturesTableBody td[data-label="Subject"] { grid-column: 2; }
-  
-  /* Middle Row */
-  #dayView #lecturesTableBody td[data-label="Topic"] { grid-column: 1 / 3; }
-  
-  /* Bottom Row: Checkbox on Left */
-  #dayView #lecturesTableBody td[data-label="Present"] { 
-    grid-column: 1; 
-    display: flex; 
-    flex-direction: row; 
-    align-items: center; 
-    justify-content: flex-start; 
-    gap: 8px; 
-    min-height: auto; 
-  }
-  #dayView #lecturesTableBody td[data-label="Present"]::before { margin: 0; }
-  #dayView #lecturesTableBody td[data-label="Present"] input { 
-    width: 22px !important; 
-    height: 22px !important; 
-    margin: 0; 
-  }
-  
-  /* Bottom Row: Delete Button on Right */
-  #dayView #lecturesTableBody td[data-label="Action"] { 
-    grid-column: 2; 
-    display: flex; 
-    align-items: center; 
-    justify-content: flex-end; 
-    margin: 0; 
-    padding: 0;
-  }
-  #dayView #lecturesTableBody td[data-label="Action"]::before { display: none; }
-  #dayView #lecturesTableBody td[data-label="Action"] .btn { 
-    width: 32px; 
-    height: 32px; 
-    padding: 0; 
-    justify-content: center; 
-    border-radius: 8px; /* Squarish corners look cleaner here */
+  #dayView .actions-menu-panel .btn { 
+    width:100%; 
+    justify-content:center; 
+    min-height:36px; 
+    padding:6px; 
+    font-size:0.8rem; 
+    border-radius:8px; 
+    white-space:normal; 
+    line-height:1.2;
   }
 
-  /* Prevent inputs from breaking out of columns */
-  #dayView #lecturesTableBody td input[type="text"],
-  #dayView #lecturesTableBody td input[type="date"],
-  #dayView #lecturesTableBody td select {
-    width: 100% !important;
-    min-height: 36px;
-    font-size: 0.85rem;
-    border-radius: 8px;
-    box-sizing: border-box; 
-  }
-	/* ========================================================================= */
-/* THE ULTIMATE MOBILE OVERRIDE - PLACED AT THE BOTTOM TO GUARANTEE IT WORKS */
-/* ========================================================================= */
-@media (max-width: 768px) {
+  /* --- LECTURE CARDS OVERRIDE --- */
+  #dayView table { margin-top:8px; }
+  
   /* Force the table to behave like a block and prevent screen bleed */
   #dayView table, #dayView tbody { 
     display: block !important; 
@@ -534,7 +502,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     border: 1px solid var(--border) !important;
     border-radius: 12px !important;
     width: 100% !important;
-    overflow: hidden !important; /* Catch any stray pixels */
+    overflow: hidden !important; 
   }
   
   /* Reset every cell inside the card so they span properly */
@@ -576,6 +544,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     align-items: center !important; 
     justify-content: flex-start !important; 
     gap: 12px !important; 
+    min-height: auto;
   }
   #dayView #lecturesTableBody td[data-label="Present"]::before { margin: 0 !important; }
   #dayView #lecturesTableBody td[data-label="Present"] input { 
@@ -590,6 +559,8 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     flex-direction: row !important;
     align-items: center !important; 
     justify-content: flex-end !important; 
+    margin: 0; 
+    padding: 0;
   }
   #dayView #lecturesTableBody td[data-label="Action"]::before { display: none !important; }
   #dayView #lecturesTableBody td[data-label="Action"] .btn { 
@@ -605,7 +576,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     margin: 0 !important;
   }
 
-  /* Fix Inputs (Solves the Arabic typing issue and the squishing) */
+  /* Fix Inputs */
   #dayView #lecturesTableBody td input[type="text"],
   #dayView #lecturesTableBody td input[type="date"],
   #dayView #lecturesTableBody td select {
@@ -620,7 +591,6 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
     direction: ltr !important;   
   }
 }
-/* ========================================================================= */
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -976,19 +946,18 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           </div>
 
          <!-- Added 'daily-actions' class so your mobile CSS grid catches it -->
-          <div class="toolbar daily-actions">
+        <div class="toolbar daily-actions">
   <button class="btn small secondary" id="loadDayBtn" type="button">Load day</button>
-  <button class="btn small" id="addLectureBtn" type="button">+ Add</button>
-  <button class="btn small" id="markAllAttendedBtn" type="button">Present all</button>
-  <button class="btn small secondary" id="markAllAbsentBtn" type="button">Absent all</button>
+  <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
   
-  <!-- "More" menu for mobile density -->
   <details class="actions-menu">
-    <summary>More</summary>
+    <summary>More actions ▼</summary>
     <div class="actions-menu-panel">
-      <button class="btn small danger" id="markHolidayBtn" type="button">No lectures</button>
+      <button class="btn small" id="markAllAttendedBtn" type="button">✅ Present all</button>
+      <button class="btn small secondary" id="markAllAbsentBtn" type="button">❌ Absent all</button>
+      <button class="btn small danger" id="markHolidayBtn" type="button">🏖️ No lectures</button>
       <button class="btn small secondary" id="findNotesBtn" type="button">🔍 Notes</button>
-      <button class="btn small danger" id="findAbsentBtn" type="button">❌ Absent log</button>
+      <button class="btn small danger" id="findAbsentBtn" type="button" style="outline:1px solid var(--danger); background:transparent; color:var(--danger);">❌ Absent log</button>
     </div>
   </details>
 </div>
