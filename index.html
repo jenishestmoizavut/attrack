@@ -1854,10 +1854,39 @@ const loadDayBtn = document.getElementById("loadDayBtn");
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      
+      // NEW: Tell Firebase to sync this new data
+      if (window.syncToFirebase) window.syncToFirebase(state);
+      
       renderSummary();
       renderSubjectStats();
-renderSetupSummaries();
+      renderSetupSummaries();
     }
+
+    // NEW: Function to receive real-time updates from Firebase
+    window.applyCloudUpdate = function(cloudState) {
+      // Only update if it's actually different (prevents infinite loops)
+      if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
+        state = cloudState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        
+        // Refresh the UI so you see it instantly across devices
+        renderStudent();
+        renderSubjectsList();
+        renderSubjectStats();
+        if (typeof renderAssignmentChips === "function") renderAssignmentChips();
+        renderTimetable();
+        renderSummary();
+        
+        // Update the active views
+        if (document.getElementById("dayView").classList.contains("active")) {
+          renderCalendar();
+          renderLectures();
+        } else if (document.getElementById("assignmentsView").classList.contains("active")) {
+          if (typeof renderAssignments === "function") renderAssignments();
+        }
+      }
+    };
     function setTheme(theme) {
       if (theme === "dark") {
         document.documentElement.classList.add("dark");
@@ -3908,7 +3937,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -3925,22 +3954,22 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Enable Offline Sync
-        enableIndexedDbPersistence(db).catch((err) => {
-            console.warn("Offline sync issue:", err.code);
-        });
+        enableIndexedDbPersistence(db).catch((err) => console.warn("Offline sync issue:", err.code));
 
-        // The Login Function triggered by the new Bar
         window.loginToFirebase = async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Login failed:", error.message);
-                alert("Login failed. Check console.");
+            try { await signInWithPopup(auth, provider); } 
+            catch (error) { alert("Login failed. Check console."); console.error(error); }
+        };
+
+        // Called by your saveState() function to push data UP
+        window.syncToFirebase = (currentState) => {
+            if (auth.currentUser) {
+                // Save the entire state object to a single document for this user
+                setDoc(doc(db, "users", auth.currentUser.uid), { appData: currentState }, { merge: true });
             }
         };
 
-        // Monitor Login State to update the UI
+        // Monitor Login State & Listen for Real-Time Changes
         onAuthStateChanged(auth, (user) => {
             const authTitle = document.getElementById('authStatusTitle');
             const authSub = document.getElementById('authStatusSub');
@@ -3948,17 +3977,29 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
             const authBar = document.getElementById('googleAuthBar');
 
             if (user) {
-                console.log("Firebase Auth Active:", user.uid);
                 if (authTitle) authTitle.textContent = "Synced with Google";
-                if (authSub) authSub.textContent = user.email; // Shows their email
+                if (authSub) authSub.textContent = user.email;
                 if (authArrow) authArrow.textContent = "✅";
                 if (authBar) {
-                    authBar.style.borderColor = "#16a34a"; // Green border
+                    authBar.style.borderColor = "#16a34a";
                     authBar.style.background = "var(--bg-soft)";
-                    authBar.onclick = null; // Disable clicking again
+                    authBar.onclick = null;
                     authBar.style.cursor = "default";
                 }
-                window.db = db; // Unlock database writes
+                
+                // THE MAGIC: Real-time listener
+                onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                    if (docSnap.exists()) {
+                        // Data exists in cloud -> Pull it down and update screen instantly!
+                        if (window.applyCloudUpdate) {
+                            window.applyCloudUpdate(docSnap.data().appData);
+                        }
+                    } else {
+                        // FIRST LOGIN: Cloud is empty. Push local laptop data UP to cloud!
+                        const localData = JSON.parse(localStorage.getItem("attrack_v1") || "{}");
+                        window.syncToFirebase(localData);
+                    }
+                });
             }
         });
     </script>
