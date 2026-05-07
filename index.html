@@ -4069,19 +4069,21 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
-            authDomain: "attrack-sync.firebaseapp.com",
-            projectId: "attrack-sync",
-            storageBucket: "attrack-sync.firebasestorage.app",
-            messagingSenderId: "392011507811",
-            appId: "1:392011507811:web:89c0b23e571c46b9647056"
-        };
+		import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js"; // <--- ADD THIS LINE
+const firebaseConfig = {
+  apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
+  authDomain: "attrack-sync.firebaseapp.com",
+  projectId: "attrack-sync",
+  storageBucket: "attrack-sync.firebasestorage.app",
+  messagingSenderId: "392011507811",
+  appId: "1:392011507811:web:89c0b23e571c46b9647056",
+  measurementId: "G-RXJXZPRTZL"
+};
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+		const analytics = getAnalytics(app);
         const provider = new GoogleAuthProvider();
 
         enableIndexedDbPersistence(db).catch((err) => console.warn("Offline sync issue:", err.code));
