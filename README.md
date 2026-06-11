@@ -1,7 +1,7 @@
 # Attrack – Smart Attendance Planner & Student Dashboard
 
 Attrack is an **offline-first attendance tracker for students**.  
-It works entirely on your device — **no accounts, no servers, no cloud**.
+
 
 ---
 
@@ -14,16 +14,6 @@ It works entirely on your device — **no accounts, no servers, no cloud**.
 - 📤 Export attendance data as CSV
 - 🌙 Light & dark mode
 - 📱 Installable as a PWA (works offline)
-
----
-
-## 🔒 Privacy-first by design
-
-Attrack stores all data **locally in your browser** using localStorage.
-
-- No sign-up
-- No tracking
-- No data leaves your device
 
 ---
 
@@ -58,7 +48,8 @@ This project is **not licensed for reuse or redistribution**.
 The code is publicly visible but remains the intellectual property of the author.
 
 ---
-
+Data & Privacy
+Attrack is designed privacy-first. By default, all attendance data is stored locally on your device. If you choose to enable cross-device syncing via Google Authentication, Attrack only stores the email address used to log in and your specific attendance records in a secure Firebase database. We do not have access to your passwords, and your data is never sold or shared.
 ## 👤 Author
 
 Built by **Jenish**  
