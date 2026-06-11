@@ -740,7 +740,13 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
               <h3>Dashboard</h3>
                     </div>
           </div>
-
+<div id="syncAlertCard" onclick="switchView('setupView')" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; margin-bottom: 16px; cursor: pointer; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; display: flex;">
+            <span style="font-size: 1.2rem;">⚠️</span>
+            <div style="flex: 1; text-align: left;">
+              <div style="font-weight: 700; font-size: 0.9rem; color: #ef4444;">Backup Disconnected</div>
+              <div style="font-size: 0.78rem; color: var(--text-soft); line-height: 1.3; margin-top: 2px;">Your logs are only stored locally. Tap here to sync securely.</div>
+            </div>
+          </div>
           <div id="finalAttendanceSummary"></div>
 
           <div class="dashboard-actions" style="grid-template-columns: 1fr 1fr;">
@@ -863,9 +869,14 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <div style="flex: 1; text-align: left;">
           <div id="authStatusTitle" style="font-weight: 700; color: var(--text); font-size: 1rem;">Backup to Google</div>
           <div id="authStatusSub" style="font-size: 0.85rem; color: var(--text-soft);">Sync attendance across devices</div>
+<div class="hint" style="text-align: center; margin-top: 4px; margin-bottom: 12px;">
+        Signing in securely syncs your data. We never have access to your password.
+      </div>
         </div>
         <div id="authActionArrow" style="color: var(--accent); font-size: 1.2rem; font-weight: bold;">→</div>
+
       </div>
+
       <details class="card setup-section" open>
         <summary>Goal & app</summary>
         <div class="setup-section-body">
@@ -2160,7 +2171,7 @@ function regenerateFromSchedules() {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Progress is slow <span>${escapeHtml(state.studentName)}</span>, keep attending :)`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you sync to Google for backup? :)`
         : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
     }
 
@@ -4124,11 +4135,13 @@ const firebaseConfig = {
             const authSub = document.getElementById('authStatusSub');
             const authArrow = document.getElementById('authActionArrow');
             const authBar = document.getElementById('googleAuthBar');
+	    const syncAlert = document.getElementById('syncAlertCard'); // Grab the alert element
 
             if (user) {
                 if (authTitle) authTitle.textContent = "Synced with Google";
                 if (authSub) authSub.textContent = user.email;
                 if (authArrow) authArrow.textContent = "✅";
+		if (syncAlert) syncAlert.style.display = 'none'; // Hide alert if user is logged in
                 if (authBar) {
                     authBar.style.borderColor = "#16a34a";
                     authBar.style.background = "var(--bg-soft)";
