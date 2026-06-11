@@ -6,6 +6,7 @@
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#4f46e5" />
   <meta name="application-name" content="Attrack" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Attrack" />
 
@@ -4096,7 +4097,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 		import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js"; // <--- ADD THIS LINE
 const firebaseConfig = {
   apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
@@ -4140,13 +4141,24 @@ const firebaseConfig = {
             if (user) {
                 if (authTitle) authTitle.textContent = "Synced with Google";
                 if (authSub) authSub.textContent = user.email;
-                if (authArrow) authArrow.textContent = "✅";
+		if (authArrow) authArrow.textContent = "Sign Out"; // Changed 
 		if (syncAlert) syncAlert.style.display = 'none'; // Hide alert if user is logged in
                 if (authBar) {
                     authBar.style.borderColor = "#16a34a";
                     authBar.style.background = "var(--bg-soft)";
                     authBar.onclick = null;
-                    authBar.style.cursor = "default";
+                    authBar.style.cursor = "pointer";
+
+authBar.onclick = async () => {
+                        if (confirm("Sign out of Attrack? Your data will stay safely on this device, but won't sync to the cloud until you log back in.")) {
+                            try {
+                                await signOut(auth);
+                                // Optional alert, or just let the listener handle the UI change automatically
+                            } catch (error) {
+                                console.error("Error signing out:", error);
+                            }
+                        }
+                    };
                 }
                 
                 // THE MAGIC: Real-time listener
@@ -4163,7 +4175,22 @@ const firebaseConfig = {
                     }
                 });
             }
+else {
+                // --- FIX 2: THE MISSING LOGGED OUT (ELSE) STATE ---
+                if (authTitle) authTitle.textContent = "Backup to Google";
+                if (authSub) authSub.textContent = "Sync attendance across devices";
+                if (authArrow) authArrow.textContent = "→";
+                if (syncAlert) syncAlert.style.display = 'flex'; 
+                
+                if (authBar) {
+                    authBar.style.borderColor = "var(--border)";
+                    authBar.style.background = "linear-gradient(to right, var(--bg-soft), var(--card-bg))";
+                    authBar.style.cursor = "pointer";
+                    // Wire the button back to log in
+                    authBar.onclick = window.loginToFirebase;
+                }
+            }
         });
-    </script>
+</script>
 </body>
 </html>
