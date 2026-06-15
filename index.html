@@ -2142,7 +2142,7 @@ function regenerateFromSchedules(fromIsoDate) {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can click my name?:)`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, does anyone even read this lol, text me if you do!:)`
         : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
     }
 
@@ -2482,8 +2482,19 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
                if (idx === -1) subj.schedule.weeklyPattern.push({ day: d, count: val });
                else subj.schedule.weeklyPattern[idx].count = val;
             }
-            if (state.isInitialized) { regenerateFromSchedules(toISODate(new Date())); saveState(); }
-            renderCalendar(); renderLectures();
+            if (state.isInitialized) {
+              showTimetableApplyModal(() => {
+                // From today only
+                regenerateFromSchedules(toISODate(new Date()));
+                saveState(); renderCalendar(); renderLectures();
+              }, () => {
+                // All history
+                regenerateFromSchedules();
+                saveState(); renderCalendar(); renderLectures();
+              });
+            } else {
+              renderCalendar(); renderLectures();
+            }
           });
           td.appendChild(inp); tr.appendChild(td);
         }
@@ -2629,25 +2640,78 @@ function saveSubjectFromModal() {
   }
 
   if (editingSubjectId) {
-    // Update existing subject
+    // EDIT MODE — ask user whether to apply schedule retroactively
     const subj = state.subjects.find(s => s.id === editingSubjectId);
     if (subj) {
       subj.name = name;
       subj.schedule = { weeklyPattern };
     }
+    if (state.isInitialized) {
+      showTimetableApplyModal(() => {
+        // "From today only" — regenerate only from today onwards
+        regenerateFromSchedules(toISODate(new Date()));
+        saveState(); renderSubjectsList(); renderTimetable(); renderCalendar(); renderLectures();
+      }, () => {
+        // "Apply to all history" — regenerate from tracking start
+        regenerateFromSchedules();
+        saveState(); renderSubjectsList(); renderTimetable(); renderCalendar(); renderLectures();
+      });
+      closeSubjectModal();
+      return;
+    }
   } else {
-    // Create new subject
+    // ADD MODE — always generate from tracking start (no history issue)
     state.subjects.push({ id: genId("sub"), name, schedule: { weeklyPattern } });
+    if (state.isInitialized) {
+      regenerateFromSchedules();
+    }
   }
 
-  if (state.isInitialized) {
-    regenerateFromSchedules(toISODate(new Date()));
-  }
   saveState();
   renderSubjectsList();
   renderTimetable(); 
   renderCalendar();
   closeSubjectModal();
+}
+
+// --- Timetable Apply Scope Modal ---
+function showTimetableApplyModal(onTodayOnly, onAllHistory) {
+  const existing = document.getElementById("ttApplyModalBackdrop");
+  if (existing) existing.remove();
+
+  const backdrop = document.createElement("div");
+  backdrop.id = "ttApplyModalBackdrop";
+  backdrop.style.cssText = "position:fixed;inset:0;background:rgba(2,6,23,0.5);display:flex;align-items:center;justify-content:center;z-index:2100;padding:20px;";
+
+  backdrop.innerHTML = `
+    <div style="width:min(400px,95%);background:var(--card-bg);color:var(--text);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:22px;font-size:0.92rem;">
+      <div style="font-size:1.2rem;margin-bottom:6px;">📅 Apply schedule change</div>
+      <p style="margin:0 0 18px;color:var(--text-soft);font-size:0.85rem;line-height:1.5;">
+        When should this new timetable take effect?
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button id="ttApplyTodayBtn" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;border-radius:12px;border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--text);cursor:pointer;text-align:left;">
+          <strong style="font-size:0.9rem;color:var(--accent);">✅ From today only <span style="font-size:0.75rem;font-weight:400;color:var(--muted);">(recommended)</span></strong>
+          <span style="font-size:0.78rem;color:var(--text-soft);">Only future lectures are affected. Past attendance stays as-is.</span>
+        </button>
+        <button id="ttApplyAllBtn" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg-soft);color:var(--text);cursor:pointer;text-align:left;">
+          <strong style="font-size:0.9rem;">🕓 Backfill all history too</strong>
+          <span style="font-size:0.78rem;color:var(--text-soft);">Adds any missing past lectures since your tracking start date.</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+
+  document.getElementById("ttApplyTodayBtn").addEventListener("click", () => {
+    backdrop.remove();
+    onTodayOnly();
+  });
+  document.getElementById("ttApplyAllBtn").addEventListener("click", () => {
+    backdrop.remove();
+    onAllHistory();
+  });
 }
 
 if (cancelSubjectModalBtn) cancelSubjectModalBtn.addEventListener("click", closeSubjectModal);
