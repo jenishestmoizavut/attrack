@@ -52,7 +52,7 @@
 
   <style>/* --- 1. THEME VARIABLES --- */
 :root { --bg:#f4f6ff; --bg-soft:#fafbff; --card-bg:#ffffff; --border:#e5e7eb; --text:#111827; --text-soft:#4b5563; --muted:#6b7280; --accent:#4f46e5; --accent-soft:#eef2ff; --danger:#b91c1c; --danger-soft:#fee2e2; --shadow:0 4px 18px rgba(0,0,0,0.08); }
-body.dark { --bg:#020617; --bg-soft:#020617; --card-bg:#0b1120; --border:#1f2937; --text:#e5e7eb; --text-soft:#cbd5f5; --muted:#9ca3af; --accent:#6366f1; --accent-soft:#111827; --danger:#ef4444; --danger-soft:#7f1d1d; --shadow:0 4px 18px rgba(15,23,42,0.9); }
+body.dark { --bg:#020617; --bg-soft:#020617; --card-bg:#0b1120; --border:#1f2937; --text:#e5e7eb; --text-soft:#cbd5f5; --muted:#9ca3af; --accent:#6366f1; --accent-soft:#111827; --danger:#ef4444; --danger-soft:#7f1d1d; --shadow:0 4px 18px rgba(15,23,42,0.9); color-scheme: dark; }
 
 /* --- 2. BASE & SCROLLBAR --- */
 html, body { scrollbar-width:thin; scrollbar-color:var(--accent) var(--bg-soft); margin:0; padding:0; overflow-x:hidden; width:100%; }
@@ -205,6 +205,16 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
 .linkedin-btn { display:inline-block; padding:10px 16px; border-radius:12px; background:#0a66c2; color:white; font-weight:600; text-decoration:none; }
 .linkedin-btn:hover { filter:brightness(1.05); }
 
+.study-grid { display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:12px; }
+.study-target-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--card-bg); margin-bottom:8px; }
+.study-target-row.is-done { opacity:0.68; }
+.study-target-title { font-weight:700; font-size:0.92rem; }
+.study-target-meta { color:var(--muted); font-size:0.76rem; margin-top:3px; }
+.study-progress { height:8px; border-radius:999px; background:var(--border); overflow:hidden; margin-top:10px; }
+.study-progress-fill { height:100%; width:0; border-radius:999px; background:#16a34a; transition:width 0.2s ease; }
+.study-meme-backdrop { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.58); z-index:2200; padding:16px; }
+.study-meme-card { width:min(420px,94%); background:var(--card-bg); color:var(--text); border:1px solid var(--border); border-radius:12px; padding:18px; box-shadow:var(--shadow); }
+.study-meme-text { font-size:1rem; line-height:1.45; padding:12px; border-radius:10px; background:var(--accent-soft); color:var(--text); margin:10px 0 14px; }
 
 /* --- Calm UI polish: hierarchy, disclosure, motion, and optional sound --- */
 @keyframes attrackFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -284,6 +294,7 @@ body.dark .promo-card { background:linear-gradient(to right, #1e293b, #0f172a); 
   *, *::before, *::after { animation-duration:0.001ms !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
 }
 @media (max-width:600px) {
+  .study-grid { grid-template-columns:1fr; }
   .actions-menu { width:100%; }
   .actions-menu > summary { width:100%; justify-content:center; }
   .actions-menu-panel { left:0; right:auto; width:calc(100% - 18px); }
@@ -638,6 +649,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 <div class="nav" role="navigation" aria-label="Main navigation">
   <button class="nav-btn active" data-view="homeView" type="button">Dashboard</button>
   <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
+  <button class="nav-btn" data-view="studyView" type="button">📕Study</button>
   <button class="nav-btn" data-view="assignmentsView" type="button">📝 Assignments </button>
   <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
   
@@ -752,7 +764,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 
           <div class="dashboard-actions" style="grid-template-columns: 1fr 1fr;">
             <button class="btn dashboard-action primary-mobile" id="quickLogTodayBtn" type="button">Log today</button>
-            <button class="btn secondary dashboard-action" id="quickSetupBtn" type="button">Setup</button>
+            <button class="btn secondary dashboard-action" id="quickStudyBtn" type="button">Study targets</button>
           </div>
 
           <details class="profile-compact">
@@ -912,6 +924,10 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       <details class="card setup-section is-wide">
         <summary>Timetable</summary>
         <div class="setup-section-body">
+		<div class="setup-section-body">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+       <button id="editTimetableBtn" class="btn small secondary" type="button">Edit Timetable</button>
+    </div>
           <div style="overflow-x:auto;">
             <table class="timetable-table">
               <thead>
@@ -1052,9 +1068,67 @@ When you add or load lectures, they’re marked attended by default.
   </div>
 </div>
 
+<div id="studyView" class="view">
+  <div class="study-grid">
+    <div class="card">
+      <h3>Daily study targets</h3>
+      <div class="hint">For my users who figured they cannot use Attrack because they don't have college!</div>
+
+      <div class="field" style="margin-top:12px;">
+        <label for="studyTargetTitle">Target</label>
+        <input id="studyTargetTitle" type="text" placeholder="e.g. Finish 20 derivatives" />
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div class="field">
+          <label for="studyTargetDate">Date</label>
+          <input id="studyTargetDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="studyTargetMinutes">Minutes</label>
+          <input id="studyTargetMinutes" type="number" min="5" max="600" step="5" value="45" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="studyTargetCategory">Type</label>
+        <select id="studyTargetCategory">
+          <option value="Study">Study</option>
+          <option value="Revision">Revision</option>
+          <option value="Practice">Practice</option>
+          <option value="Reading">Reading</option>
+          <option value="Project">Project</option>
+        </select>
+      </div>
+
+      <button id="addStudyTargetBtn" class="btn small" type="button" style="width:100%; justify-content:center; margin-top:8px;">+ Add target</button>
+    </div>
+
+    <div class="card">
+      <div class="setup-inline" style="margin-bottom:10px;">
+        <div>
+          <h3>Today's targets</h3>
+          <div class="quiet-note" id="studyProgressText">0 of 0 complete</div>
+        </div>
+        <button id="showAllStudyTargetsBtn" class="btn small secondary" type="button">All</button>
+      </div>
+      <div class="study-progress" aria-hidden="true"><div class="study-progress-fill" id="studyProgressFill"></div></div>
+      <div id="studyTargetsList" style="margin-top:12px;"></div>
+      <div id="studyTargetsEmpty" class="hint" style="text-align:center; padding:18px;">No study targets for today yet.</div>
+    </div>
+  </div>
+</div>
+<div id="studyMemeBackdrop" class="study-meme-backdrop">
+  <div class="study-meme-card" role="dialog" aria-modal="true" aria-labelledby="studyMemeTitle">
+    <h3 id="studyMemeTitle">Target complete</h3>
+    <div class="study-meme-text" id="studyMemeText"></div>
+    <button id="closeStudyMemeBtn" class="btn small" type="button" style="width:100%; justify-content:center;">Blessed. Continue.</button>
+  </div>
+</div>
+
 	        <div class="footer">
   <div class="footer-actions">
-    <span class="version-badge">Attrack v1.0 (Dec 2025)</span>
+    <span class="version-badge">Attrack v2.0 (Jun 2026)</span>
 
     <button id="exportAttendanceBtn" class="share-btn">
   📊 Export attendance
@@ -1153,47 +1227,43 @@ When you add or load lectures, they’re marked attended by default.
 
 	<div id="versionModalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
   <div class="card" style="width:min(440px,90%); padding:24px; animation: slideUp 0.3s ease-out;">
-    
+
     <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px;">
-      <h2 style="margin:0; font-size:1.4rem;">Quick tour</h2>
+      <h2 style="margin:0; font-size:1.4rem;">🚀 Welcome to Attrack v2.0!</h2>
       <button id="closeVersionX" style="background:none; border:none; font-size:1.2rem; color:var(--muted); cursor:pointer;">✕</button>
     </div>
 
+    <p class="hint" style="margin-top:0; margin-bottom:14px;">You're on the latest version! (Last update was v1.0 in Dec). Here is what's new:</p>
+
     <ul style="padding-left:0; list-style:none; margin:0 0 20px 0; display:flex; flex-direction:column; gap:12px;">
       <li style="display:flex; gap:10px; align-items:start;">
-        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">📝</span>
+        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">🔒</span>
         <div>
-          <strong style="display:block; color:var(--text);">Compact dashboard</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Status, quick logging, tasks, and setup are one tap away.</span>
+          <strong style="display:block; color:var(--text);">Locked Timetable</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">No more accidental changes! Click 'Edit' and 'Save' to modify your schedule securely.</span>
         </div>
       </li>
       <li style="display:flex; gap:10px; align-items:start;">
-        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">🔍</span>
+        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">⏱️</span>
         <div>
-          <strong style="display:block; color:var(--text);">Daily More actions</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Notes, absent log, and no-lecture days are tucked into one menu.</span>
+          <strong style="display:block; color:var(--text);">Prefill vs Refill</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Upon saving your timetable, you'll be asked to prefill (from today) or refill (past history).</span>
+        </div>
+      </li>
+      <li style="display:flex; gap:10px; align-items:start;">
+        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">📚</span>
+        <div>
+          <strong style="display:block; color:var(--text);">Study Targets</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Log daily study targets and get meme rewards for crushing your goals!</span>
         </div>
       </li>
     </ul>
 
-    <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
-
-    <p style="font-size:0.8rem; font-weight:600; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Check out my other project</p>
-    
-    <a href="https://jenishestmoizavut.github.io/simulating-statistics/?utm_source=attrack_v2" target="_blank" style="text-decoration:none;">
-      <div class="promo-card">
-        <div style="font-size:1.8rem;">📊</div>
-        <div style="flex:1;">
-          <div style="font-weight:700; color:var(--text); font-size:1rem;">Simulating Statistics</div>
-          <div style="font-size:0.85rem; color:var(--text-soft);">Visualize complex math concepts interactively.</div>
-        </div>
-        <div style="color:var(--accent); font-size:1.2rem;">→</div>
-      </div>
-    </a>
-
-    <button id="closeVersionBtn" class="btn" style="width:100%; margin-top:20px; justify-content:center; padding:10px;">Got it!</button>
+    <button id="closeVersionBtn" class="btn" style="width:100%; margin-top:10px; justify-content:center; padding:10px;">Awesome, start the tour!</button>
   </div>
 </div>
+    
+   
 <script>
   (function () {
     const STORAGE_KEY = "attrack_v1";
@@ -1202,6 +1272,16 @@ When you add or load lectures, they’re marked attended by default.
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 const SOUND_KEY = "attrack_sound_enabled";
 let attrackAudioCtx = null;
+const STUDY_MEMES = [
+  "You completed the target. Somewhere, a quadratic equation just found both roots.",
+  "Math meme blessing: your focus was so sharp even a tangent line got jealous.",
+  "You studied. The limit of your power as effort approaches consistency is infinity.",
+  "Today's proof: assume you cannot. Contradiction. QED.",
+  "You just integrated discipline with respect to time. The result is progress plus C.",
+  "Your brain did reps today. Even Pythagoras would update the group chat.",
+  "Target complete. The graph of your comeback has positive slope.",
+  "You solved today's side quest. Probability of academic chaos reduced significantly."
+];
 
 function soundEnabled() {
   return localStorage.getItem(SOUND_KEY) === "true";
@@ -1937,7 +2017,8 @@ const isoStart = toISODate(new Date());
         startDate: isoStart,
 	subjects:[],
             lectures: [],
-		  assignments:[]
+		  assignments:[],
+        studyTargets:[]
       };
     }
 
@@ -1960,6 +2041,7 @@ const isoStart = toISODate(new Date());
     
     // ✅ FIX: Move this line UP here, before the return
     if (!Array.isArray(parsed.assignments)) parsed.assignments = [];
+    if (!Array.isArray(parsed.studyTargets)) parsed.studyTargets = [];
 
     return parsed; // Now it returns the complete object
   } catch (e) {
@@ -1982,6 +2064,7 @@ let editingSubjectId = null; // 👈 Add this to track if we are editing or addi
     const timetableView = document.getElementById("timetableView");
    const setupView = document.getElementById("setupView");
     const assignmentsView = document.getElementById("assignmentsView");
+    const studyView = document.getElementById("studyView");
     const wrappedView = document.getElementById("wrappedView"); // <-- ADD THIS
     const navButtons = Array.from(document.querySelectorAll(".nav-btn"));
     const studentNameInput = document.getElementById("studentName");
@@ -1992,6 +2075,20 @@ let editingSubjectId = null; // 👈 Add this to track if we are editing or addi
 const setupTargetValue = document.getElementById("setupTargetValue");
 const changeTargetBtn = document.getElementById("changeTargetBtn");
 const soundToggle = document.getElementById("soundToggle");
+const studyTargetTitle = document.getElementById("studyTargetTitle");
+const studyTargetDate = document.getElementById("studyTargetDate");
+const studyTargetMinutes = document.getElementById("studyTargetMinutes");
+const studyTargetCategory = document.getElementById("studyTargetCategory");
+const addStudyTargetBtn = document.getElementById("addStudyTargetBtn");
+const studyTargetsList = document.getElementById("studyTargetsList");
+const studyTargetsEmpty = document.getElementById("studyTargetsEmpty");
+const studyProgressText = document.getElementById("studyProgressText");
+const studyProgressFill = document.getElementById("studyProgressFill");
+const showAllStudyTargetsBtn = document.getElementById("showAllStudyTargetsBtn");
+const studyMemeBackdrop = document.getElementById("studyMemeBackdrop");
+const studyMemeText = document.getElementById("studyMemeText");
+const closeStudyMemeBtn = document.getElementById("closeStudyMemeBtn");
+let showAllStudyTargets = false;
     const subjectsListEl = document.getElementById("subjectsList");
 if (changeTargetBtn) {
   changeTargetBtn.addEventListener("click", () => {
@@ -2017,7 +2114,8 @@ const loadDayBtn = document.getElementById("loadDayBtn");
     const darkToggle = document.getElementById("darkToggle");
     const darkIcon = document.getElementById("darkIcon");
     const darkLabel = document.getElementById("darkLabel");
-
+const editTimetableBtn = document.getElementById("editTimetableBtn");
+let isEditingTt = false;
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       
@@ -2027,11 +2125,14 @@ const loadDayBtn = document.getElementById("loadDayBtn");
       renderSummary();
       renderSubjectStats();
       renderSetupSummaries();
+      if (typeof renderStudyTargets === "function") renderStudyTargets();
     }
 
     // NEW: Function to receive real-time updates from Firebase
     window.applyCloudUpdate = function(cloudState) {
       // Only update if it's actually different (prevents infinite loops)
+if (!Array.isArray(cloudState.assignments)) cloudState.assignments = [];
+        if (!Array.isArray(cloudState.studyTargets)) cloudState.studyTargets = [];
       if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
         state = cloudState;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2043,6 +2144,7 @@ const loadDayBtn = document.getElementById("loadDayBtn");
         if (typeof renderAssignmentChips === "function") renderAssignmentChips();
         renderTimetable();
         renderSummary();
+        if (typeof renderStudyTargets === "function") renderStudyTargets();
         
         // Update the active views
         if (document.getElementById("dayView").classList.contains("active")) {
@@ -2050,6 +2152,8 @@ const loadDayBtn = document.getElementById("loadDayBtn");
           renderLectures();
         } else if (document.getElementById("assignmentsView").classList.contains("active")) {
           if (typeof renderAssignments === "function") renderAssignments();
+        } else if (document.getElementById("studyView").classList.contains("active")) {
+          if (typeof renderStudyTargets === "function") renderStudyTargets();
         }
       }
     };
@@ -2142,7 +2246,7 @@ function regenerateFromSchedules(fromIsoDate) {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, does anyone even read this lol, text me if you do!:)`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can click my name?:)`
         : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
     }
 
@@ -2185,6 +2289,188 @@ timetableBtn.addEventListener("click", () => openSubjectModal(subj.id));
         subjectFilterEl.appendChild(opt);
       });
     }
+function getStudyTargetsForCurrentFilter() {
+  const todayIso = toISODate(new Date());
+  const targets = Array.isArray(state.studyTargets) ? state.studyTargets : [];
+  return targets
+    .filter(target => showAllStudyTargets || target.date === todayIso)
+    .sort((a, b) => {
+      if ((a.completedAt ? 1 : 0) !== (b.completedAt ? 1 : 0)) return a.completedAt ? 1 : -1;
+      return (a.date || "").localeCompare(b.date || "");
+    });
+}
+
+function showStudyMeme() {
+  if (!studyMemeBackdrop || !studyMemeText) return;
+  const meme = STUDY_MEMES[Math.floor(Math.random() * STUDY_MEMES.length)];
+  studyMemeText.textContent = meme;
+  studyMemeBackdrop.style.display = "flex";
+  playUiSound("success");
+}
+
+async function fetchDailyMeme() {
+  try {
+    const response = await fetch('https://www.reddit.com/r/mathmemes/hot.json?limit=30');
+    const data = await response.json();
+    
+    // Filter for images only
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+    const memePosts = data.data.children.filter(post => {
+      const url = post.data.url;
+      return allowedExtensions.some(ext => url && url.toLowerCase().endsWith(ext)) && !post.data.is_self;
+    });
+
+    if (memePosts.length === 0) throw new Error("No image memes found");
+
+    const randomIndex = Math.floor(Math.random() * memePosts.length);
+    const selectedMeme = memePosts[randomIndex].data;
+
+    return { title: selectedMeme.title, url: selectedMeme.url };
+  } catch (error) {
+    console.error("API failed, using fallback:", error);
+    return { title: "Classic Blessing", url: null, text: STUDY_MEMES[Math.floor(Math.random() * STUDY_MEMES.length)] };
+  }
+}
+
+async function showStudyMeme() {
+  if (!studyMemeBackdrop || !studyMemeText) return;
+  
+  // Show a quick loading state
+  studyMemeText.innerHTML = "<em>Fetching today's blessing... ⏳</em>";
+  studyMemeBackdrop.style.display = "flex";
+  playUiSound("success");
+
+  // Fetch the meme
+  const meme = await fetchDailyMeme();
+  
+  // Display Image or Fallback Text
+  if (meme.url) {
+    studyMemeText.innerHTML = `<strong>${meme.title}</strong><br><img src="${meme.url}" style="max-width:100%; border-radius:8px; margin-top:10px; max-height: 400px; object-fit: contain;" alt="Math Meme">`;
+  } else {
+    studyMemeText.textContent = meme.text;
+  }
+}
+
+function addStudyTarget() {
+  if (!studyTargetTitle) return;
+  const title = studyTargetTitle.value.trim();
+  if (!title) {
+    alert("Add a study target first.");
+    return;
+  }
+  const minutes = Math.max(5, Math.min(600, parseInt(studyTargetMinutes.value, 10) || 45));
+  const date = studyTargetDate.value || toISODate(new Date());
+if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
+  state.studyTargets.push({
+    id: genId("study"),
+    title,
+    date,
+    minutes,
+    category: studyTargetCategory.value || "Study",
+    completedAt: ""
+  });
+  studyTargetTitle.value = "";
+  studyTargetMinutes.value = minutes;
+  showAllStudyTargets = false;
+  saveState();
+}
+function renderStudyTargets() {
+  if (!studyTargetsList) return;
+  studyTargetsList.innerHTML = "";
+
+  const targets = getStudyTargetsForCurrentFilter();
+  const todayIso = toISODate(new Date());
+
+  // Update Header Text (All vs Today)
+  const targetHeader = document.querySelector("#studyView h3:nth-of-type(2)");
+  if (targetHeader) {
+      targetHeader.textContent = showAllStudyTargets ? "All study targets" : "Today's targets";
+  }
+  if (showAllStudyTargetsBtn) {
+      showAllStudyTargetsBtn.textContent = showAllStudyTargets ? "Today" : "All";
+  }
+
+  // Handle Empty States
+  if (targets.length === 0) {
+    studyTargetsEmpty.style.display = "block";
+    studyTargetsEmpty.textContent = showAllStudyTargets ? "No study targets added yet." : "No study targets for today yet.";
+    studyProgressText.textContent = "0 of 0 complete";
+    studyProgressFill.style.width = "0%";
+    return;
+  }
+
+  studyTargetsEmpty.style.display = "none";
+  let completedCount = 0;
+
+  // Build the List
+  targets.forEach(target => {
+    if (target.completedAt) completedCount++;
+
+    const row = document.createElement("div");
+    row.className = "study-target-row" + (target.completedAt ? " is-done" : "");
+
+    // Title and Meta Info
+    const info = document.createElement("div");
+    const isPast = target.date < todayIso && !target.completedAt;
+    const dateWarn = isPast 
+        ? `<span style="color:var(--danger); font-weight:bold;">⚠️ Overdue (${formatDisplayDate(target.date)})</span>` 
+        : `📅 ${formatDisplayDate(target.date)}`;
+
+    info.innerHTML = `
+      <div class="study-target-title" style="${target.completedAt ? 'text-decoration:line-through;' : ''}">${escapeHtml(target.title)}</div>
+      <div class="study-target-meta">
+         ${dateWarn} • ⏱️ ${target.minutes} mins • 🏷️ ${target.category}
+      </div>
+    `;
+
+    // Actions (Checkbox & Delete)
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.alignItems = "center";
+    actions.style.gap = "10px";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !!target.completedAt;
+    cb.style.width = "20px";
+    cb.style.height = "20px";
+    cb.style.cursor = "pointer";
+
+    cb.addEventListener("change", () => {
+      if (cb.checked) {
+        target.completedAt = new Date().toISOString();
+        showStudyMeme(); // Trigger the meme!
+      } else {
+        target.completedAt = "";
+      }
+      saveState();
+      renderStudyTargets();
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn small danger";
+    delBtn.textContent = "✕";
+    delBtn.style.padding = "4px 8px";
+    delBtn.addEventListener("click", () => {
+       if(confirm("Delete this target?")) {
+           state.studyTargets = state.studyTargets.filter(t => t.id !== target.id);
+           saveState();
+           renderStudyTargets();
+       }
+    });
+
+    actions.appendChild(cb);
+    actions.appendChild(delBtn);
+    row.appendChild(info);
+    row.appendChild(actions);
+    studyTargetsList.appendChild(row);
+  });
+
+  // Update the Green Progress Bar
+  studyProgressText.textContent = `${completedCount} of ${targets.length} complete`;
+  const pct = targets.length > 0 ? (completedCount / targets.length) * 100 : 0;
+  studyProgressFill.style.width = pct + "%";
+}
 function renderAssignmentChips() {
   const container = document.getElementById("assSubjectChips");
   if (!container) return;
@@ -2469,9 +2755,10 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
           const td = document.createElement("td");
           const existing = subj.schedule.weeklyPattern.find(p => p.day === d);
           const count = existing ? existing.count : 0;
-          
-          const inp = document.createElement("input");
+         const inp = document.createElement("input");
           inp.type="number"; inp.min=0; inp.max=6; inp.value=count;
+          inp.disabled = !isEditingTt; 
+
           inp.addEventListener("change", () => {
             let val = parseInt(inp.value,10); if (isNaN(val) || val<0) val=0; if (val>6) val=6; inp.value=val;
             
@@ -2482,29 +2769,18 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
                if (idx === -1) subj.schedule.weeklyPattern.push({ day: d, count: val });
                else subj.schedule.weeklyPattern[idx].count = val;
             }
-            if (state.isInitialized) {
-              showTimetableApplyModal(() => {
-                // From today only
-                regenerateFromSchedules(toISODate(new Date()));
-                saveState(); renderCalendar(); renderLectures();
-              }, () => {
-                // All history
-                regenerateFromSchedules();
-                saveState(); renderCalendar(); renderLectures();
-              });
-            } else {
-              renderCalendar(); renderLectures();
-            }
+            saveState(); 
           });
-          td.appendChild(inp); tr.appendChild(td);
-        }
+          td.appendChild(inp); tr.appendChild(td); 
+                 }
         timetableBodyEl.appendChild(tr);
+saveState();
       });
     }
 
 function switchView(viewId) {
   playUiSound("soft");
-	[homeView, dayView, timetableView, setupView, assignmentsView,wrappedView].forEach(v =>
+	[homeView, dayView, timetableView, setupView, assignmentsView, studyView, wrappedView].forEach(v =>
     v.classList.toggle("active", v.id === viewId)
   );
 
@@ -2533,6 +2809,7 @@ if (didGenerate) {
 if (viewId === "assignmentsView") { renderAssignments();
 renderAssignmentChips();
 								  }
+if (viewId === "studyView") { renderStudyTargets(); }
   localStorage.setItem(VIEW_KEY, viewId);
 }
 
@@ -2751,6 +3028,37 @@ state.startDate = startDateInput.value || toISODate(new Date());      state.isIn
       renderLectures();
     });
 addSubjectBtn.addEventListener("click", () => openSubjectModal(null));
+
+if (editTimetableBtn) {
+  editTimetableBtn.addEventListener("click", () => {
+    if (!isEditingTt) {
+      // Enter Edit Mode
+      isEditingTt = true;
+      editTimetableBtn.textContent = "Save Timetable";
+      editTimetableBtn.classList.remove("secondary");
+      renderTimetable();
+    } else {
+      // Exit Edit Mode & Save
+      isEditingTt = false;
+      editTimetableBtn.textContent = "Edit Timetable";
+      editTimetableBtn.classList.add("secondary");
+      renderTimetable();
+
+      // Trigger the prompt only upon saving
+      if (state.isInitialized) {
+        showTimetableApplyModal(() => {
+          // Prefill
+          regenerateFromSchedules(toISODate(new Date()));
+          saveState(); renderCalendar(); renderLectures();
+        }, () => {
+          // Refill
+          regenerateFromSchedules();
+          saveState(); renderCalendar(); renderLectures();
+        });
+      }
+    }
+  });
+}
     prevMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()-1); renderCalendar(); });
     nextMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()+1); renderCalendar(); });
     
@@ -2789,13 +3097,35 @@ markHolidayBtn.addEventListener("click", () => {
     subjectFilterEl.addEventListener("change", renderLectures);
 const quickLogTodayBtn = document.getElementById("quickLogTodayBtn");
 const quickTasksBtn = document.getElementById("quickTasksBtn");
-const quickSetupBtn = document.getElementById("quickSetupBtn");
+const quickStudyBtn = document.getElementById("quickStudyBtn");
 const startTourBtn = document.getElementById("startTourBtn");
 if (quickLogTodayBtn) quickLogTodayBtn.addEventListener("click", () => switchView("dayView"));
 if (quickTasksBtn) quickTasksBtn.addEventListener("click", () => switchView("assignmentsView"));
-if (quickSetupBtn) quickSetupBtn.addEventListener("click", () => switchView("setupView"));
+if (quickStudyBtn) quickStudyBtn.addEventListener("click", () => switchView("studyView"));
 if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(true));
     navButtons.forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
+if (addStudyTargetBtn) addStudyTargetBtn.addEventListener("click", addStudyTarget);
+if (studyTargetTitle) {
+  studyTargetTitle.addEventListener("keydown", event => {
+    if (event.key === "Enter") addStudyTarget();
+  });
+}
+if (showAllStudyTargetsBtn) {
+  showAllStudyTargetsBtn.addEventListener("click", () => {
+    showAllStudyTargets = !showAllStudyTargets;
+    renderStudyTargets();
+  });
+}
+if (closeStudyMemeBtn) {
+  closeStudyMemeBtn.addEventListener("click", () => {
+    studyMemeBackdrop.style.display = "none";
+  });
+}
+if (studyMemeBackdrop) {
+  studyMemeBackdrop.addEventListener("click", event => {
+    if (event.target === studyMemeBackdrop) studyMemeBackdrop.style.display = "none";
+  });
+}
     darkToggle.addEventListener("click", () => {
       const isDark = document.body.classList.contains("dark");
       setTheme(isDark ? "light" : "dark");
@@ -3308,6 +3638,8 @@ if (addAssignmentBtn) {
       renderSummary();
 renderSetupTarget();
 refreshSoundToggle();
+renderStudyTargets();
+if (studyTargetDate) studyTargetDate.value = toISODate(new Date());
  //showNewFeaturePopupIfNeeded();
 // --- Calendar Reminder Listeners ---
 const downloadIcsBtn = document.getElementById("downloadIcsBtn");
@@ -3391,8 +3723,8 @@ if (findNotesBtn) {
         notesList.appendChild(row);
       });
     }
-    
-    // Show Modal
+   
+// Show Modal
     notesModalBackdrop.style.display = "flex";
   });
 }
@@ -3480,7 +3812,26 @@ if (closeAbsentBtn) closeAbsentBtn.addEventListener("click", () => absentModalBa
 if (absentModalBackdrop) absentModalBackdrop.addEventListener("click", (e) => {
     if(e.target === absentModalBackdrop) absentModalBackdrop.style.display = "none";
 });
+ const VERSION_2_KEY = "attrack_v2_seen";
+if (!localStorage.getItem(VERSION_2_KEY)) {
+    const vModal = document.getElementById("versionModalBackdrop");
+    if (vModal) vModal.style.display = "flex";
+    localStorage.setItem(VERSION_2_KEY, "true");
+}
 
+const closeVersionX = document.getElementById("closeVersionX");
+const closeVersionBtn = document.getElementById("closeVersionBtn");
+
+if(closeVersionX) {
+  closeVersionX.addEventListener("click", () => document.getElementById("versionModalBackdrop").style.display = "none");
+}
+if(closeVersionBtn) {
+  closeVersionBtn.addEventListener("click", () => {
+    document.getElementById("versionModalBackdrop").style.display = "none";
+    startGuidedTour(true); 
+  });
+}
+              // --- FEEDBACK POPUP LOGIC ---
 			  // --- FEEDBACK POPUP LOGIC ---
 const feedbackBtn = document.getElementById("feedbackBtn");
 const feedbackModal = document.getElementById("feedbackModal");
