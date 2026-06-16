@@ -920,28 +920,30 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <button class="btn small secondary" id="addSubjectBtn" type="button" style="margin-top:8px;">+ Add subject</button>
         </div>
       </details>
-
-      <details class="card setup-section is-wide">
+<details class="card setup-section is-wide">
         <summary>Timetable</summary>
         <div class="setup-section-body">
-		<div class="setup-section-body">
-    <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-       <button id="editTimetableBtn" class="btn small secondary" type="button">✏️Edit Timetable</button>
-    </div>
-          <div style="overflow-x:auto;">
+          <div class="hint" style="margin-bottom: 12px;">Set how many lectures you have per day. Click Edit to unlock the grid.</div>
+          
+          <div style="overflow-x:auto; margin-bottom: 12px;">
             <table class="timetable-table">
               <thead>
                 <tr>
-              <th style="text-align:left;">Subject</th>
+                  <th style="text-align:left;">Subject</th>
                   <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
                 </tr>
               </thead>
               <tbody id="timetableBody"></tbody>
             </table>
           </div>
+          
+          <!-- Side-by-side action buttons -->
+          <div style="display:flex; gap:10px;">
+             <button id="ttAddSubjectBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center;">+ Add subject</button>
+             <button id="editTimetableBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center;">✏️ Edit Timetable</button>
+          </div>
         </div>
       </details>
-
       <details class="card setup-section is-wide">
         <summary>Share, import & reminders</summary>
         <div class="setup-section-body compact-tools">
@@ -2301,33 +2303,33 @@ function getStudyTargetsForCurrentFilter() {
 }
 
 async function fetchDailyMeme() {
-  try {
-    // 1. Fetch via Proxy
-    const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.reddit.com/r/mathmemes/hot.json?limit=30'));
-    if (!response.ok) throw new Error("Network response was not ok");
-    
-    // 2. Parse the wrapper first
-    const wrapper = await response.json(); 
-    // 3. Parse the actual data contents
-    const data = JSON.parse(wrapper.contents); 
-    
-    // 4. Filter for images
-    const memePosts = data.data.children.filter(post => {
-      const url = post.data.url_overridden_by_dest || post.data.url;
-      return url && (url.endsWith('.jpg') || url.endsWith('.png') || url.endsWith('.gif'));
-    });
+  const localMemes = [
+    "1.jpg",
+    "2.jpg",
+    "3.jpg",
+    "4.jpg",
+"5.jpg",
+"6.jpg",
+"7.jpg",
+"8.jpg",
+"9.jpg",
+  ];
 
-    if (memePosts.length === 0) throw new Error("No image memes found");
+  // 1. Calculate how many days have passed since the "Epoch" (Jan 1, 1970)
+  const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
 
-    const randomIndex = Math.floor(Math.random() * memePosts.length);
-    const selectedMeme = memePosts[randomIndex].data;
-    const imageUrl = selectedMeme.url_overridden_by_dest || selectedMeme.url;
+  // 2. Use the modulo (%) operator to safely loop through your array
+  // If you have 4 memes, day 1 = meme 1, day 2 = meme 2... day 5 = meme 1 again.
+  const memeIndex = daysSinceEpoch % localMemes.length;
+  
+  // 3. Select the meme locked to today's date
+  const selectedFile = localMemes[memeIndex];
+  const imageUrl = "memes/" + selectedFile;
 
-    return { title: selectedMeme.title, url: imageUrl };
-  } catch (error) {
-    console.error("Meme fetch failed:", error);
-    return { title: "Classic Blessing", url: null, text: STUDY_MEMES[Math.floor(Math.random() * STUDY_MEMES.length)] };
-  }
+  return { 
+    title: "Side quest complete.", 
+    url: imageUrl 
+  };
 }
 async function showStudyMeme() {
   if (!studyMemeBackdrop || !studyMemeText) return;
@@ -3034,20 +3036,21 @@ state.startDate = startDateInput.value || toISODate(new Date());      state.isIn
       renderLectures();
     });
 addSubjectBtn.addEventListener("click", () => openSubjectModal(null));
-
+const ttAddSubjectBtn = document.getElementById("ttAddSubjectBtn");
+    if (ttAddSubjectBtn) ttAddSubjectBtn.addEventListener("click", () => openSubjectModal(null));
 if (editTimetableBtn) {
   editTimetableBtn.addEventListener("click", () => {
     if (!isEditingTt) {
       // Enter Edit Mode
       isEditingTt = true;
-      editTimetableBtn.textContent = "Save Timetable";
-      editTimetableBtn.classList.remove("secondary");
+      editTimetableBtn.textContent = "💾 Save Timetable";
+      editTimetableBtn.classList.remove("secondary"); // Turns it solid blue
       renderTimetable();
     } else {
       // Exit Edit Mode & Save
       isEditingTt = false;
-      editTimetableBtn.textContent = "Edit Timetable";
-      editTimetableBtn.classList.add("secondary");
+      editTimetableBtn.textContent = "✏️ Edit Timetable";
+      editTimetableBtn.classList.add("secondary"); // Returns it to gray
       renderTimetable();
 
       // Trigger the prompt only upon saving
