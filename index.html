@@ -926,7 +926,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <div class="setup-section-body">
 		<div class="setup-section-body">
     <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-       <button id="editTimetableBtn" class="btn small secondary" type="button">Edit Timetable</button>
+       <button id="editTimetableBtn" class="btn small secondary" type="button">✏️Edit Timetable</button>
     </div>
           <div style="overflow-x:auto;">
             <table class="timetable-table">
@@ -2381,15 +2381,14 @@ function renderStudyTargets() {
   const targets = getStudyTargetsForCurrentFilter();
   const todayIso = toISODate(new Date());
 
-  // Update Header Text (All vs Today)
-  const targetHeader = document.querySelector("#studyView h3:nth-of-type(2)");
+ // Update Header Text (All vs Today)
+  const targetHeader = document.querySelector("#studyProgressText").parentElement.querySelector("h3");
   if (targetHeader) {
-      targetHeader.textContent = showAllStudyTargets ? "All study targets" : "Today's targets";
+      targetHeader.textContent = showAllStudyTargets ? "All targets" : "Today's targets";
   }
   if (showAllStudyTargetsBtn) {
-      showAllStudyTargetsBtn.textContent = showAllStudyTargets ? "Today" : "All";
+      showAllStudyTargetsBtn.textContent = showAllStudyTargets ? "Show today" : "Show all";
   }
-
   // Handle Empty States
   if (targets.length === 0) {
     studyTargetsEmpty.style.display = "block";
