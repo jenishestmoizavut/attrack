@@ -2436,17 +2436,27 @@ function renderStudyTargets() {
     cb.style.height = "20px";
     cb.style.cursor = "pointer";
 
-    cb.addEventListener("change", () => {
+ cb.addEventListener("change", () => {
       if (cb.checked) {
         target.completedAt = new Date().toISOString();
-        showStudyMeme(); // Trigger the meme!
+        
+        // 1. Get all targets for today
+        const todayIso = toISODate(new Date());
+        const todaysTargets = state.studyTargets.filter(t => t.date === todayIso);
+        
+        // 2. Check if every single one is marked complete
+        const allDone = todaysTargets.length > 0 && todaysTargets.every(t => t.completedAt);
+        
+        // 3. Only trigger the meme if the board is cleared
+        if (allDone) {
+          showStudyMeme(); 
+        }
       } else {
         target.completedAt = "";
       }
       saveState();
       renderStudyTargets();
     });
-
     const delBtn = document.createElement("button");
     delBtn.className = "btn small danger";
     delBtn.textContent = "✕";
