@@ -938,11 +938,14 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           </div>
           
           <!-- Side-by-side action buttons -->
+<div style="display:flex; justify-content:flex-end; margin-bottom: 4px; height: 16px;">
+             <span id="ttLockedWarning" style="color:var(--danger); font-size:0.8rem; font-weight:600; opacity:0; transition:opacity 0.2s; pointer-events:none;">Locked. Click Edit! ↘</span>
+          </div>
           <div style="display:flex; gap:10px;">
              <button id="ttAddSubjectBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center;">+ Add subject</button>
-             <button id="editTimetableBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center;">✏️ Edit Timetable</button>
+             <button id="editTimetableBtn" class="btn small secondary" type="button" style="flex:1; justify-content:center; transition: transform 0.15s ease;">✏️ Edit Timetable</button>
           </div>
-        </div>
+</div>
       </details>
       <details class="card setup-section is-wide">
         <summary>Share, import & reminders</summary>
@@ -3067,6 +3070,32 @@ if (editTimetableBtn) {
       }
     }
   });
+// --- Timetable Locked Warning ---
+if (timetableBodyEl) {
+  timetableBodyEl.addEventListener("click", (event) => {
+    // Check if the timetable is locked AND they clicked on a table cell (td)
+    if (!isEditingTt && event.target.closest("td")) {
+      const warningText = document.getElementById("ttLockedWarning");
+      const editBtn = document.getElementById("editTimetableBtn");
+      
+      // 1. Show the red warning text
+      if (warningText) {
+        warningText.style.opacity = "1";
+        // Make it fade away after 2 seconds
+        setTimeout(() => warningText.style.opacity = "0", 2000); 
+      }
+      
+      // 2. Make the Edit button "bump" to catch their eye
+      if (editBtn) {
+        editBtn.style.transform = "scale(1.05)";
+        setTimeout(() => editBtn.style.transform = "none", 150);
+      }
+      
+      // 3. Play a soft error sound
+      if (typeof playUiSound === "function") playUiSound("soft");
+    }
+  });
+}
 }
     prevMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()-1); renderCalendar(); });
     nextMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()+1); renderCalendar(); });
