@@ -2,7 +2,6 @@
 
 Attrack is an **offline-first attendance tracker for students**.  
 
-
 ---
 
 ## ✨ Features
@@ -20,8 +19,7 @@ Attrack is an **offline-first attendance tracker for students**.
 ## 🚀 Getting started
 
 1. Open the app link in your browser  
-2. Click **Install** / **Add to Home Screen**  
-3. Set your start date, subjects, and timetable  
+2. Click **Install** / **Add to Home Screen** 3. Set your start date, subjects, and timetable  
 4. Start tracking — even offline
 
 ---
@@ -31,14 +29,13 @@ Attrack is an **offline-first attendance tracker for students**.
 - HTML, CSS, JavaScript (vanilla)
 - Progressive Web App (PWA)
 - Service Worker for offline support
-- No backend, no database
+- Firebase (Auth, Firestore, Analytics)
 
 ---
 
 ## 📌 Status
 
-**v1.0 — Global Web Release (Dec 2025)**  
-Stable and production-ready.
+**v1.0 — Global Web Release (Dec 2025)** Stable and production-ready.
 
 ---
 
@@ -48,18 +45,23 @@ This project is **not licensed for reuse or redistribution**.
 The code is publicly visible but remains the intellectual property of the author.
 
 ---
-Data & Privacy
-Attrack is designed privacy-first. By default, all attendance data is stored locally on your device. If you choose to enable cross-device syncing via Google Authentication, Attrack only stores the email address used to log in and your specific attendance records in a secure Firebase database. We do not have access to your passwords, and your data is never sold or shared.
+
+## 🔒 Data & Privacy
+
+Attrack is designed privacy-first. By default, all attendance data is stored locally on your device. If you choose to enable cross-device syncing via Google Authentication, Attrack only stores the email address used to log in and your specific attendance records in a secure Firebase database. We do not have access to your passwords, and your personal data is never sold or shared. 
+
+To help improve the app and understand how features are used, Attrack collects basic, anonymous usage analytics (such as page views and feature interactions) using Firebase Analytics.
+
+---
+
 ## 👤 Author
 
-Built by **Jenish**  
-Made with 💻, care, and a student-first mindset. 
-**Introductory Screen** 
-<img width="829" height="503" alt="Introductory Screen" src="https://github.com/user-attachments/assets/4c16f825-a9f1-4160-a486-975e28082d6e"/>
+Built by **Jenish** Made with 💻, care, and a student-first mindset. 
+
+**Introductory Screen** <img width="829" height="503" alt="Introductory Screen" src="https://github.com/user-attachments/assets/4c16f825-a9f1-4160-a486-975e28082d6e"/>
+
 **Easily add your schedule**
 <img width="762" height="523" alt="image" src="https://github.com/user-attachments/assets/f8787641-8b3c-46c3-bc61-5b79378dd8fc" />
+
 **If your friends or CRs have a schedule already, import it directly!**
 <img width="1902" height="445" alt="image" src="https://github.com/user-attachments/assets/57fd1ba8-887d-4d9c-8a4a-219c60bd31a9" />
-
-
-
