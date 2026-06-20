@@ -691,6 +691,141 @@ td .btn.small:hover { opacity: 1; }
 
 body.dark .promo-card { background: linear-gradient(to right, #1e293b, #0f172a); }
 
+.gemini-plan-btn {
+  border: 1px solid rgba(99,102,241,0.36);
+  background: linear-gradient(135deg, rgba(238,242,255,0.96), rgba(255,255,255,0.78));
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 7px 18px rgba(79,70,229,0.10);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.gemini-plan-btn:hover {
+  border-color: rgba(99,102,241,0.72);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(79,70,229,0.16);
+}
+
+.ai-spark {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0 18%, #a5b4fc 19% 42%, #6366f1 43% 100%);
+  color: #ffffff;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+body.dark .gemini-plan-btn { background: linear-gradient(135deg, rgba(17,24,39,0.96), rgba(30,41,59,0.86)); }
+
+.gemini-card-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.gemini-card-layout > div:first-child { min-width: 0; }
+
+.gemini-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(2,6,23,0.58);
+  backdrop-filter: blur(3px);
+}
+
+.gemini-modal {
+  width: min(560px, 96%);
+  max-height: min(720px, 92vh);
+  overflow: auto;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.32);
+  padding: 18px;
+  animation: attrackFadeUp 0.18s ease-out both;
+}
+
+.gemini-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.gemini-modal-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 750;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.gemini-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-soft);
+  color: var(--text);
+  font: 0.82rem/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 12px;
+}
+
+#geminiUserContext {
+  min-height: 86px;
+  margin: 8px 0 12px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+#geminiPromptText { min-height: 260px; }
+
+.ai-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0 18%, #a5b4fc 19% 42%, #6366f1 43% 100%);
+  color: #ffffff;
+  font-size: 0.86rem;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.gemini-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 /* Shared backdrop pattern */
 #targetSetupBackdrop,
 #tutorialModalBackdrop {
@@ -1832,10 +1967,18 @@ When you add or load lectures, they’re marked attended by default.
 	</div>
     <div id="timetableView" class="view">
 	</div>
-	  <div id="assignmentsView" class="view">
+<div id="assignmentsView" class="view">
 <div class="card">
-  <h3>Add Assignment 📝</h3>
-  <div class="hint">Tap subjects to select (one or more). <br>Click 📅 to save on Google Calendar!</div>
+  <div class="setup-inline" style="align-items:flex-start;">
+    <div>
+      <h3>Add Assignment 📝</h3>
+      <div class="hint">Tap subjects to select (one or more). <br>Click 📅 to save on Google Calendar!</div>
+    </div>
+    <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
+      <span class="ai-spark" aria-hidden="true">✦</span>
+      <span>Plan with AI</span>
+    </button>
+  </div>
   
   <div class="field" style="margin-top:12px;">
     <label>Subjects:</label>
@@ -1874,8 +2017,16 @@ When you add or load lectures, they’re marked attended by default.
 <div id="studyView" class="view">
   <div class="study-grid">
     <div class="card">
-      <h3>Daily study targets</h3>
-      <div class="hint">For my users who figured they cannot use Attrack because they don't have college!</div>
+      <div class="setup-inline" style="align-items:flex-start;">
+        <div>
+          <h3>Daily study targets</h3>
+          <div class="hint">For my users who figured they cannot use Attrack because they don't have college!</div>
+        </div>
+        <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
+          <span class="ai-spark" aria-hidden="true">✦</span>
+          <span>Plan with AI</span>
+        </button>
+      </div>
 
       <div class="field" style="margin-top:12px;">
         <label for="studyTargetTitle">Target</label>
@@ -1923,9 +2074,34 @@ When you add or load lectures, they’re marked attended by default.
 </div>
 <div id="studyMemeBackdrop" class="study-meme-backdrop">
   <div class="study-meme-card" role="dialog" aria-modal="true" aria-labelledby="studyMemeTitle">
-    <h3 id="studyMemeTitle">Target complete</h3>
+    <h3 id="studyMemeTitle">All targets complete</h3>
     <div class="study-meme-text" id="studyMemeText"></div>
     <button id="closeStudyMemeBtn" class="btn small" type="button" style="width:100%; justify-content:center;">Blessed. Continue.</button>
+  </div>
+</div>
+
+<div id="geminiModalBackdrop" class="gemini-modal-backdrop" aria-hidden="true">
+  <div class="gemini-modal" role="dialog" aria-modal="true" aria-labelledby="geminiModalTitle">
+    <div class="gemini-modal-head">
+      <div>
+        <div class="gemini-modal-kicker">
+          <span class="ai-logo" aria-hidden="true">✦</span>
+          AI-ready planner
+        </div>
+        <h3 id="geminiModalTitle" style="margin-bottom:4px;">Your academic prompt is ready</h3>
+        <div class="quiet-note">Copy this into any AI chat app for a personalized plan.</div>
+      </div>
+      <button id="closeGeminiModalBtn" class="btn small secondary" type="button" aria-label="Close AI planner">Close</button>
+    </div>
+    <label for="geminiUserContext" style="display:block; font-size:0.8rem; font-weight:700; margin-top:4px;">Extra context for AI</label>
+    <textarea id="geminiUserContext" placeholder="e.g. My semester ends in 3 months. I have to attend a wedding from 12-15 July. I want Sundays free if possible."></textarea>
+    <label for="geminiPromptText" style="display:block; font-size:0.8rem; font-weight:700;">Generated prompt</label>
+    <textarea id="geminiPromptText" readonly></textarea>
+    <div class="gemini-modal-actions">
+      <button id="copyGeminiPromptBtn" class="btn" type="button" style="justify-content:center;">Copy prompt</button>
+      <button id="openGeminiBtn" class="btn secondary" type="button" style="justify-content:center;">Select prompt</button>
+    </div>
+    <div id="geminiPromptStatus" class="hint" style="text-align:center; margin-top:8px;"></div>
   </div>
 </div>
 
@@ -2031,38 +2207,41 @@ When you add or load lectures, they’re marked attended by default.
 	<div id="versionModalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
   <div class="card" style="width:min(440px,90%); padding:24px; animation: slideUp 0.3s ease-out;">
 
-    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px;">
-      <h2 style="margin:0; font-size:1.4rem;">🚀 Welcome to Attrack v2.0!</h2>
+    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+        <span aria-hidden="true" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:999px; background:radial-gradient(circle at 35% 30%, #ffffff 0 18%, #a5b4fc 19% 42%, #6366f1 43% 100%); color:#fff; font-size:1rem; line-height:1; flex:0 0 24px;">✦</span>
+        <h2 style="margin:0; font-size:1.4rem;">Plan smarter with AI</h2>
+      </div>
       <button id="closeVersionX" style="background:none; border:none; font-size:1.2rem; color:var(--muted); cursor:pointer;">✕</button>
     </div>
 
-    <p class="hint" style="margin-top:0; margin-bottom:14px;">You're on the latest version! (Last update was v1.0 in Dec). Here is what's new:</p>
+    <p class="hint" style="margin-top:0; margin-bottom:14px;">Attrack can now prepare a clean AI prompt from your live academic data.</p>
 
     <ul style="padding-left:0; list-style:none; margin:0 0 20px 0; display:flex; flex-direction:column; gap:12px;">
       <li style="display:flex; gap:10px; align-items:start;">
         <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">🔒</span>
         <div>
-          <strong style="display:block; color:var(--text);">Locked Timetable</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">No more accidental changes! Click 'Edit' and 'Save' to modify your schedule securely.</span>
+          <strong style="display:block; color:var(--text);">Attendance context</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Your AI prompt includes your target, current percentage, buffer, and subject-wise attendance.</span>
         </div>
       </li>
       <li style="display:flex; gap:10px; align-items:start;">
         <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">⏱️</span>
         <div>
-          <strong style="display:block; color:var(--text);">Prefill vs Refill</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Upon saving your timetable, you'll be asked to prefill (from today) or refill (past history).</span>
+          <strong style="display:block; color:var(--text);">Task triage</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Pending assignments and upcoming study targets are included so the plan is practical.</span>
         </div>
       </li>
       <li style="display:flex; gap:10px; align-items:start;">
         <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">📚</span>
         <div>
-          <strong style="display:block; color:var(--text);">Study Targets</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Log daily study targets and get meme rewards for crushing your goals!</span>
+          <strong style="display:block; color:var(--text);">You stay in control</strong>
+          <span style="font-size:0.9rem; color:var(--text-soft);">Attrack only prepares the prompt. You choose which AI app to paste it into.</span>
         </div>
       </li>
     </ul>
 
-    <button id="closeVersionBtn" class="btn" style="width:100%; margin-top:10px; justify-content:center; padding:10px;">Awesome, start the tour!</button>
+    <button id="closeVersionBtn" class="btn" style="width:100%; margin-top:10px; justify-content:center; padding:10px;">Got it</button>
   </div>
 </div>
     
@@ -2074,6 +2253,7 @@ When you add or load lectures, they’re marked attended by default.
     const VIEW_KEY    = "attrack_lastView";
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 const SOUND_KEY = "attrack_sound_enabled";
+const GEMINI_CONTEXT_KEY = "attrack_gemini_user_context";
 let attrackAudioCtx = null;
 const STUDY_MEMES = [
   "You completed the target. Somewhere, a quadratic equation just found both roots.",
@@ -2083,7 +2263,7 @@ const STUDY_MEMES = [
   "You just integrated discipline with respect to time. The result is progress plus C.",
   "Your brain did reps today. Even Pythagoras would update the group chat.",
   "Target complete. The graph of your comeback has positive slope.",
-  "You solved today's side quest. Probability of academic chaos reduced significantly."
+  "Today's study board is clear. Probability of academic chaos reduced significantly."
 ];
 
 function soundEnabled() {
@@ -2821,6 +3001,129 @@ function sendDailyReminder() {
       return prefix + "-" + Math.random().toString(36).slice(2,9) + "-" + Date.now().toString(36);
     }
 
+    function geminiLogoSvg() {
+      return `<span class="ai-spark" aria-hidden="true">✦</span>`;
+    }
+
+    function geminiButtonHtml() {
+      return `
+        <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
+          ${geminiLogoSvg()}
+          <span>Plan with AI</span>
+        </button>
+      `;
+    }
+
+    function getTargetAttendance() {
+      const targetRaw = parseFloat(localStorage.getItem(TARGET_KEY));
+      return !isNaN(targetRaw) ? targetRaw : 0.75;
+    }
+
+    function generateAICoachPrompt(extraContext = "") {
+      const target = getTargetAttendance();
+      const start = state.startDate || toISODate(new Date());
+      const validLectures = (state.lectures || []).filter(l => l.date && l.date >= start && !l.isCancelled);
+      const total = validLectures.length;
+      const attended = validLectures.filter(l => l.attended).length;
+      const pct = total > 0 ? ((attended / total) * 100).toFixed(1) : "0.0";
+      const bunkBuffer = Math.floor((attended - target * total) / target);
+      const bufferText = bunkBuffer >= 0
+        ? `Can safely skip ${bunkBuffer} lecture${bunkBuffer === 1 ? "" : "s"} and still stay near target`
+        : `Lagging: needs to attend ${Math.abs(bunkBuffer)} lecture${Math.abs(bunkBuffer) === 1 ? "" : "s"} consecutively to recover`;
+
+      const subjectStats = (state.subjects || []).map(subj => {
+        const subLecs = validLectures.filter(l => l.subjectId === subj.id);
+        const subAtt = subLecs.filter(l => l.attended).length;
+        const subPct = subLecs.length > 0 ? `, ${((subAtt / subLecs.length) * 100).toFixed(1)}%` : "";
+        return `- ${subj.name || "Unnamed subject"}: ${subAtt}/${subLecs.length} attended${subPct}`;
+      }).join("\n") || "No subjects added.";
+
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const timetable = (state.subjects || []).map(subj => {
+        const pattern = subj.schedule && Array.isArray(subj.schedule.weeklyPattern) ? subj.schedule.weeklyPattern : [];
+        if (pattern.length === 0) return null;
+        return `- ${subj.name || "Unnamed subject"}: ${pattern.map(p => `${days[p.day] || "Day"}: ${p.count || 0}`).join(", ")}`;
+      }).filter(Boolean).join("\n") || "Timetable not configured.";
+
+      const pendingAssignments = (state.assignments || []).filter(a => !a.completed).map(a => {
+        const subjName = (state.subjects || []).find(s => s.id === a.subjectId)?.name || "Unknown subject";
+        const due = a.dueDate ? formatDisplayDate(a.dueDate) : "No due date";
+        return `- ${a.title || "Task"} (${subjName}) due on ${due}`;
+      }).join("\n") || "No pending assignments.";
+
+      const todayIso = toISODate(new Date());
+      const pendingTargets = (state.studyTargets || []).filter(t => t.date >= todayIso && !t.completedAt).map(t => {
+        const targetDate = t.date ? formatDisplayDate(t.date) : "No date";
+        return `- ${t.title || "Study target"} (${t.minutes || 0} mins, ${t.category || "Study"}) scheduled for ${targetDate}`;
+      }).join("\n") || "No upcoming study targets.";
+
+      return `You are the Attrack Academic Coach. Use the following live student data to create a highly actionable, zero-fluff plan for the next 7 days.
+
+STUDENT PROFILE
+- Name: ${state.studentName || "Student"}
+- Target Attendance: ${Math.round(target * 100)}%
+- Current Attendance: ${pct}%
+- Attendance Buffer Status: ${bufferText}
+- Tracking Start Date: ${formatDisplayDate(start)}
+
+SUBJECT ATTENDANCE BREAKDOWN
+${subjectStats}
+
+WEEKLY TIMETABLE
+${timetable}
+
+PENDING ASSIGNMENTS
+${pendingAssignments}
+
+UPCOMING STUDY TARGETS
+${pendingTargets}
+
+USER'S EXTRA CONTEXT
+${extraContext.trim() || "No extra context provided."}
+
+INSTRUCTIONS
+Give the response in three short sections:
+1. Attendance Strategy: Use the buffer and timetable. Tell me which specific days or subjects need strict attendance, and where rest is safe.
+2. Task Triage: Cross-reference pending assignments with heavy lecture days. Tell me what to do first and what can wait.
+3. Study Plan: Turn my study targets and extra context into a realistic plan. If the user mentions dates, events, travel, exams, semester deadlines, rest preferences, or constraints, adapt the plan around them.
+
+Keep it practical, student-friendly, and concise. Use bold labels for important warnings and decisions. If the plan needs more than 7 days because of the user's context, create a short longer-range strategy first, then a concrete next-7-days action list.`;
+    }
+
+    async function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.left = "-9999px";
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      temp.remove();
+    }
+
+    window.triggerGemini = function() {
+      const contextInput = document.getElementById("geminiUserContext");
+      if (contextInput) contextInput.value = localStorage.getItem(GEMINI_CONTEXT_KEY) || "";
+      const prompt = generateAICoachPrompt(contextInput ? contextInput.value : "");
+      const backdrop = document.getElementById("geminiModalBackdrop");
+      const promptText = document.getElementById("geminiPromptText");
+      const status = document.getElementById("geminiPromptStatus");
+      if (promptText) promptText.value = prompt;
+      if (typeof refreshGeminiPrompt === "function") refreshGeminiPrompt();
+      if (status) status.textContent = "";
+      if (backdrop) {
+        backdrop.style.display = "flex";
+        backdrop.setAttribute("aria-hidden", "false");
+      } else {
+        copyTextToClipboard(prompt).then(() => alert("AI prompt copied. Paste it into your preferred AI chat app."));
+      }
+    };
+
     function defaultState() {
 const isoStart = toISODate(new Date());
       return {
@@ -3137,7 +3440,7 @@ async function fetchDailyMeme() {
   const imageUrl = "memes/" + selectedFile;
 
   return { 
-    title: "Side quest complete.", 
+    title: "Today's study board is clear.", 
     url: imageUrl 
   };
 }
@@ -3246,6 +3549,7 @@ function renderStudyTargets() {
 
  cb.addEventListener("change", () => {
       if (cb.checked) {
+        const wasIncomplete = !target.completedAt;
         target.completedAt = new Date().toISOString();
         
         // 1. Get all targets for today
@@ -3256,7 +3560,7 @@ function renderStudyTargets() {
         const allDone = todaysTargets.length > 0 && todaysTargets.every(t => t.completedAt);
         
         // 3. Only trigger the meme if the board is cleared
-        if (allDone) {
+        if (wasIncomplete && allDone) {
           showStudyMeme(); 
         }
       } else {
@@ -3507,23 +3811,32 @@ const needToAttend = Math.ceil((target * total - attended) / (1 - target));
 if (total === 0) {
   // NEUTRAL STARTING STATE
   statusHtml = `
-    <div style="background:var(--bg-soft); color:var(--text-soft); padding:16px; border-radius:12px; margin-top:12px; border: 1px dashed var(--border);">
-      <strong>No lectures tracked yet 📅</strong><br>
-      Head over to Setup to add subjects, or load a day to begin!
+    <div class="gemini-card-layout" style="background:var(--bg-soft); color:var(--text-soft); padding:16px; border-radius:12px; margin-top:12px; border: 1px dashed var(--border);">
+      <div>
+        <strong>No lectures tracked yet 📅</strong><br>
+        Head over to Setup to add subjects, or load a day to begin!
+      </div>
+      ${geminiButtonHtml()}
     </div>`;
 } else if (pct >= target * 100) {
   // GREEN GOOD NEWS
   statusHtml = `
-    <div style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
-      <strong>You are looking good 🎉</strong><br>
-      You can skip the next <strong>${canBunk}</strong> lectures!
+    <div class="gemini-card-layout" style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
+      <div>
+        <strong>You are looking good 🎉</strong><br>
+        You can skip the next <strong>${canBunk}</strong> lectures!
+      </div>
+      ${geminiButtonHtml()}
     </div>`;
 } else {
   // RED WARNING
   statusHtml = `
-    <div style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px;">
-      <strong>Attendance low ⚠️</strong><br>
-      You need to attend <strong>${needToAttend}</strong> more lectures to hit ${Math.round(target * 100)}%.
+    <div class="gemini-card-layout" style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px;">
+      <div>
+        <strong>Attendance low ⚠️</strong><br>
+        You need to attend <strong>${needToAttend}</strong> more lectures to hit ${Math.round(target * 100)}%.
+      </div>
+      ${geminiButtonHtml()}
     </div>`;
 }
 
@@ -3969,6 +4282,61 @@ if (closeStudyMemeBtn) {
 if (studyMemeBackdrop) {
   studyMemeBackdrop.addEventListener("click", event => {
     if (event.target === studyMemeBackdrop) studyMemeBackdrop.style.display = "none";
+  });
+}
+const geminiModalBackdrop = document.getElementById("geminiModalBackdrop");
+const closeGeminiModalBtn = document.getElementById("closeGeminiModalBtn");
+const copyGeminiPromptBtn = document.getElementById("copyGeminiPromptBtn");
+const openGeminiBtn = document.getElementById("openGeminiBtn");
+const geminiUserContext = document.getElementById("geminiUserContext");
+const geminiPromptText = document.getElementById("geminiPromptText");
+const geminiPromptStatus = document.getElementById("geminiPromptStatus");
+
+function closeGeminiModal() {
+  if (!geminiModalBackdrop) return;
+  geminiModalBackdrop.style.display = "none";
+  geminiModalBackdrop.setAttribute("aria-hidden", "true");
+}
+
+function refreshGeminiPrompt() {
+  const extraContext = geminiUserContext ? geminiUserContext.value : "";
+  if (geminiUserContext) localStorage.setItem(GEMINI_CONTEXT_KEY, extraContext);
+  if (geminiPromptText) geminiPromptText.value = generateAICoachPrompt(extraContext);
+  if (geminiPromptStatus) geminiPromptStatus.textContent = extraContext.trim()
+    ? "Extra context included in the prompt."
+    : "";
+}
+
+if (closeGeminiModalBtn) closeGeminiModalBtn.addEventListener("click", closeGeminiModal);
+if (geminiModalBackdrop) {
+  geminiModalBackdrop.addEventListener("click", event => {
+    if (event.target === geminiModalBackdrop) closeGeminiModal();
+  });
+}
+if (geminiUserContext) {
+  geminiUserContext.addEventListener("input", refreshGeminiPrompt);
+}
+if (copyGeminiPromptBtn) {
+  copyGeminiPromptBtn.addEventListener("click", async () => {
+    refreshGeminiPrompt();
+    const prompt = geminiPromptText ? geminiPromptText.value : generateAICoachPrompt();
+    try {
+      await copyTextToClipboard(prompt);
+      if (geminiPromptStatus) geminiPromptStatus.textContent = "Prompt copied. Paste it into your preferred AI chat app.";
+      copyGeminiPromptBtn.textContent = "Copied";
+      setTimeout(() => { copyGeminiPromptBtn.textContent = "Copy prompt"; }, 1400);
+    } catch (err) {
+      if (geminiPromptStatus) geminiPromptStatus.textContent = "Copy failed. Select the prompt and copy it manually.";
+    }
+  });
+}
+if (openGeminiBtn) {
+  openGeminiBtn.addEventListener("click", () => {
+    if (geminiPromptText) {
+      geminiPromptText.focus();
+      geminiPromptText.select();
+    }
+    if (geminiPromptStatus) geminiPromptStatus.textContent = "Prompt selected. Copy it and paste it into any AI chat app.";
   });
 }
     darkToggle.addEventListener("click", () => {
@@ -4657,7 +5025,7 @@ if (closeAbsentBtn) closeAbsentBtn.addEventListener("click", () => absentModalBa
 if (absentModalBackdrop) absentModalBackdrop.addEventListener("click", (e) => {
     if(e.target === absentModalBackdrop) absentModalBackdrop.style.display = "none";
 });
- const VERSION_2_KEY = "attrack_v2_seen";
+ const VERSION_2_KEY = "attrack_gemini_planner_seen";
 if (!localStorage.getItem(VERSION_2_KEY)) {
     const vModal = document.getElementById("versionModalBackdrop");
     if (vModal) vModal.style.display = "flex";
@@ -4673,7 +5041,6 @@ if(closeVersionX) {
 if(closeVersionBtn) {
   closeVersionBtn.addEventListener("click", () => {
     document.getElementById("versionModalBackdrop").style.display = "none";
-    startGuidedTour(true); 
   });
 }
               // --- FEEDBACK POPUP LOGIC ---
