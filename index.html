@@ -3872,15 +3872,40 @@ if (total === 0) {
     </div>`;
 } else if (pct >= target * 100) {
   // GREEN GOOD NEWS
+  let skipMessage = "";
+  if (canBunk > 0) {
+      // 1. Compile master daily timetable from all subjects
+      const dailyCounts = [0, 0, 0, 0, 0, 0, 0];
+      state.subjects.forEach(subj => {
+          if (subj.schedule && subj.schedule.weeklyPattern) {
+              subj.schedule.weeklyPattern.forEach(p => {
+                  if (p.day >= 0 && p.day <= 6) dailyCounts[p.day] += (p.count || 0);
+              });
+          }
+      });
+      
+      // 2. Calculate dates
+      const skipInfo = calculateSkipDates(canBunk, dailyCounts, new Date());
+      if (skipInfo) {
+          if (skipInfo.partialLecs === 0) {
+              skipMessage = `<div style="font-size: 0.85rem; margin-top: 8px; opacity: 0.95; line-height: 1.4;">Assuming no change to your schedule, you can skip all lecs. till <strong>${skipInfo.fullSkipDate}</strong>.</div>`;
+          } else {
+              skipMessage = `<div style="font-size: 0.85rem; margin-top: 8px; opacity: 0.95; line-height: 1.4;">Assuming no change to your schedule, you can skip all lecs. till <strong>${skipInfo.fullSkipDate}</strong> and <strong>${skipInfo.partialLecs}</strong> lectures on <strong>${skipInfo.partialSkipDate}</strong>.</div>`;
+          }
+      }
+  }
+
   statusHtml = `
     <div class="gemini-card-layout" style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
       <div>
         <strong>You are looking good 🎉</strong><br>
         You can skip the next <strong>${canBunk}</strong> lectures!
+        ${skipMessage}
       </div>
       ${geminiButtonHtml()}
     </div>`;
 } else {
+
   // RED WARNING
   statusHtml = `
     <div class="gemini-card-layout" style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px;">
