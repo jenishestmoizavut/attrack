@@ -3782,6 +3782,51 @@ function renderSetupSummaries() {
 }
 
     function formatPct(pct) { return pct.toFixed(2).replace(/\.00$/, "") + "%"; }
+function calculateSkipDates(canMiss, timetable, startDate = new Date()) {
+  if (canMiss <= 0) return null;
+
+  let remainingMisses = canMiss;
+  let simulatedDate = new Date(startDate);
+  
+  // Track the last day where ALL lectures were successfully skipped
+  let lastFullSkipDate = new Date(startDate);
+  lastFullSkipDate.setDate(lastFullSkipDate.getDate() - 1); 
+
+  // Guard against infinite loops if the timetable is empty
+  const totalWeeklyLecs = timetable.reduce((a, b) => a + b, 0);
+  if (totalWeeklyLecs === 0) return null;
+
+  let safeGuard = 0; 
+  while (remainingMisses > 0 && safeGuard < 365) {
+    safeGuard++;
+    let dayOfWeek = simulatedDate.getDay();
+    let lecsToday = timetable[dayOfWeek];
+    const isoDate = toISODate(simulatedDate);
+
+    // Skip over any marked holidays or days with 0 lectures
+    if ((state.holidays && state.holidays.includes(isoDate)) || lecsToday === 0) {
+      lastFullSkipDate = new Date(simulatedDate); 
+      simulatedDate.setDate(simulatedDate.getDate() + 1);
+      continue;
+    }
+
+    if (remainingMisses >= lecsToday) {
+      remainingMisses -= lecsToday;
+      lastFullSkipDate = new Date(simulatedDate);
+      simulatedDate.setDate(simulatedDate.getDate() + 1);
+    } else {
+      break; // Cannot skip the full day, loop breaks with partial remainder
+    }
+  }
+
+  const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+
+  return {
+    fullSkipDate: lastFullSkipDate.toLocaleDateString(undefined, dateOptions),
+    partialSkipDate: simulatedDate.toLocaleDateString(undefined, dateOptions),
+    partialLecs: remainingMisses
+  };
+}
 
         function renderSummary() {
       // 1. Calculate Basic Stats
