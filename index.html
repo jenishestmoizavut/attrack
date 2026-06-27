@@ -459,55 +459,6 @@ body.dark .btn.secondary:hover { background: #1f2937; }
   transform: translateY(-1px);
 }
 
-.lecture-subject-missing {
-  border-color: var(--danger) !important;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
-  color: var(--danger);
-}
-
-.undo-toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  z-index: 80;
-  display: none;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--card-bg);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
-  animation: attrackFadeUp 0.18s ease-out both;
-}
-
-.sync-choice-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  background: rgba(15, 23, 42, 0.42);
-  backdrop-filter: blur(4px);
-}
-
-.sync-choice-card {
-  width: min(420px, 100%);
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card-bg);
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.24);
-  animation: attrackFadeUp 0.18s ease-out both;
-}
-
-.sync-choice-card h3 { margin: 0 0 8px; font-size: 1.05rem; }
-.sync-choice-card p { margin: 0 0 12px; color: var(--text-soft); font-size: 0.9rem; line-height: 1.45; }
-.sync-choice-actions { display: grid; gap: 8px; }
-
 .subject-stats-list {
   display: flex;
   flex-direction: column;
@@ -1632,7 +1583,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
   <button class="nav-btn active" data-view="homeView" type="button">Dashboard</button>
   <button class="nav-btn" data-view="dayView" type="button">📅 Daily</button>
   <button class="nav-btn" data-view="studyView" type="button">📕Study</button>
-  <button class="nav-btn" data-view="assignmentsView" type="button">📝 Assignments </button>
+  <button class="nav-btn" data-view="assignmentsView" type="button">📝 Tasks </button>
   <button class="nav-btn" data-view="setupView" type="button">⚙️ Setup</button>
   
   <button id="installAppBtn" class="nav-btn" type="button" style="display:none; background: var(--accent-soft); color: var(--accent);">
@@ -1981,7 +1932,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <div class="toolbar daily-actions">
   <button class="btn small secondary" id="loadDayBtn" type="button">Load day</button>
   <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
-  <button class="btn small secondary" id="undoLastChangeBtn" type="button" style="display:none;">Undo</button>
   
   <details class="actions-menu">
     <summary>More actions ▼</summary>
@@ -1994,21 +1944,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
     </div>
   </details>
 </div>
-          <div id="undoToast" class="undo-toast" role="status" aria-live="polite">
-            <span id="undoToastText">Change saved</span>
-            <button class="btn small secondary" id="undoToastBtn" type="button">Undo</button>
-          </div>
-          <div id="syncChoiceBackdrop" class="sync-choice-backdrop" aria-hidden="true">
-            <div class="sync-choice-card" role="dialog" aria-modal="true" aria-labelledby="syncChoiceTitle">
-              <h3 id="syncChoiceTitle">Changes found on another device</h3>
-              <p id="syncChoiceText">Another device saved a newer version. Apply it here only if you want this device to switch to that copy.</p>
-              <div class="sync-choice-actions">
-                <button id="applyCloudChangeBtn" class="btn small" type="button">Apply cloud update</button>
-                <button id="keepThisDeviceBtn" class="btn small secondary" type="button">Keep this device</button>
-                <button id="dismissCloudChangeBtn" class="btn small secondary" type="button">Later</button>
-              </div>
-            </div>
-          </div>
           <table>
             <thead>
               <tr>
@@ -2314,20 +2249,12 @@ When you add or load lectures, they’re marked attended by default.
 <script>
   (function () {
     const STORAGE_KEY = "attrack_v1";
-    const DEVICE_KEY  = "attrack_device_id";
     const THEME_KEY   = "attrack_theme";
     const VIEW_KEY    = "attrack_lastView";
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 const SOUND_KEY = "attrack_sound_enabled";
 const GEMINI_CONTEXT_KEY = "attrack_gemini_user_context";
 let attrackAudioCtx = null;
-let lastSavedStateJson = "";
-let undoStateJson = "";
-let undoTimer = null;
-let applyingRemoteState = false;
-let suppressNextCloudEcho = false;
-let pendingCloudState = null;
-let ignoredCloudRevisionKey = "";
 const STUDY_MEMES = [
   "You completed the target. Somewhere, a quadratic equation just found both roots.",
   "Math meme blessing: your focus was so sharp even a tangent line got jealous.",
@@ -2370,161 +2297,6 @@ function playUiSound(kind = "tap") {
 function refreshSoundToggle() {
   const soundState = document.getElementById("soundState");
   if (soundState) soundState.textContent = soundEnabled() ? "On" : "Off";
-}
-
-function getDeviceId() {
-  let id = localStorage.getItem(DEVICE_KEY);
-  if (!id) {
-    id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    localStorage.setItem(DEVICE_KEY, id);
-  }
-  return id;
-}
-
-function cloneStateForHistory(value) {
-  return JSON.parse(JSON.stringify(value || defaultState()));
-}
-
-function normalizeStateShape(value) {
-  const defaults = defaultState();
-  const normalized = value && typeof value === "object" ? value : defaults;
-  if (!Array.isArray(normalized.subjects)) normalized.subjects = [];
-  if (!Array.isArray(normalized.lectures)) normalized.lectures = [];
-  if (!Array.isArray(normalized.assignments)) normalized.assignments = [];
-  if (!Array.isArray(normalized.studyTargets)) normalized.studyTargets = [];
-  if (!Array.isArray(normalized.holidays)) normalized.holidays = [];
-  if (!normalized.startDate) normalized.startDate = defaults.startDate;
-  if (typeof normalized.isInitialized !== "boolean") normalized.isInitialized = false;
-  if (!normalized.__sync || typeof normalized.__sync !== "object") normalized.__sync = {};
-  if (!normalized.__sync.deviceId) normalized.__sync.deviceId = getDeviceId();
-  if (!Number.isFinite(normalized.__sync.revision)) normalized.__sync.revision = 0;
-  if (!Number.isFinite(normalized.__sync.updatedAt)) normalized.__sync.updatedAt = 0;
-  return normalized;
-}
-
-function comparableStateJson(value) {
-  const copy = cloneStateForHistory(value);
-  delete copy.__sync;
-  return JSON.stringify(copy);
-}
-
-function isIncomingCloudNewer(localState, cloudState) {
-  const localSync = (localState && localState.__sync) || {};
-  const cloudSync = (cloudState && cloudState.__sync) || {};
-  const cloudRevision = Number(cloudSync.revision || 0);
-  const localRevision = Number(localSync.revision || 0);
-  if (cloudRevision !== localRevision) return cloudRevision > localRevision;
-  const cloudUpdatedAt = Number(cloudSync.updatedAt || 0);
-  const localUpdatedAt = Number(localSync.updatedAt || 0);
-  return cloudUpdatedAt > localUpdatedAt;
-}
-
-function updateUndoUi() {
-  const undoBtn = document.getElementById("undoLastChangeBtn");
-  const toast = document.getElementById("undoToast");
-  if (undoBtn) undoBtn.style.display = undoStateJson ? "" : "none";
-  if (toast && !undoStateJson) toast.style.display = "none";
-}
-
-function showUndoToast(label = "Change saved") {
-  const toast = document.getElementById("undoToast");
-  const text = document.getElementById("undoToastText");
-  if (!toast || !undoStateJson) return;
-  if (text) text.textContent = label;
-  toast.style.display = "flex";
-  clearTimeout(undoTimer);
-  undoTimer = setTimeout(() => {
-    toast.style.display = "none";
-  }, 6500);
-}
-
-function captureUndoSnapshot(label) {
-  if (!lastSavedStateJson) return;
-  const previous = JSON.parse(lastSavedStateJson);
-  if (comparableStateJson(previous) === comparableStateJson(state)) return;
-  undoStateJson = lastSavedStateJson;
-  updateUndoUi();
-  showUndoToast(label);
-}
-
-function restoreLastChange() {
-  if (!undoStateJson) return;
-  state = normalizeStateShape(JSON.parse(undoStateJson));
-  undoStateJson = "";
-  clearTimeout(undoTimer);
-  const toast = document.getElementById("undoToast");
-  if (toast) toast.style.display = "none";
-  saveState({ skipUndo: true, label: "Undo applied" });
-  renderStudent();
-  renderSubjectsList();
-  renderCalendar();
-  renderLectures();
-  renderTimetable();
-  renderSummary();
-  renderSubjectStats();
-  if (typeof renderAssignments === "function") renderAssignments();
-  if (typeof renderStudyTargets === "function") renderStudyTargets();
-  updateUndoUi();
-  playUiSound("success");
-}
-
-function refreshAllViewsAfterStateChange() {
-  renderStudent();
-  renderSubjectsList();
-  renderSubjectStats();
-  if (typeof renderAssignmentChips === "function") renderAssignmentChips();
-  renderTimetable();
-  renderSummary();
-  if (typeof renderStudyTargets === "function") renderStudyTargets();
-  if (document.getElementById("dayView").classList.contains("active")) {
-    renderCalendar();
-    renderLectures();
-  } else if (document.getElementById("assignmentsView").classList.contains("active")) {
-    if (typeof renderAssignments === "function") renderAssignments();
-  } else if (document.getElementById("studyView").classList.contains("active")) {
-    if (typeof renderStudyTargets === "function") renderStudyTargets();
-  }
-}
-
-function cloudRevisionKey(cloudState) {
-  const sync = (cloudState && cloudState.__sync) || {};
-  return `${sync.deviceId || "unknown"}:${sync.revision || 0}:${sync.updatedAt || 0}`;
-}
-
-function applyAcceptedCloudState(cloudState) {
-  if (!cloudState) return;
-  undoStateJson = lastSavedStateJson;
-  updateUndoUi();
-  showUndoToast("Cloud update applied");
-  applyingRemoteState = true;
-  state = normalizeStateShape(cloudState);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  lastSavedStateJson = JSON.stringify(state);
-  applyingRemoteState = false;
-  pendingCloudState = null;
-  hideSyncChoice();
-  refreshAllViewsAfterStateChange();
-  playUiSound("success");
-}
-
-function hideSyncChoice() {
-  const backdrop = document.getElementById("syncChoiceBackdrop");
-  if (!backdrop) return;
-  backdrop.style.display = "none";
-  backdrop.setAttribute("aria-hidden", "true");
-}
-
-function showSyncChoice(cloudState) {
-  pendingCloudState = cloudState;
-  const backdrop = document.getElementById("syncChoiceBackdrop");
-  const text = document.getElementById("syncChoiceText");
-  if (!backdrop) return;
-  const updatedAt = Number(cloudState.__sync?.updatedAt || 0);
-  const when = updatedAt ? new Date(updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "recently";
-  if (text) text.textContent = `Another device saved a newer version ${when}. Apply it here only if you want this device to switch to that copy.`;
-  backdrop.style.display = "flex";
-  backdrop.setAttribute("aria-hidden", "false");
-  playUiSound("soft");
 }
 
 document.addEventListener("click", (event) => {
@@ -3386,7 +3158,7 @@ const isoStart = toISODate(new Date());
     if (!Array.isArray(parsed.assignments)) parsed.assignments = [];
     if (!Array.isArray(parsed.studyTargets)) parsed.studyTargets = [];
 
-    return normalizeStateShape(parsed);
+    return parsed; // Now it returns the complete object
   } catch (e) {
     console.error("Failed to load state", e);
     return defaultState();
@@ -3394,7 +3166,6 @@ const isoStart = toISODate(new Date());
 }
 
     let state = loadState();
-    lastSavedStateJson = JSON.stringify(state);
     let currentMonthDate = new Date();
     let selectedDate = new Date();
 let selectedAssSubjects = new Set();
@@ -3452,11 +3223,6 @@ if (changeTargetBtn) {
     const markAllAbsentBtn = document.getElementById("markAllAbsentBtn");
 const markHolidayBtn = document.getElementById("markHolidayBtn");
 const loadDayBtn = document.getElementById("loadDayBtn");
-const undoLastChangeBtn = document.getElementById("undoLastChangeBtn");
-const undoToastBtn = document.getElementById("undoToastBtn");
-const applyCloudChangeBtn = document.getElementById("applyCloudChangeBtn");
-const keepThisDeviceBtn = document.getElementById("keepThisDeviceBtn");
-const dismissCloudChangeBtn = document.getElementById("dismissCloudChangeBtn");
     const lecturesTableBodyEl = document.getElementById("lecturesTableBody");
     const lecturesEmptyEl = document.getElementById("lecturesEmpty");
     const timetableBodyEl = document.getElementById("timetableBody");
@@ -3465,20 +3231,11 @@ const dismissCloudChangeBtn = document.getElementById("dismissCloudChangeBtn");
     const darkLabel = document.getElementById("darkLabel");
 const editTimetableBtn = document.getElementById("editTimetableBtn");
 let isEditingTt = false;
-    function saveState(options = {}) {
-      state = normalizeStateShape(state);
-      if (!options.skipUndo && !applyingRemoteState) captureUndoSnapshot(options.label || "Change saved");
-      const previousRevision = Number(state.__sync?.revision || 0);
-      state.__sync = {
-        deviceId: getDeviceId(),
-        revision: previousRevision + (options.skipRevision ? 0 : 1),
-        updatedAt: Date.now()
-      };
+    function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      lastSavedStateJson = JSON.stringify(state);
       
       // NEW: Tell Firebase to sync this new data
-      if (!applyingRemoteState && window.syncToFirebase) window.syncToFirebase(state);
+      if (window.syncToFirebase) window.syncToFirebase(state);
       
       renderSummary();
       renderSubjectStats();
@@ -3488,29 +3245,31 @@ let isEditingTt = false;
 
     // NEW: Function to receive real-time updates from Firebase
     window.applyCloudUpdate = function(cloudState) {
-      if (!cloudState || typeof cloudState !== "object") return;
-      const cloudHadSyncMeta = !!cloudState.__sync;
-      cloudState = normalizeStateShape(cloudState);
-      if (cloudState.__sync?.deviceId === getDeviceId() && suppressNextCloudEcho) {
-        suppressNextCloudEcho = false;
-        return;
-      }
-      const localLooksEmpty = !(state.subjects && state.subjects.length) && !(state.lectures && state.lectures.length);
-      if (cloudHadSyncMeta) {
-        if (!isIncomingCloudNewer(state, cloudState)) return;
-      } else if (!localLooksEmpty) {
-        return;
-      }
       // Only update if it's actually different (prevents infinite loops)
 if (!Array.isArray(cloudState.assignments)) cloudState.assignments = [];
         if (!Array.isArray(cloudState.studyTargets)) cloudState.studyTargets = [];
       if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
-        if (!cloudHadSyncMeta || localLooksEmpty || cloudState.__sync?.deviceId === getDeviceId()) {
-          applyAcceptedCloudState(cloudState);
-          return;
+        state = cloudState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        
+        // Refresh the UI so you see it instantly across devices
+        renderStudent();
+        renderSubjectsList();
+        renderSubjectStats();
+        if (typeof renderAssignmentChips === "function") renderAssignmentChips();
+        renderTimetable();
+        renderSummary();
+        if (typeof renderStudyTargets === "function") renderStudyTargets();
+        
+        // Update the active views
+        if (document.getElementById("dayView").classList.contains("active")) {
+          renderCalendar();
+          renderLectures();
+        } else if (document.getElementById("assignmentsView").classList.contains("active")) {
+          if (typeof renderAssignments === "function") renderAssignments();
+        } else if (document.getElementById("studyView").classList.contains("active")) {
+          if (typeof renderStudyTargets === "function") renderStudyTargets();
         }
-        const revisionKey = cloudRevisionKey(cloudState);
-        if (revisionKey !== ignoredCloudRevisionKey) showSyncChoice(cloudState);
       }
     };
     function setTheme(theme) {
@@ -3603,7 +3362,7 @@ function regenerateFromSchedules(fromIsoDate) {
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
         ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can click my name?:)`
-        : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
+        : "Welcome! Add your name to profile - and also share Atrrack ;)?";
     }
 
     function renderSubjectsList() {
@@ -3662,11 +3421,11 @@ async function fetchDailyMeme() {
     "2.jpg",
     "3.jpg",
     "4.jpg",
-"5.jpg",
-"6.jpg",
-"7.jpg",
-"8.jpg",
-"9.jpg",
+    "5.jpg",
+	"6.jpg",
+    "7.jpg",
+    "8.jpg",
+    "9.jpg",
   ];
 
   // 1. Calculate how many days have passed since the "Epoch" (Jan 1, 1970)
@@ -3733,8 +3492,6 @@ if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
   studyTargetMinutes.value = minutes;
   showAllStudyTargets = false;
   saveState();
-  renderStudyTargets();
-  playUiSound("success");
 }
 function renderStudyTargets() {
   if (!studyTargetsList) return;
@@ -3946,17 +3703,8 @@ function renderLectures() {
     // REWRITE: Subject
     const tdSub = document.createElement("td"); tdSub.setAttribute("data-label", "Subject");
     const select = document.createElement("select");
-    if (!lec.subjectId) {
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = "Add subject";
-      placeholder.selected = true;
-      placeholder.disabled = true;
-      select.appendChild(placeholder);
-      select.classList.add("lecture-subject-missing");
-    }
     state.subjects.forEach(s => { const opt = document.createElement("option"); opt.value=s.id; opt.textContent=s.name; opt.selected = s.id === lec.subjectId; select.appendChild(opt); });
-    select.addEventListener("change", () => { lec.subjectId = select.value; select.classList.remove("lecture-subject-missing"); saveState(); renderSubjectStats(); });
+    select.addEventListener("change", () => { lec.subjectId = select.value; saveState(); renderSubjectStats(); });
     tdSub.appendChild(select); tr.appendChild(tdSub);
 
     // REWRITE: Title
@@ -4034,6 +3782,51 @@ function renderSetupSummaries() {
 }
 
     function formatPct(pct) { return pct.toFixed(2).replace(/\.00$/, "") + "%"; }
+function calculateSkipDates(canMiss, timetable, startDate = new Date()) {
+  if (canMiss <= 0) return null;
+
+  let remainingMisses = canMiss;
+  let simulatedDate = new Date(startDate);
+  
+  // Track the last day where ALL lectures were successfully skipped
+  let lastFullSkipDate = new Date(startDate);
+  lastFullSkipDate.setDate(lastFullSkipDate.getDate() - 1); 
+
+  // Guard against infinite loops if the timetable is empty
+  const totalWeeklyLecs = timetable.reduce((a, b) => a + b, 0);
+  if (totalWeeklyLecs === 0) return null;
+
+  let safeGuard = 0; 
+  while (remainingMisses > 0 && safeGuard < 365) {
+    safeGuard++;
+    let dayOfWeek = simulatedDate.getDay();
+    let lecsToday = timetable[dayOfWeek];
+    const isoDate = toISODate(simulatedDate);
+
+    // Skip over any marked holidays or days with 0 lectures
+    if ((state.holidays && state.holidays.includes(isoDate)) || lecsToday === 0) {
+      lastFullSkipDate = new Date(simulatedDate); 
+      simulatedDate.setDate(simulatedDate.getDate() + 1);
+      continue;
+    }
+
+    if (remainingMisses >= lecsToday) {
+      remainingMisses -= lecsToday;
+      lastFullSkipDate = new Date(simulatedDate);
+      simulatedDate.setDate(simulatedDate.getDate() + 1);
+    } else {
+      break; // Cannot skip the full day, loop breaks with partial remainder
+    }
+  }
+
+  const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+
+  return {
+    fullSkipDate: lastFullSkipDate.toLocaleDateString(undefined, dateOptions),
+    partialSkipDate: simulatedDate.toLocaleDateString(undefined, dateOptions),
+    partialLecs: remainingMisses
+  };
+}
 
         function renderSummary() {
       // 1. Calculate Basic Stats
@@ -4079,15 +3872,40 @@ if (total === 0) {
     </div>`;
 } else if (pct >= target * 100) {
   // GREEN GOOD NEWS
+  let skipMessage = "";
+  if (canBunk > 0) {
+      // 1. Compile master daily timetable from all subjects
+      const dailyCounts = [0, 0, 0, 0, 0, 0, 0];
+      state.subjects.forEach(subj => {
+          if (subj.schedule && subj.schedule.weeklyPattern) {
+              subj.schedule.weeklyPattern.forEach(p => {
+                  if (p.day >= 0 && p.day <= 6) dailyCounts[p.day] += (p.count || 0);
+              });
+          }
+      });
+      
+      // 2. Calculate dates
+      const skipInfo = calculateSkipDates(canBunk, dailyCounts, new Date());
+      if (skipInfo) {
+          if (skipInfo.partialLecs === 0) {
+              skipMessage = `<div style="font-size: 0.85rem; margin-top: 8px; opacity: 0.95; line-height: 1.4;">Assuming no change to your schedule, you can skip all lecs. till <strong>${skipInfo.fullSkipDate}</strong>.</div>`;
+          } else {
+              skipMessage = `<div style="font-size: 0.85rem; margin-top: 8px; opacity: 0.95; line-height: 1.4;">Assuming no change to your schedule, you can skip all lecs. till <strong>${skipInfo.fullSkipDate}</strong> and <strong>${skipInfo.partialLecs}</strong> lectures on <strong>${skipInfo.partialSkipDate}</strong>.</div>`;
+          }
+      }
+  }
+
   statusHtml = `
     <div class="gemini-card-layout" style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
       <div>
         <strong>You are looking good 🎉</strong><br>
         You can skip the next <strong>${canBunk}</strong> lectures!
+        ${skipMessage}
       </div>
       ${geminiButtonHtml()}
     </div>`;
 } else {
+
   // RED WARNING
   statusHtml = `
     <div class="gemini-card-layout" style="background:#fee2e2; color:#991b1b; padding:16px; border-radius:12px; margin-top:12px;">
@@ -4164,6 +3982,7 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
           td.appendChild(inp); tr.appendChild(td); 
                  }
         timetableBodyEl.appendChild(tr);
+saveState();
       });
     }
 
@@ -4480,7 +4299,8 @@ if (timetableBodyEl) {
     nextMonthBtn.addEventListener("click", () => { currentMonthDate.setMonth(currentMonthDate.getMonth()+1); renderCalendar(); });
     
     addLectureBtn.addEventListener("click", () => {
-      state.lectures.push({ id: genId("lec"), date: toISODate(selectedDate), subjectId: "", title:"", isSpecial:false, attended:true, autoGenerated:false });
+      const s = state.subjects[0];
+      state.lectures.push({ id: genId("lec"), date: toISODate(selectedDate), subjectId: s?s.id:"", title:"", isSpecial:false, attended:true, autoGenerated:false });
       if (window.trackAttrackEvent) window.trackAttrackEvent("manual_add_lecture");
       saveState(); renderLectures(); renderCalendar();
     });
@@ -4495,27 +4315,6 @@ if (timetableBodyEl) {
       state.lectures.forEach(l => { if (l.date === iso) l.attended = false; });
       saveState(); renderLectures();
     });
-
-if (undoLastChangeBtn) undoLastChangeBtn.addEventListener("click", restoreLastChange);
-if (undoToastBtn) undoToastBtn.addEventListener("click", restoreLastChange);
-if (applyCloudChangeBtn) {
-  applyCloudChangeBtn.addEventListener("click", () => applyAcceptedCloudState(pendingCloudState));
-}
-if (keepThisDeviceBtn) {
-  keepThisDeviceBtn.addEventListener("click", () => {
-    if (pendingCloudState) ignoredCloudRevisionKey = cloudRevisionKey(pendingCloudState);
-    pendingCloudState = null;
-    hideSyncChoice();
-    saveState({ skipUndo: true, label: "Kept this device" });
-  });
-}
-if (dismissCloudChangeBtn) {
-  dismissCloudChangeBtn.addEventListener("click", () => {
-    if (pendingCloudState) ignoredCloudRevisionKey = cloudRevisionKey(pendingCloudState);
-    pendingCloudState = null;
-    hideSyncChoice();
-  });
-}
 
 markHolidayBtn.addEventListener("click", () => {
   const iso = toISODate(selectedDate);
@@ -5111,7 +4910,6 @@ if (addAssignmentBtn) {
     renderAssignmentChips();     
     renderAssignments();         
     saveState();
-    playUiSound("success");
     
     alert("Task(s) added successfully!");
   });
@@ -5128,7 +4926,7 @@ if (addAssignmentBtn) {
          for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
             generateLecturesForDate(toISODate(d));
          }
-         saveState({ skipUndo: true });
+         saveState();
       }
       
       renderStudent();
@@ -5140,7 +4938,6 @@ if (addAssignmentBtn) {
 renderSetupTarget();
 refreshSoundToggle();
 renderStudyTargets();
-updateUndoUi();
 if (studyTargetDate) studyTargetDate.value = toISODate(new Date());
  //showNewFeaturePopupIfNeeded();
 // --- Calendar Reminder Listeners ---
@@ -6020,12 +5817,7 @@ const firebaseConfig = {
         window.syncToFirebase = (currentState) => {
             if (auth.currentUser) {
                 // Save the entire state object to a single document for this user
-                suppressNextCloudEcho = true;
-                setDoc(doc(db, "users", auth.currentUser.uid), { appData: currentState }, { merge: true })
-                  .catch((error) => {
-                    suppressNextCloudEcho = false;
-                    console.error("Cloud sync failed:", error);
-                  });
+                setDoc(doc(db, "users", auth.currentUser.uid), { appData: currentState }, { merge: true });
             }
         };
 
@@ -6069,7 +5861,7 @@ authBar.onclick = async () => {
                         }
                     } else {
                         // FIRST LOGIN: Cloud is empty. Push local laptop data UP to cloud!
-                        const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || "{}"));
+                        const localData = JSON.parse(localStorage.getItem("attrack_v1") || "{}");
                         window.syncToFirebase(localData);
                     }
                 });
