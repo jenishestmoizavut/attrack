@@ -3218,6 +3218,42 @@ function sendDailyReminder() {
       if (!parts || parts.length !== 3) return new Date();
       return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     }
+    function formatShortDate(d) {
+      return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+    }
+    // Walks forward day-by-day using each subject's weeklyPattern (and holidays)
+    // to figure out exactly how far ahead `canBunk` lectures will take you.
+    function getSkipUntilInfo(canBunk) {
+      if (!canBunk || canBunk <= 0) return null;
+      const holidays = state.holidays || [];
+      let cur = new Date(); cur.setHours(0, 0, 0, 0);
+      cur.setDate(cur.getDate() + 1); // start checking from tomorrow
+      let remaining = canBunk;
+      let lastFullDate = null;
+      let guard = 0;
+      while (remaining > 0 && guard < 730) {
+        const iso = toISODate(cur);
+        if (!holidays.includes(iso)) {
+          const dow = cur.getDay();
+          let dayCount = 0;
+          (state.subjects || []).forEach(subj => {
+            if (!subj.schedule?.weeklyPattern) return;
+            subj.schedule.weeklyPattern.forEach(p => { if (p.day === dow) dayCount += (p.count || 1); });
+          });
+          if (dayCount > 0) {
+            if (dayCount <= remaining) {
+              lastFullDate = new Date(cur);
+              remaining -= dayCount;
+            } else {
+              return { fullUntilDate: lastFullDate, partialDate: new Date(cur), partialCount: remaining };
+            }
+          }
+        }
+        cur.setDate(cur.getDate() + 1);
+        guard++;
+      }
+      return { fullUntilDate: lastFullDate, partialDate: null, partialCount: 0 };
+    }
     function formatDisplayDate(iso) {
       const [y, m, d] = iso.split("-");
       return `${d}-${m}-${y}`;
@@ -4079,11 +4115,21 @@ if (total === 0) {
     </div>`;
 } else if (pct >= target * 100) {
   // GREEN GOOD NEWS
+  const skipInfo = getSkipUntilInfo(canBunk);
+  let skipDetailHtml = '';
+  if (skipInfo && skipInfo.fullUntilDate) {
+    skipDetailHtml = `<br><span style="font-size:0.92rem;">Assuming no change to your schedule, you can skip all lecs. till <strong>${formatShortDate(skipInfo.fullUntilDate)}</strong>`;
+    if (skipInfo.partialDate && skipInfo.partialCount > 0) {
+      skipDetailHtml += ` and <strong>${skipInfo.partialCount}</strong> lecture${skipInfo.partialCount > 1 ? 's' : ''} on <strong>${formatShortDate(skipInfo.partialDate)}</strong>`;
+    }
+    skipDetailHtml += `.</span>`;
+  }
   statusHtml = `
     <div class="gemini-card-layout" style="background:#dcfce7; color:#166534; padding:16px; border-radius:12px; margin-top:12px;">
       <div>
         <strong>You are looking good 🎉</strong><br>
         You can skip the next <strong>${canBunk}</strong> lectures!
+        ${skipDetailHtml}
       </div>
       ${geminiButtonHtml()}
     </div>`;
