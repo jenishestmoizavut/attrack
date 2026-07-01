@@ -3649,7 +3649,7 @@ function regenerateFromSchedules(fromIsoDate) {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can export your schedule to your other friends with Attrack?:)`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can click my name?:)`
         : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
     }
 
@@ -6154,32 +6154,57 @@ else {
     <div class="modal-content" style="background-color: #1e1e1e; margin: 15% auto; padding: 25px; border: 1px solid #333; width: 80%; max-width: 400px; border-radius: 8px; color: #e0e0e0; text-align: center;">
         <h2 style="color: #bb86fc; margin-top: 0;">Privacy & Transparency</h2>
         <p style="font-size: 0.95rem; margin-bottom: 20px;">Before you dive in, we want you to know exactly how your data is handled. Your tracking data is stored securely but remains visible to the administrator for debugging. We never sell your data.</p>
-        
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Privacy Policy</a>
-            <button onclick="closePrivacyPopup()" style="background-color: #bb86fc; color: #121212; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px;">Got it</button>
+
+        <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Privacy Policy</a>
+
+        <label style="display: flex; align-items: flex-start; gap: 8px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: #e0e0e0; cursor: pointer;">
+            <input type="checkbox" id="privacyAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
+            <span>I have read and agree to the Privacy Policy.</span>
+        </label>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+            <button id="privacyAgreeBtn" onclick="closePrivacyPopup()" disabled style="background-color: #555; color: #999; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: background-color 0.2s, color 0.2s;">I Agree & Continue</button>
         </div>
     </div>
 </div>
 	<script>
-		// Function to close the popup
+		// Enable/disable the agree button based on the checkbox
+(function() {
+    const checkbox = document.getElementById('privacyAgreeCheckbox');
+    const agreeBtn = document.getElementById('privacyAgreeBtn');
+    if (checkbox && agreeBtn) {
+        checkbox.addEventListener('change', () => {
+            agreeBtn.disabled = !checkbox.checked;
+            agreeBtn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
+            agreeBtn.style.backgroundColor = checkbox.checked ? '#bb86fc' : '#555';
+            agreeBtn.style.color = checkbox.checked ? '#121212' : '#999';
+        });
+    }
+})();
+
+// Function to close the popup (only fires once the user has agreed)
 function closePrivacyPopup() {
+    const checkbox = document.getElementById('privacyAgreeCheckbox');
+    if (!checkbox || !checkbox.checked) return; // guard against direct calls before agreeing
+
     document.getElementById('privacy-popup').style.display = 'none';
-    
-    // Optional: Save to localStorage so they only see this once
+
+    // Record explicit consent, with a timestamp for your records
     localStorage.setItem('hasSeenPrivacyPopup', 'true');
+    localStorage.setItem('privacyPolicyAgreed', 'true');
+    localStorage.setItem('privacyPolicyAgreedAt', new Date().toISOString());
 }
 
 // Function to show the popup
 function showPrivacyPopup() {
-    // Only show if they haven't seen it before
-    if (!localStorage.getItem('hasSeenPrivacyPopup')) {
+    // Only show if they haven't agreed before
+    if (!localStorage.getItem('privacyPolicyAgreed')) {
         document.getElementById('privacy-popup').style.display = 'block';
     }
 }
 
-// If chaining after the Gemini popup, you would call showPrivacyPopup() 
-// inside the function that closes the Gemini popup.
+// Chained after the "Plan smarter with AI" (Gemini) popup closes —
+// see closeVersionX / closeVersionBtn handlers.
 	<!-- Privacy Policy Modal -->
 </script>
 </body>
