@@ -1694,6 +1694,10 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       <div style="margin-top: 16px; font-size: 0.8rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
         Have a Class Rep magic link?
       </div>
+
+      <div class="privacy-agreement" style="font-size: 0.8rem; color: var(--text-soft); margin-top: 14px; text-align: center;">
+        By continuing, you agree to the <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a>.
+      </div>
     </div>
 
     <div id="wizardStep2" style="display:none;">
@@ -2190,6 +2194,9 @@ When you add or load lectures, they’re marked attended by default.
 </button>
 <a href="https://youtube.com/shorts/yL4Ca3PK2KM" target="_blank" class="share-btn" style="text-decoration: none;">
   ▶️ Watch Tutorial
+</a>
+<a href="privacy.html" target="_blank" class="share-btn" style="text-decoration: none;">
+  🔒 Privacy Policy
 </a>
     <span id="shareStatus"
           style="display:none; font-size:0.7rem; color:#16a34a;">
@@ -3642,7 +3649,7 @@ function regenerateFromSchedules(fromIsoDate) {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can click my name?:)`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, did you know you can export your schedule to your other friends with Attrack?:)`
         : "Welcome! Tell me your name below and we’ll keep your attendance happy and healthy. 😊";
     }
 
@@ -5375,11 +5382,15 @@ const closeVersionX = document.getElementById("closeVersionX");
 const closeVersionBtn = document.getElementById("closeVersionBtn");
 
 if(closeVersionX) {
-  closeVersionX.addEventListener("click", () => document.getElementById("versionModalBackdrop").style.display = "none");
+  closeVersionX.addEventListener("click", () => {
+    document.getElementById("versionModalBackdrop").style.display = "none";
+    showPrivacyPopup();
+  });
 }
 if(closeVersionBtn) {
   closeVersionBtn.addEventListener("click", () => {
     document.getElementById("versionModalBackdrop").style.display = "none";
+    showPrivacyPopup();
   });
 }
               // --- FEEDBACK POPUP LOGIC ---
