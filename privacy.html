@@ -98,26 +98,30 @@
     <p>Attrack is an open-source project distributed under the terms of the MIT License. While the codebase is entirely public, this privacy policy specifically governs data handled by the officially hosted instance of the application connected to our database cluster.</p>
 
     <h2>2. Data We Collect</h2>
-    <p>To power your academic dashboard and track your progress metrics, the following data points are securely transmitted and stored in our backend database:</p>
+    <p>Attrack works fully offline by default, storing your attendance records, subjects, and timetables locally on your device. You may optionally enable Google Sign-In to sync your data across devices. If you choose to do so, the following data points are securely transmitted and stored in our backend database:</p>
     <ul>
+        <li><strong>Account Identifier:</strong> The email address associated with the Google account you use to sign in. We do not receive or store your Google password.</li>
         <li><strong>Identifiable Metadata:</strong> The student name you explicitly choose to provide.</li>
         <li><strong>Academic Logs:</strong> Subjects and courses you add, specific assignments, study targets, and their corresponding completion or tracking dates.</li>
     </ul>
 
-    <h2>3. Developer Access & Visibility</h2>
-    <p>Because this application relies on a centralized cloud database to synchronize your data, please be aware that the core developer/administrator retains technical administrative visibility into the backend storage environment.</p>
-    <p>This means your student names, tracking logs, and targets are visible at the database level for active debugging, troubleshooting, infrastructure maintenance, and platform performance optimization.</p>
+    <h2>3. Analytics</h2>
+    <p>Attrack uses Firebase Analytics, a service provided by Google, to help us understand how the app is used (for example, which features are opened and how often). This data is collected in aggregate and is not used to identify you personally. You can find out more about how Google handles this data in the <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy and Security policy</a>.</p>
 
-    <h2>4. No Third-Party Sharing</h2>
-    <p>Your academic records, progress indicators, and identifiers belong to you. We do not sell, trade, rent, or distribute any data captured through this platform to third-party services, data brokers, or advertising networks.</p>
+    <h2>4. Developer Access & Visibility</h2>
+    <p>Because this application relies on a centralized cloud database (Firebase/Firestore) to synchronize data for users who enable sign-in, please be aware that the core developer/administrator retains technical administrative visibility into the backend storage environment.</p>
+    <p>This means that, for accounts using cross-device sync, your student names, tracking logs, and targets are visible at the database level for active debugging, troubleshooting, infrastructure maintenance, and platform performance optimization. Data stored only locally on your device (i.e. if you never enable sign-in) is never visible to us.</p>
 
-    <h2>5. Local Storage and Caching</h2>
+    <h2>5. No Third-Party Sharing</h2>
+    <p>Your academic records, progress indicators, and identifiers belong to you. We do not sell, trade, rent, or distribute any data captured through this platform to third-party services, data brokers, or advertising networks. Data is processed by Google/Firebase strictly as our infrastructure provider, under their own privacy and security terms.</p>
+
+    <h2>6. Local Storage and Caching</h2>
     <p>As a Progressive Web App (PWA), Attrack utilizes Service Workers and local browser storage engines to selectively cache system shell structures, manifest configurations, and native graphic assets. This caching behavior is handled strictly on your local device to ensure reliable offline usability and faster load times.</p>
 
-    <h2>6. Data Retention and Control</h2>
+    <h2>7. Data Retention and Control</h2>
     <p>Your records persist inside our database for as long as your active tracker instance is maintained. You possess the direct ability to modify, override, or clear your student parameters and academic logs at any given time using the direct application interface.</p>
 
-    <h2>7. Contact Us</h2>
+    <h2>8. Contact Us</h2>
     <p>If you have any questions about this privacy policy, your data, or would like to request that your data be deleted, please contact us at:</p>
     <p><a href="mailto:contactjenish.one@gmail.com">contactjenish.one@gmail.com</a></p>
 
