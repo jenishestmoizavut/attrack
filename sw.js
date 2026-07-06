@@ -1,24 +1,24 @@
-const CACHE_VERSION = "v2.0.0"; // Bumped version to force update
+const CACHE_VERSION = "v2.1.0"; // Bumped for the Play Store fix
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png.png",
-  "./icon-512.png.png",
+  "./icon-192.png",
+  "./icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
 ];
 
-// Force immediate activation
+// 1. Install & Cache Core Assets
 self.addEventListener("install", event => {
-  self.skipWaiting();
+  self.skipWaiting(); // Force the waiting service worker to become the active service worker
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
   );
 });
 
-// Clean up ALL old versions (v1.0.0, v1.0.2, etc.)
+// 2. Activate & Clean Up Old Caches
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -27,60 +27,40 @@ self.addEventListener("activate", event => {
       )
     )
   );
-  self.clients.claim();
+  self.clients.claim(); // Take control of all clients immediately
 });
+
+// 3. Network Fetch Intercept
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
 
-  // 🚫 1. Don't intercept OFF-origin requests (JSONBlob / CDNs / anything else)
-  if (url.origin !== self.location.origin) {
-    return; // allow browser to reach network directly
-  }
+  // Ignore off-origin, non-GET, and specific embeds
+  if (url.origin !== self.location.origin) return;
+  if (event.request.method !== "GET") return;
+  if (url.pathname.includes("/embed/")) return;
 
-  // 🚫 2. Don't cache non-GET requests (POST, PUT, DELETE)
-  if (event.request.method !== "GET") {
-    return;
-  }
-
-  // 🚫 3. Don't mess with embeds
-  if (url.pathname.includes("/embed/")) {
-    return;
-  }
-
-  // 🧭 4. Navigation requests (SPA fallback)
- if (event.request.mode === "navigate") {
-  event.respondWith(
-    (async () => {
-      try {
-        const networkRes = await fetch(event.request);
-        const clone = networkRes.clone();   // clone BEFORE consuming
-        const cache = await caches.open(CACHE_NAME);
-        cache.put("./index.html", clone);
-        return networkRes;
-      } catch {
-        return caches.match("./index.html");
-      }
-    })()
-  );
-  return;
-}
-
-  // 📦 5. Cache static same-origin GET requests
-  event.respondWith(
-    caches.match(event.request).then(res => {
-     return (
-  res ||
-  fetch(event.request).then(async networkRes => {
-    const clone = networkRes.clone();
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(event.request, clone);
-    return networkRes;
-  })
-);
-
+  // SPA Navigation Fallback (Network First, falling back to Cache)
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then(async networkRes => {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put("./index.html", networkRes.clone());
+          return networkRes;
         })
-      );
+        .catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
+  // Standard Assets (Cache First, falling back to Network)
+  event.respondWith(
+    caches.match(event.request).then(cachedRes => {
+      return cachedRes || fetch(event.request).then(async networkRes => {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, networkRes.clone());
+        return networkRes;
+      });
     })
-
-
-
+  );
+});
