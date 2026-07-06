@@ -134,6 +134,12 @@ body.dark {
 }
 
 
+/* Global box-sizing reset — padding/borders no longer add to element width,
+   which is what keeps every fixed-width element predictable on small screens */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 /* --- 2. BASE & SCROLLBAR -------------------------------------------------- */
 html, body {
   margin: 0;
@@ -1327,9 +1333,9 @@ div.popup-dot { display: none !important; }
 @media (max-width: 768px) {
   body { padding: 8px; font-size: 15.5px; line-height: 1.55; }
   h1, h2, h3 { line-height: 1.25; font-weight: 700; }
-  .app { border-radius: 12px; padding: 10px 10px 90px; }
+  .app { border-radius: 12px; padding: 16px 14px 90px; }
 
-  .header  { margin: -10px -10px 6px; padding: 10px; gap: 8px; }
+  .header  { margin: -16px -14px 6px; padding: 12px 14px; gap: 8px; }
   .title   { font-size: 1rem; }
   .badge   { display: none; }
   .summary { min-width: 0; font-size: 0.82rem; }
@@ -1338,15 +1344,15 @@ div.popup-dot { display: none !important; }
     position: sticky;
     top: 0;
     z-index: 40;
-    margin: 0 -10px 8px;
-    padding: 5px 8px 7px;
+    margin: 0 -14px 8px;
+    padding: 5px 14px 7px;
     background: var(--card-bg);
   }
   .nav-btn { min-width: 0; padding: 7px 2px; font-size: 0.74rem; }
 
   .home-grid, .grid { gap: 8px; }
 
-  .card    { padding: 10px; border-radius: 10px; }
+  .card    { padding: 12px 14px; border-radius: 10px; }
   .card h3 { font-size: 0.96rem; margin-bottom: 6px; }
 
   .btn            { font-size: 0.9rem; font-weight: 600; }
@@ -1365,8 +1371,8 @@ div.popup-dot { display: none !important; }
   /* Setup */
   .setup-stack    { gap: 8px; }
   .setup-grid     { grid-template-columns: 1fr; gap: 8px; }
-  .setup-section > summary { padding: 9px 10px; min-height: 38px; }
-  .setup-section-body      { padding: 0 10px 10px; }
+  .setup-section > summary { padding: 9px 14px; min-height: 38px; }
+  .setup-section-body      { padding: 0 14px 14px; }
   .setup-section-body.compact-tools { grid-template-columns: 1fr 1fr; }
   .setup-app-actions       { grid-template-columns: 1fr 1fr; }
   .setup-app-actions #startTourBtn { grid-column: 1 / -1; }
@@ -1378,7 +1384,7 @@ div.popup-dot { display: none !important; }
   /* Toolbar */
   .toolbar { gap: 6px; margin: 8px 0; }
   .toolbar::after { margin-top: 6px; }
-  .daily-actions .btn { flex: 1 1 calc(50% - 6px); justify-content: center; }
+  .daily-actions .btn { flex: 1 1 calc(50% - 3px); justify-content: center; }
 
   /* Onboarding */
   #onboardingWizardBackdrop { align-items: flex-end !important; padding: 10px !important; }
@@ -1397,15 +1403,22 @@ div.popup-dot { display: none !important; }
     z-index: 50;
     background: var(--card-bg);
     border-top: 1px solid var(--border);
-    padding: 8px 10px;
-    margin: 12px -10px 0;
+    padding: 8px 14px;
+    margin: 12px -14px 0;
   }
   .footer-actions {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
+    gap: 6px;
   }
-  .footer-actions .share-btn  { flex: 1 1 auto; justify-content: center; }
+  .footer-actions .share-btn  {
+    flex: 1 1 calc(50% - 3px);
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .footer-actions .version-badge { width: 100%; text-align: center; }
 
   #tutorialModal  { padding: 12px; font-size: 0.9rem; }
@@ -1427,7 +1440,7 @@ div.popup-dot { display: none !important; }
   .actions-menu-panel    { left: 0; right: auto; width: calc(100% - 18px); }
 
   /* Day View Layout Full Overrides */
-  #dayView .day-lectures .card { padding: 10px; }
+  #dayView .day-lectures .card { padding: 12px 14px; }
 
   #dayView .filter-row {
     display: grid;
