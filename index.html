@@ -1615,6 +1615,14 @@ div.popup-dot { display: none !important; }
   .subject-modal          { border-radius: 18px 18px 12px 12px; }
   .subject-modal-days     { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
+/* --- Adsterra Local Testing Container --- */
+.adsterra-banner-placeholder {
+  min-height: 50px; /* Matches 320x50 mobile leaderboard */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px 0 5px 0;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -1661,7 +1669,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       This will personalize the warnings and suggestions.
 		</p>
 		<div class="privacy-agreement" style="font-size: 0.85rem; color: #a0a0a0; margin-top: 15px; text-align: center;">
-    By continuing, you agree to the <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: underline;">Privacy Policy</a>.
+    By continuing, you agree to the <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: underline;">Privacy Policy</a> and <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: underline;">Ad Disclaimer</a>.
 </div>
     
 
@@ -1709,7 +1717,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       </div>
 
       <div class="privacy-agreement" style="font-size: 0.8rem; color: var(--text-soft); margin-top: 14px; text-align: center;">
-        By continuing, you agree to the <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a>.
+        By continuing, you agree to the <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a> and <a href="disclaimer.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Ad Disclaimer</a>.
       </div>
     </div>
 
@@ -1790,6 +1798,18 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <h3>Subject overview</h3>
           <div class="subject-stats-list" id="subjectStatsList"></div>
           <div class="hint" style="margin-top:8px;">Based on generated and manual lectures since your start date.</div>
+<div class="adsterra-banner-placeholder">
+<script>
+  atOptions = {
+    'key' : '00244a2b0b21b7020f7519a5319093fa',
+    'format' : 'iframe',
+    'height' : 50,
+    'width' : 320,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/00244a2b0b21b7020f7519a5319093fa/invoke.js"></script>
+          </div>
         </div>
       </div>
       <section style="position:absolute; left:-9999px; height:0; overflow:hidden;">
@@ -2205,8 +2225,8 @@ When you add or load lectures, they’re marked attended by default.
 <button id="feedbackBtn" class="share-btn">
   💬 Feedback
 </button>
-<a href="https://youtube.com/shorts/yL4Ca3PK2KM" target="_blank" class="share-btn" style="text-decoration: none;">
-  ▶️ Watch Tutorial
+<a href="disclaimer.html" target="_blank" class="share-btn" style="text-decoration: none;">
+  📢 Ad Disclaimer
 </a>
 <a href="privacy.html" target="_blank" class="share-btn" style="text-decoration: none;">
   🔒 Privacy Policy
