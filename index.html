@@ -1619,9 +1619,25 @@ div.popup-dot { display: none !important; }
 .adsterra-banner-placeholder {
   min-height: 50px; /* Matches 320x50 mobile leaderboard */
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   margin: 15px 0 5px 0;
+}
+.ad-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft, #8a8a8a);
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+.ad-slot {
+  min-height: 50px;
+  width: 320px;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1799,6 +1815,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <div class="subject-stats-list" id="subjectStatsList"></div>
           <div class="hint" style="margin-top:8px;">Based on generated and manual lectures since your start date.</div>
 <div class="adsterra-banner-placeholder">
+<span class="ad-label">Ad</span>
 <script>
   atOptions = {
     'key' : '00244a2b0b21b7020f7519a5319093fa',
@@ -2067,6 +2084,10 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 When you add or load lectures, they’re marked attended by default.
             “All attended” / “All absent” flips the whole day in one click.
           </div>
+          <div class="adsterra-banner-placeholder">
+            <span class="ad-label">Ad</span>
+            <div class="ad-slot" id="dayViewAdSlot"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -2117,6 +2138,11 @@ When you add or load lectures, they’re marked attended by default.
   <div class="card" style="margin-top:12px; opacity:0.8;">
     <h3>Completed ✅</h3>
     <div id="assignmentsListDone" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
+  </div>
+
+  <div class="adsterra-banner-placeholder">
+    <span class="ad-label">Ad</span>
+    <div class="ad-slot" id="assignmentsViewAdSlot"></div>
   </div>
 </div>
 
@@ -2176,6 +2202,10 @@ When you add or load lectures, they’re marked attended by default.
       <div id="studyTargetsList" style="margin-top:12px;"></div>
       <div id="studyTargetsEmpty" class="hint" style="text-align:center; padding:18px;">No study targets for today yet.</div>
     </div>
+  </div>
+  <div class="adsterra-banner-placeholder">
+    <span class="ad-label">Ad</span>
+    <div class="ad-slot" id="studyViewAdSlot"></div>
   </div>
 </div>
 <div id="studyMemeBackdrop" class="study-meme-backdrop">
@@ -4257,6 +4287,33 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
       });
     }
 
+// Loads an Adsterra banner into a container the first time it's needed.
+// Each ad runs inside its own isolated iframe (own atOptions, own document.write),
+// so multiple hidden tabs never clash or re-fire the same ad script simultaneously.
+function loadAdsterraAd(slotId, key) {
+  const slot = document.getElementById(slotId);
+  if (!slot || slot.dataset.loaded === "1") return;
+  slot.dataset.loaded = "1";
+
+  const iframe = document.createElement("iframe");
+  iframe.style.border = "none";
+  iframe.style.width = "320px";
+  iframe.style.maxWidth = "100%";
+  iframe.style.height = "50px";
+  iframe.scrolling = "no";
+  slot.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(
+    '<body style="margin:0;padding:0;overflow:hidden;">' +
+    '<script>atOptions = {"key":"' + key + '","format":"iframe","height":50,"width":320,"params":{}};<' + '/script>' +
+    '<script src="https://www.highperformanceformat.com/' + key + '/invoke.js"><' + '/script>' +
+    '</body>'
+  );
+  doc.close();
+}
+
 function switchView(viewId) {
   playUiSound("soft");
 	[homeView, dayView, timetableView, setupView, assignmentsView, studyView, wrappedView].forEach(v =>
@@ -4284,11 +4341,13 @@ if (didGenerate) {
   renderSubjectStats();
 }
 
+    loadAdsterraAd("dayViewAdSlot", "00244a2b0b21b7020f7519a5319093fa");
   }
 if (viewId === "assignmentsView") { renderAssignments();
 renderAssignmentChips();
+loadAdsterraAd("assignmentsViewAdSlot", "00244a2b0b21b7020f7519a5319093fa");
 								  }
-if (viewId === "studyView") { renderStudyTargets(); }
+if (viewId === "studyView") { renderStudyTargets(); loadAdsterraAd("studyViewAdSlot", "00244a2b0b21b7020f7519a5319093fa"); }
   localStorage.setItem(VIEW_KEY, viewId);
 }
 
@@ -6247,6 +6306,10 @@ function closePrivacyPopup() {
     localStorage.setItem('hasSeenPrivacyPopup', 'true');
     localStorage.setItem('privacyPolicyAgreed', 'true');
     localStorage.setItem('privacyPolicyAgreedAt', new Date().toISOString());
+    // Agreeing here covers the Ad Disclaimer too, so the separate
+    // re-prompt below never needs to fire for brand-new users.
+    localStorage.setItem('adDisclaimerAcknowledged', 'true');
+    localStorage.setItem('adDisclaimerAcknowledgedAt', new Date().toISOString());
 }
 
 // Function to show the popup
@@ -6255,8 +6318,55 @@ function showPrivacyPopup() {
         document.getElementById('privacy-popup').style.display = 'block';
     }
 }
-</script>
 // Chained after the "Plan smarter with AI" (Gemini) popup closes —
 // see closeVersionX / closeVersionBtn handlers.
+
+// Function to close the ad-disclaimer-only popup
+function closeAdDisclaimerPopup() {
+    const popup = document.getElementById('ad-disclaimer-popup');
+    if (popup) popup.style.display = 'none';
+    localStorage.setItem('adDisclaimerAcknowledged', 'true');
+    localStorage.setItem('adDisclaimerAcknowledgedAt', new Date().toISOString());
+}
+
+// Shows the ad-disclaimer-only popup, but ONLY for existing users who already
+// agreed to the Privacy Policy previously and never saw an Ad Disclaimer.
+// Brand-new users go through the combined checkbox popup above instead, so
+// this never double-prompts them.
+function showAdDisclaimerPopupIfNeeded() {
+    const mainPopup = document.getElementById('privacy-popup');
+    const mainPopupVisible = mainPopup && mainPopup.style.display === 'block';
+    if (mainPopupVisible) return; // combined popup already covers it
+
+    if (localStorage.getItem('privacyPolicyAgreed') && !localStorage.getItem('adDisclaimerAcknowledged')) {
+        const popup = document.getElementById('ad-disclaimer-popup');
+        if (popup) popup.style.display = 'block';
+    }
+}
+
+// Safety-net trigger on load: the combined popup is normally chained after the
+// "Plan smarter with AI" modal closes, but that modal only shows once ever —
+// so returning users who already dismissed it would never re-trigger either
+// popup. This runs shortly after load and shows whichever popup is still owed.
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        showPrivacyPopup();
+        showAdDisclaimerPopupIfNeeded();
+    }, 600);
+});
+</script>
+
+<div id="ad-disclaimer-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+    <div class="modal-content" style="background-color: #1e1e1e; margin: 15% auto; padding: 25px; border: 1px solid #333; width: 80%; max-width: 400px; border-radius: 8px; color: #e0e0e0; text-align: center;">
+        <h2 style="color: #bb86fc; margin-top: 0;">📢 Ad Disclaimer</h2>
+        <p style="font-size: 0.95rem; margin-bottom: 20px;">Attrack now shows a small number of ads to help keep the app free. Ads are clearly labeled and served by a third-party network, which may use cookies to personalize them. This doesn't change how your attendance data is handled.</p>
+
+        <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Ad Disclaimer</a>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+            <button id="adDisclaimerAgreeBtn" onclick="closeAdDisclaimerPopup()" style="background-color: #bb86fc; color: #121212; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer;">Got it</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
