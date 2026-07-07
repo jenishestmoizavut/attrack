@@ -4950,7 +4950,7 @@ if (openGeminiBtn) {
 
          btn.className = "wizard-day-btn";
          btn.style.cssText = `flex:1; text-align:center; padding:7px 0; border-radius:10px; border:1px solid ${border}; background:${bg}; color:${color}; font-weight:700; cursor:pointer; user-select:none; transition:all 0.15s;`;
-         const fullDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+         const fullDays = ["Sun","Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
          btn.innerHTML = `<strong>${fullDays[i]}</strong><span>${count === 0 ? "Off" : count + " lec"}</span>`;
 
          // Tap to increment (max 4 lectures per day)
