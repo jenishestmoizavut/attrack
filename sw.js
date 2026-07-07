@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.1.0"; // Bumped for the Play Store fix
+const CACHE_VERSION = "v2.1.1"; // Bumped for the Play Store fix
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
