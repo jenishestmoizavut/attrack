@@ -6189,18 +6189,20 @@ else {
         <p style="font-size: 0.95rem; margin-bottom: 20px;">Before you dive in, we want you to know exactly how your data is handled. Your tracking data is stored securely but remains visible to the administrator for debugging. We never sell your data.</p>
 
         <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Privacy Policy</a>
-<br>
+        <br>
         <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Disclaimer</a>
 
-        <label style="display: flex; align-items: flex-start; gap: 8px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: #e0e0e0; cursor: pointer;">
-            <input type="checkbox" id="privacyAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
-            <span>I have read and agree to the Privacy Policy.</span></label><br>
-		        <label style="display: flex; align-items: flex-start; gap: 8px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: #e0e0e0; cursor: pointer;">
-
-			<input type="checkbox" id="privacyAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
-            <span>I have read the Disclaimer.</span>
-
-        </label>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: #e0e0e0;">
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="privacyAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
+                <span>I have read and agree to the Privacy Policy.</span>
+            </label>
+            
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="disclaimerAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
+                <span>I have read the Disclaimer.</span>
+            </label>
+        </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
             <button id="privacyAgreeBtn" onclick="closePrivacyPopup()" disabled style="background-color: #555; color: #999; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: background-color 0.2s, color 0.2s;">I Agree & Continue</button>
@@ -6208,28 +6210,40 @@ else {
     </div>
 </div>
 	<script>
-		// Enable/disable the agree button based on the checkbox
+// Enable/disable the agree button based on BOTH checkboxes
 (function() {
-    const checkbox = document.getElementById('privacyAgreeCheckbox');
+    const privacyCheckbox = document.getElementById('privacyAgreeCheckbox');
+    const disclaimerCheckbox = document.getElementById('disclaimerAgreeCheckbox');
     const agreeBtn = document.getElementById('privacyAgreeBtn');
-    if (checkbox && agreeBtn) {
-        checkbox.addEventListener('change', () => {
-            agreeBtn.disabled = !checkbox.checked;
-            agreeBtn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
-            agreeBtn.style.backgroundColor = checkbox.checked ? '#bb86fc' : '#555';
-            agreeBtn.style.color = checkbox.checked ? '#121212' : '#999';
-        });
+    
+    function updateButtonState() {
+        if (!privacyCheckbox || !disclaimerCheckbox || !agreeBtn) return;
+        
+        // Button unlocks ONLY if both targets are checked
+        const bothChecked = privacyCheckbox.checked && disclaimerCheckbox.checked;
+        
+        agreeBtn.disabled = !bothChecked;
+        agreeBtn.style.cursor = bothChecked ? 'pointer' : 'not-allowed';
+        agreeBtn.style.backgroundColor = bothChecked ? '#bb86fc' : '#555';
+        agreeBtn.style.color = bothChecked ? '#121212' : '#999';
+    }
+
+    if (privacyCheckbox && disclaimerCheckbox) {
+        privacyCheckbox.addEventListener('change', updateButtonState);
+        disclaimerCheckbox.addEventListener('change', updateButtonState);
     }
 })();
 
-// Function to close the popup (only fires once the user has agreed)
+// Function to close the popup (only fires once the user has checked both parameters)
 function closePrivacyPopup() {
-    const checkbox = document.getElementById('privacyAgreeCheckbox');
-    if (!checkbox || !checkbox.checked) return; // guard against direct calls before agreeing
+    const privacyCheckbox = document.getElementById('privacyAgreeCheckbox');
+    const disclaimerCheckbox = document.getElementById('disclaimerAgreeCheckbox');
+    
+    if (!privacyCheckbox || !disclaimerCheckbox || !privacyCheckbox.checked || !disclaimerCheckbox.checked) return; 
 
     document.getElementById('privacy-popup').style.display = 'none';
 
-    // Record explicit consent, with a timestamp for your records
+    // Record explicit consent
     localStorage.setItem('hasSeenPrivacyPopup', 'true');
     localStorage.setItem('privacyPolicyAgreed', 'true');
     localStorage.setItem('privacyPolicyAgreedAt', new Date().toISOString());
@@ -6237,15 +6251,12 @@ function closePrivacyPopup() {
 
 // Function to show the popup
 function showPrivacyPopup() {
-    // Only show if they haven't agreed before
     if (!localStorage.getItem('privacyPolicyAgreed')) {
         document.getElementById('privacy-popup').style.display = 'block';
     }
 }
-
+</script>
 // Chained after the "Plan smarter with AI" (Gemini) popup closes —
 // see closeVersionX / closeVersionBtn handlers.
-	<!-- Privacy Policy Modal -->
-</script>
 </body>
 </html>
