@@ -1817,16 +1817,22 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 <div class="ads-banner-placeholder">
 <span class="ad-label">Ad</span>
 <script>
-  atOptions = {
-    'key' : '00244a2b0b21b7020f7519a5319093fa',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
+  if (typeof atAsyncOptions !== 'object') var atAsyncOptions = [];
+  atAsyncOptions.push({
+    key: '00244a2b0b21b7020f7519a5319093fa',
+    format: 'js',
+    async: true,
+    container: 'atContainer-home-banner',
+    params: {},
+  });
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.async = true;
+  script.src = 'https://www.highperformanceformat.com/00244a2b0b21b7020f7519a5319093fa/invoke.js';
+  document.getElementsByTagName('head')[0].appendChild(script);
 </script>
-<script src="https://www.highperformanceformat.com/00244a2b0b21b7020f7519a5319093fa/invoke.js"></script>
-          </div>
+<div id="atContainer-home-banner"></div>
+          </div>          </div>
         </div>
       </div>
       <section style="position:absolute; left:-9999px; height:0; overflow:hidden;">
@@ -4304,16 +4310,23 @@ function loadadsAd(slotId, key) {
   slot.appendChild(iframe);
 
   const doc = iframe.contentWindow.document;
+  const containerId = "atContainer-" + slotId;
   doc.open();
   doc.write(
     '<body style="margin:0;padding:0;overflow:hidden;">' +
-    '<script>atOptions = {"key":"' + key + '","format":"iframe","height":50,"width":320,"params":{}};<' + '/script>' +
-    '<script src="https://www.highperformanceformat.com/' + key + '/invoke.js"><' + '/script>' +
+    '<div id="' + containerId + '"></div>' +
+    '<script>' +
+    'var atAsyncOptions = [];' +
+    'atAsyncOptions.push({"key":"' + key + '","format":"js","async":true,"container":"' + containerId + '","params":{}});' +
+    'var s = document.createElement("script");' +
+    's.type = "text/javascript"; s.async = true;' +
+    's.src = "https://www.highperformanceformat.com/' + key + '/invoke.js";' +
+    'document.getElementsByTagName("head")[0].appendChild(s);' +
+    '<' + '/script>' +
     '</body>'
   );
   doc.close();
 }
-
 function switchView(viewId) {
   playUiSound("soft");
 	[homeView, dayView, timetableView, setupView, assignmentsView, studyView, wrappedView].forEach(v =>
