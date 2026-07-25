@@ -45,6 +45,7 @@
   <link rel="icon" type="image/png" href="./icon-192.png" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
   <link rel="manifest" href="manifest.json" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
@@ -404,6 +405,18 @@ select:focus,
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn.small    { padding: 4px 7px; font-size: 0.75rem; }
 
+.btn.share-hero-btn {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 3px 14px rgba(79, 70, 229, 0.4);
+}
+.btn.share-hero-btn:hover {
+  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.5);
+}
+body.dark .btn.share-hero-btn { box-shadow: 0 3px 14px rgba(99, 102, 241, 0.45); }
+body.dark .btn.share-hero-btn:hover { box-shadow: 0 4px 18px rgba(99, 102, 241, 0.55); }
+
 .btn.secondary              { background: #e5e7eb; color: #111827; }
 .btn.secondary:hover        { background: #d1d5db; }
 body.dark .btn.secondary    { background: #111827; color: #e5e7eb; }
@@ -430,6 +443,7 @@ body.dark .btn.secondary:hover { background: #1f2937; }
 
 .share-btn:hover  { background: var(--accent-soft); color: var(--accent); }
 .share-btn:active { transform: translateY(1px) scale(0.99); }
+
 
 
 /* --- 6. LISTS & STATS ----------------------------------------------------- */
@@ -1979,6 +1993,15 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       </details>
 
       <details class="card setup-section">
+        <summary>Notifications</summary>
+        <div class="setup-section-body">
+          <div class="hint" style="margin-bottom:8px;">Get a push alert when a missed class would drop you below your target — even if the app is closed. Requires sign-in (Sync).</div>
+          <button id="enableNotifsBtn" class="btn" type="button" style="width:100%; justify-content:center;">🔔 Enable notifications</button>
+          <div id="notifStatus" class="hint" style="margin-top:6px;"></div>
+        </div>
+      </details>
+
+      <details class="card setup-section">
         <summary>Subjects</summary>
         <div class="setup-section-body">
           <div class="subjects-list" id="subjectsList"></div>
@@ -2015,16 +2038,32 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       <details class="card setup-section is-wide">
         <summary>Share, import & reminders</summary>
         <div class="setup-section-body compact-tools">
-          <button id="shareLinkBtn" class="btn small" style="background:var(--accent);">Share schedule</button>
-          <button id="triggerImportBtn" class="btn small secondary">Import file</button>
-          <button id="downloadIcsBtn" class="btn small secondary">Calendar reminder</button>
-          <button id="openGcalBtn" class="btn small secondary">Google Calendar</button>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button id="shareLinkBtn" class="btn share-hero-btn" type="button" style="flex:1; justify-content:center;">🔗 Share Schedule Link</button>
+            <button id="shareQrBtn" class="btn secondary" type="button" title="Show as QR code" style="flex:0 0 auto; padding:10px 14px;">📱</button>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="triggerImportBtn" class="btn small secondary" style="flex:1;">Import file</button>
+            <button id="downloadIcsBtn" class="btn small secondary" style="flex:1;">Calendar reminder</button>
+            <button id="openGcalBtn" class="btn small secondary" style="flex:1;">Google Calendar</button>
+          </div>
           <input type="file" id="importScheduleInput" accept=".json" style="display:none" />
           <div id="shareLinkStatus" class="hint" style="margin-top:2px; display:none; color:#166534; font-weight:bold;"></div>
-          <div class="hint">Class reps can share schedules. Students can import them. Reminders create an 8:00 PM daily calendar event.</div>
+          <div class="hint">Class reps can share schedules. Students can import them, or scan the QR code. Reminders create an 8:00 PM daily calendar event.</div>
         </div>
       </details>
     </div>
+  </div>
+</div>
+
+<div id="qrModalBackdrop" class="gemini-modal-backdrop" aria-hidden="true">
+  <div class="gemini-modal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle" style="max-width:360px; text-align:center;">
+    <div class="gemini-modal-head" style="justify-content:center; position:relative;">
+      <h3 id="qrModalTitle" style="margin:0;">Scan to import schedule</h3>
+      <button id="closeQrModalBtn" class="btn small secondary" type="button" aria-label="Close QR code" style="position:absolute; right:0; top:0;">Close</button>
+    </div>
+    <div id="qrCodeContainer" style="display:flex; justify-content:center; padding:12px; background:#fff; border-radius:12px; margin:0 auto; width:fit-content;"></div>
+    <div class="hint" style="margin-top:10px;">Point a phone camera at this — it opens the import link directly.</div>
   </div>
 </div>
     <div id="dayView" class="view">
@@ -3080,7 +3119,12 @@ function openGoogleCalendar() {
 
     await navigator.clipboard.writeText(magicLink);
 
+    window.__attrackLastShareLink = magicLink;
+    const qrBtn = document.getElementById("shareQrBtn");
+    if (qrBtn) qrBtn.disabled = false;
+
     btn.textContent = "Copied!";
+    btn.disabled = false;
     setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
 
   } catch (e) {
@@ -3255,6 +3299,7 @@ if (saveTargetBtn) {
     if (val > 100) val = 100;
     // store decimal like "0.75"
     localStorage.setItem(TARGET_KEY, (val / 100).toString());
+    if (window.syncNotifPrefsToFirebase) window.syncNotifPrefsToFirebase(val / 100);
     document.getElementById("targetSetupBackdrop").style.display = "none";
     // Optional: re-render summary so new target affects messages
     renderSummary();
@@ -4875,6 +4920,37 @@ if (openGeminiBtn) {
     const shareLinkBtn = document.getElementById("shareLinkBtn");
     if (shareLinkBtn) shareLinkBtn.addEventListener("click", shareScheduleViaLink);
 
+    const enableNotifsBtn = document.getElementById("enableNotifsBtn");
+    if (enableNotifsBtn) enableNotifsBtn.addEventListener("click", () => window.enableNotifications && window.enableNotifications());
+
+    // --- Share-schedule QR code ---
+    const shareQrBtn = document.getElementById("shareQrBtn");
+    const qrModalBackdrop = document.getElementById("qrModalBackdrop");
+    const qrCodeContainer = document.getElementById("qrCodeContainer");
+    const closeQrModalBtn = document.getElementById("closeQrModalBtn");
+
+    async function showScheduleQr() {
+      if (!window.__attrackLastShareLink) {
+        await shareScheduleViaLink();
+        if (!window.__attrackLastShareLink) return; // share failed; error already shown on the button
+      }
+      qrCodeContainer.innerHTML = "";
+      // eslint-disable-next-line no-undef
+      new QRCode(qrCodeContainer, {
+        text: window.__attrackLastShareLink,
+        width: 220,
+        height: 220,
+        colorDark: "#000000",
+        colorLight: "#ffffff"
+      });
+      qrModalBackdrop.style.display = "flex";
+    }
+    if (shareQrBtn) shareQrBtn.addEventListener("click", showScheduleQr);
+    if (closeQrModalBtn) closeQrModalBtn.addEventListener("click", () => qrModalBackdrop.style.display = "none");
+    if (qrModalBackdrop) qrModalBackdrop.addEventListener("click", (e) => {
+      if (e.target === qrModalBackdrop) qrModalBackdrop.style.display = "none";
+    });
+
     // --- SEMESTER WRAPPED LOGIC (MOVED HERE!) ---
     const generateWrappedBtn = document.getElementById("generateWrappedBtn");
     const wrapExportBtn = document.getElementById("wrapExportBtn");
@@ -6218,6 +6294,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
         import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 		import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+        import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
   authDomain: "attrack-sync.firebaseapp.com",
@@ -6259,6 +6336,90 @@ const firebaseConfig = {
                     window.suppressNextCloudEcho = false;
                     console.error("Cloud sync failed:", error);
                   });
+            }
+        };
+
+        // ---------------------------------------------------------
+        // PUSH NOTIFICATIONS (Firebase Cloud Messaging)
+        // ---------------------------------------------------------
+        // Get your VAPID key from Firebase Console -> Project Settings ->
+        // Cloud Messaging -> Web Push certificates -> "Key pair". Paste it below.
+        const FCM_VAPID_KEY = "BFHxbuPH8lA0VjOmKJM8MJJiu9DgWUYmKWRKm7n5479Se5MrBzQRHW_2rOI0YL5DKN-BqskCoSKVoFrDDsnPaRs";
+
+        // Keeps the notify-worker's copy of the attendance target in sync.
+        window.syncNotifPrefsToFirebase = (targetDecimal) => {
+            if (!auth.currentUser) return;
+            setDoc(doc(db, "users", auth.currentUser.uid), {
+                notifPrefs: { target: targetDecimal }
+            }, { merge: true }).catch(err => console.warn("Notif prefs sync skipped:", err));
+        };
+
+        window.enableNotifications = async () => {
+            const statusEl = document.getElementById("notifStatus");
+            const btn = document.getElementById("enableNotifsBtn");
+            const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
+
+            if (!auth.currentUser) {
+                setStatus("Sign in first (tap Sync above), then enable notifications.");
+                return;
+            }
+            if (FCM_VAPID_KEY === "PASTE_YOUR_VAPID_KEY_HERE") {
+                setStatus("Notifications aren't configured yet — missing VAPID key.");
+                return;
+            }
+            const supported = await isMessagingSupported().catch(() => false);
+            if (!supported) {
+                setStatus("Push isn't supported in this browser.");
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                setStatus("Requesting permission...");
+                const permission = await Notification.requestPermission();
+                if (permission !== "granted") {
+                    setStatus("Permission denied. You can re-enable this in your browser's site settings.");
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Reuse the app's existing service worker (sw.js) rather than
+                // registering a second one — two SWs can't both control the
+                // same scope, and firebase-messaging-sw's job is merged into
+                // sw.js itself (see sw.js: importScripts + onBackgroundMessage).
+                const registration = await navigator.serviceWorker.register("./sw.js");
+                await navigator.serviceWorker.ready;
+                const messaging = getMessaging(app);
+                const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: registration });
+
+                if (!token) {
+                    setStatus("Couldn't get a notification token. Try again.");
+                    btn.disabled = false;
+                    return;
+                }
+
+                const targetDecimal = parseFloat(localStorage.getItem("attrack_target_attendance")) || 0.75;
+                await setDoc(doc(db, "users", auth.currentUser.uid), {
+                    fcmToken: token,
+                    notifPrefs: { attendanceAlert: true, target: targetDecimal }
+                }, { merge: true });
+
+                setStatus("✅ Notifications enabled.");
+                btn.textContent = "🔔 Notifications on";
+                btn.disabled = true;
+
+                // Foreground messages (app open) — background ones are handled by sw.js.
+                onMessage(messaging, (payload) => {
+                    const title = payload.notification?.title || "Attrack";
+                    const body = payload.notification?.body || "";
+                    if (Notification.permission === "granted") {
+                        new Notification(title, { body, icon: "./icon-192.png" });
+                    }
+                });
+            } catch (error) {
+                console.error("Notification setup failed:", error);
+                setStatus("Something went wrong enabling notifications. Try again.");
+                btn.disabled = false;
             }
         };
 
