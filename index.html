@@ -1218,11 +1218,13 @@ div.popup-dot { display: none !important; }
 }
 
 .study-target-row.is-done { opacity: 0.68; }
+.study-target-row.just-completed { animation: completionGlow 0.7s ease-out both; }
 .study-target-title       { font-weight: 700; font-size: 0.92rem; }
 .study-target-meta        { color: var(--muted); font-size: 0.76rem; margin-top: 3px; }
 
 .study-progress      { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 10px; }
-.study-progress-fill { height: 100%; width: 0; border-radius: 999px; background: #16a34a; transition: width 0.2s ease; }
+.study-progress-fill { height: 100%; width: 0; border-radius: 999px; background: #16a34a; transition: width 0.35s cubic-bezier(.2,.8,.2,1); }
+.study-progress-fill.just-completed { animation: progressCelebrate 0.7s ease-out; }
 
 .study-meme-backdrop {
   position: fixed;
@@ -1253,6 +1255,23 @@ div.popup-dot { display: none !important; }
   background: var(--accent-soft);
   color: var(--text);
   margin: 10px 0 14px;
+}
+
+.meme-voting { display:flex; gap:8px; align-items:center; margin:0 0 12px; }
+.meme-vote-btn { min-width:74px; justify-content:center; }
+.meme-vote-btn.is-selected { box-shadow: 0 0 0 3px rgba(79,70,229,.18); }
+.meme-submission { border-top:1px solid var(--border); margin-top:12px; padding-top:12px; }
+.meme-submission summary { cursor:pointer; color:var(--accent); font-size:.84rem; font-weight:600; }
+
+@keyframes completionGlow {
+  0% { transform:scale(1); box-shadow:0 0 0 rgba(22,163,74,0); }
+  45% { transform:scale(1.012); box-shadow:0 8px 22px rgba(22,163,74,.20); }
+  100% { transform:scale(1); box-shadow:0 0 0 rgba(22,163,74,0); }
+}
+@keyframes progressCelebrate { 50% { filter:brightness(1.25); transform:scaleY(1.35); } }
+@media (prefers-reduced-motion: reduce) {
+  .study-target-row.just-completed, .study-progress-fill.just-completed { animation:none; }
+  .study-progress-fill { transition:none; }
 }
 
 .sound-state { font-weight: 700; color: var(--accent); }
@@ -2218,6 +2237,18 @@ When you add or load lectures, they’re marked attended by default.
   <div class="study-meme-card" role="dialog" aria-modal="true" aria-labelledby="studyMemeTitle">
     <h3 id="studyMemeTitle">All targets complete</h3>
     <div class="study-meme-text" id="studyMemeText"></div>
+    <div class="meme-voting" aria-label="Rate this meme">
+      <button id="memeLikeBtn" class="btn small secondary meme-vote-btn" type="button">👍 <span id="memeLikeCount">0</span></button>
+      <button id="memeDislikeBtn" class="btn small secondary meme-vote-btn" type="button">👎 <span id="memeDislikeCount">0</span></button>
+      <span id="memeVoteHint" class="hint" style="margin:0;">Loading votes…</span>
+    </div>
+    <details class="meme-submission">
+      <summary>Submit your own meme for review</summary>
+      <div class="field" style="margin-top:10px;"><label for="memeSubmissionUrl">Image URL</label><input id="memeSubmissionUrl" type="text" inputmode="url" placeholder="https://…" /></div>
+      <div class="field"><label for="memeSubmissionCaption">Caption (optional)</label><input id="memeSubmissionCaption" type="text" maxlength="160" placeholder="What makes it funny?" /></div>
+      <button id="submitMemeBtn" class="btn small" type="button">Send for review</button>
+      <div id="memeSubmissionStatus" class="hint" aria-live="polite"></div>
+    </details>
     <button id="closeStudyMemeBtn" class="btn small" type="button" style="width:100%; justify-content:center;">Blessed. Continue.</button>
   </div>
 </div>
@@ -2408,6 +2439,7 @@ let applyingRemoteState = false;
 window.suppressNextCloudEcho = false;
 let pendingCloudState = null;
 let ignoredCloudRevisionKey = "";
+const recentlyCompletedStudyIds = new Set();
 const STUDY_MEMES = [
   "You completed the target. Somewhere, a quadratic equation just found both roots.",
   "Math meme blessing: your focus was so sharp even a tangent line got jealous.",
@@ -3548,6 +3580,12 @@ const showAllStudyTargetsBtn = document.getElementById("showAllStudyTargetsBtn")
 const studyMemeBackdrop = document.getElementById("studyMemeBackdrop");
 const studyMemeText = document.getElementById("studyMemeText");
 const closeStudyMemeBtn = document.getElementById("closeStudyMemeBtn");
+const memeLikeBtn = document.getElementById("memeLikeBtn");
+const memeDislikeBtn = document.getElementById("memeDislikeBtn");
+const submitMemeBtn = document.getElementById("submitMemeBtn");
+const memeSubmissionUrl = document.getElementById("memeSubmissionUrl");
+const memeSubmissionCaption = document.getElementById("memeSubmissionCaption");
+const memeSubmissionStatus = document.getElementById("memeSubmissionStatus");
 let showAllStudyTargets = false;
     const subjectsListEl = document.getElementById("subjectsList");
 if (changeTargetBtn) {
@@ -3797,6 +3835,7 @@ async function fetchDailyMeme() {
   const imageUrl = "memes/" + selectedFile;
 
   return { 
+    id: "daily-" + selectedFile,
     title: "Well done. Here's your reward: ", 
     url: imageUrl 
   };
@@ -3818,6 +3857,7 @@ async function showStudyMeme() {
   } else {
     studyMemeText.textContent = meme.text;
   }
+  if (window.loadMemeRating) window.loadMemeRating(meme.id || "daily-text");
 }
 
 function addStudyTarget() {
@@ -3884,7 +3924,7 @@ function renderStudyTargets() {
     if (target.completedAt) completedCount++;
 
     const row = document.createElement("div");
-    row.className = "study-target-row" + (target.completedAt ? " is-done" : "");
+    row.className = "study-target-row" + (target.completedAt ? " is-done" : "") + (recentlyCompletedStudyIds.has(target.id) ? " just-completed" : "");
 
     // Title and Meta Info
     const info = document.createElement("div");
@@ -3914,9 +3954,11 @@ function renderStudyTargets() {
     cb.style.cursor = "pointer";
 
  cb.addEventListener("change", () => {
+      let wasIncomplete = false;
       if (cb.checked) {
-        const wasIncomplete = !target.completedAt;
+        wasIncomplete = !target.completedAt;
         target.completedAt = new Date().toISOString();
+        if (wasIncomplete) recentlyCompletedStudyIds.add(target.id);
         
         // 1. Get all targets for today
         const todayIso = toISODate(new Date());
@@ -3934,6 +3976,7 @@ function renderStudyTargets() {
       }
       saveState();
       renderStudyTargets();
+      if (wasIncomplete) setTimeout(() => { recentlyCompletedStudyIds.delete(target.id); renderStudyTargets(); }, 720);
     });
     const delBtn = document.createElement("button");
     delBtn.className = "btn small danger";
@@ -3958,6 +4001,7 @@ function renderStudyTargets() {
   studyProgressText.textContent = `${completedCount} of ${targets.length} complete`;
   const pct = targets.length > 0 ? (completedCount / targets.length) * 100 : 0;
   studyProgressFill.style.width = pct + "%";
+  studyProgressFill.classList.toggle("just-completed", targets.length > 0 && completedCount === targets.length);
 }
 function renderAssignmentChips() {
   const container = document.getElementById("assSubjectChips");
@@ -4721,6 +4765,23 @@ if (closeStudyMemeBtn) {
     studyMemeBackdrop.style.display = "none";
   });
 }
+if (memeLikeBtn) memeLikeBtn.addEventListener("click", () => window.voteForMeme?.("like"));
+if (memeDislikeBtn) memeDislikeBtn.addEventListener("click", () => window.voteForMeme?.("dislike"));
+if (submitMemeBtn) submitMemeBtn.addEventListener("click", async () => {
+  const url = memeSubmissionUrl.value.trim();
+  const caption = memeSubmissionCaption.value.trim();
+  if (!url) { memeSubmissionStatus.textContent = "Add an image URL first."; return; }
+  submitMemeBtn.disabled = true;
+  memeSubmissionStatus.textContent = "Sending…";
+  try {
+    await window.submitMemeForReview?.(url, caption);
+    memeSubmissionUrl.value = "";
+    memeSubmissionCaption.value = "";
+    memeSubmissionStatus.textContent = "Submitted for review — thank you!";
+  } catch (error) {
+    memeSubmissionStatus.textContent = error.message || "Could not submit this meme.";
+  } finally { submitMemeBtn.disabled = false; }
+});
 if (studyMemeBackdrop) {
   studyMemeBackdrop.addEventListener("click", event => {
     if (event.target === studyMemeBackdrop) studyMemeBackdrop.style.display = "none";
@@ -5178,7 +5239,14 @@ function renderAssignments() {
     cb.style.cursor = "pointer";
     cb.addEventListener("change", () => {
       ass.completed = cb.checked;
-      saveState(); renderAssignments();
+      if (cb.checked) {
+        row.classList.remove("just-completed");
+        void row.offsetWidth;
+        row.classList.add("just-completed");
+      }
+      saveState();
+      // Let the small completion glow finish before the task moves to Completed.
+      setTimeout(renderAssignments, cb.checked ? 350 : 0);
     });
 
     // Info Text
@@ -6147,7 +6215,7 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
 </div>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 		import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
 const firebaseConfig = {
@@ -6192,6 +6260,56 @@ const firebaseConfig = {
                     console.error("Cloud sync failed:", error);
                   });
             }
+        };
+
+        // Community meme data is deliberately separate from a student's private app backup.
+        // Submissions stay in Firebase Console for review until you choose to publish them.
+        let activeMemeUnsubscribe = null;
+        let activeMemeId = "";
+        let activeMemeVote = "";
+        const setMemeVoteUi = (rating = {}, vote = "") => {
+            document.getElementById("memeLikeCount").textContent = rating.likes || 0;
+            document.getElementById("memeDislikeCount").textContent = rating.dislikes || 0;
+            document.getElementById("memeLikeBtn").classList.toggle("is-selected", vote === "like");
+            document.getElementById("memeDislikeBtn").classList.toggle("is-selected", vote === "dislike");
+            document.getElementById("memeVoteHint").textContent = auth.currentUser ? "Your vote is saved." : "Sign in to vote.";
+        };
+        window.loadMemeRating = (memeId) => {
+            activeMemeId = memeId;
+            if (activeMemeUnsubscribe) activeMemeUnsubscribe();
+            activeMemeUnsubscribe = onSnapshot(doc(db, "memeRatings", memeId), snap => {
+                const rating = snap.exists() ? snap.data() : {};
+                activeMemeVote = rating.voters?.[auth.currentUser?.uid] || "";
+                setMemeVoteUi(rating, activeMemeVote);
+            }, () => { document.getElementById("memeVoteHint").textContent = "Votes are unavailable right now."; });
+        };
+        window.voteForMeme = async (vote) => {
+            if (!auth.currentUser) return alert("Please sign in with Google first to vote.");
+            if (!activeMemeId || activeMemeVote === vote) return;
+            const ratingRef = doc(db, "memeRatings", activeMemeId);
+            try {
+                await runTransaction(db, async transaction => {
+                    const snap = await transaction.get(ratingRef);
+                    const rating = snap.exists() ? snap.data() : { likes: 0, dislikes: 0, voters: {} };
+                    const previous = rating.voters?.[auth.currentUser.uid] || "";
+                    const next = { ...(rating.voters || {}), [auth.currentUser.uid]: vote };
+                    transaction.set(ratingRef, {
+                        likes: Math.max(0, (rating.likes || 0) + (vote === "like" ? 1 : 0) - (previous === "like" ? 1 : 0)),
+                        dislikes: Math.max(0, (rating.dislikes || 0) + (vote === "dislike" ? 1 : 0) - (previous === "dislike" ? 1 : 0)),
+                        voters: next
+                    }, { merge: true });
+                });
+            } catch (error) { console.error("Meme vote failed:", error); alert("Your vote could not be saved. Please try again."); }
+        };
+        window.submitMemeForReview = async (url, caption) => {
+            if (!auth.currentUser) return alert("Please sign in with Google before submitting a meme.");
+            const parsed = new URL(url);
+            if (!/^https?:$/.test(parsed.protocol)) throw new Error("Use a full http(s) image URL.");
+            await addDoc(collection(db, "memeSubmissions"), {
+                imageUrl: parsed.href, caption: caption.slice(0, 160), status: "pending",
+                submittedBy: auth.currentUser.uid, submittedByEmail: auth.currentUser.email || "",
+                submittedAt: serverTimestamp()
+            });
         };
         // Monitor Login State & Listen for Real-Time Changes
         onAuthStateChanged(auth, (user) => {
