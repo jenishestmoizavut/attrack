@@ -1998,9 +1998,15 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <div class="hint" style="margin-bottom:8px;">Get a push alert when a missed class would drop you below your target — even if the app is closed. Requires sign-in (Sync).</div>
           <button id="enableNotifsBtn" class="btn" type="button" style="width:100%; justify-content:center;">🔔 Enable notifications</button>
           <div id="notifStatus" class="hint" style="margin-top:6px;"></div>
+
+          <div style="display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border, #e5e5e5);">
+            <input type="checkbox" id="dailyReminderToggle" onchange="handleDailyReminderToggle(this.checked)" style="width:18px; height:18px;">
+            <label for="dailyReminderToggle" style="cursor:pointer; flex:1;">Remind me if I haven't marked today's lectures</label>
+          </div>
+          <div class="hint" style="margin-top:4px;">Only fires on days your timetable has a lecture, and skips days marked as a holiday.</div>
+          <script>document.getElementById("dailyReminderToggle").checked = localStorage.getItem("attrack_daily_reminder") === "1";</script>
         </div>
       </details>
-
       <details class="card setup-section">
         <summary>Subjects</summary>
         <div class="setup-section-body">
@@ -6353,7 +6359,21 @@ const firebaseConfig = {
                 notifPrefs: { target: targetDecimal }
             }, { merge: true }).catch(err => console.warn("Notif prefs sync skipped:", err));
         };
-
+		
+// Daily 7pm "mark today's attendance" reminder — piggybacks on the
+        // same fcmToken from enableNotifications() below, just a second flag.
+        window.handleDailyReminderToggle = (enabled) => {
+            if (enabled && Notification.permission !== "granted") {
+                alert('Tap "Enable notifications" above first, then turn this on.');
+                document.getElementById("dailyReminderToggle").checked = false;
+                return;
+            }
+            localStorage.setItem("attrack_daily_reminder", enabled ? "1" : "0");
+            if (!auth.currentUser) return;
+            setDoc(doc(db, "users", auth.currentUser.uid), {
+                notifPrefs: { dailyReminder: enabled }
+            }, { merge: true }).catch(err => console.warn("Daily reminder sync skipped:", err));
+        };	 
         window.enableNotifications = async () => {
             const statusEl = document.getElementById("notifStatus");
             const btn = document.getElementById("enableNotifsBtn");

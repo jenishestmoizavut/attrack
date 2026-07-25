@@ -1,0 +1,12 @@
+name = "attrack-notify-worker"
+main = "notify-worker.js"
+compatibility_date = "2026-07-25"
+
+[triggers]
+# "0 * * * *"   -> attendance-safety-margin check, runs hourly
+# "30 13 * * *" -> new daily reminder, 13:30 UTC = 19:00 IST
+crons = ["0 * * * *", "30 13 * * *"]
+
+# Secrets (set via `wrangler secret put NAME`, never commit them):
+#   FCM_CLIENT_EMAIL   -> service account "client_email"
+#   FCM_PRIVATE_KEY    -> service account "private_key" (with real newlines)
