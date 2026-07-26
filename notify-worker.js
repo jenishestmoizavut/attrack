@@ -113,8 +113,8 @@ async function checkAndSendDailyReminder(user, accessToken, env) {
   if (!hasLectureToday) return;
 
   const todaysLectures = lectures.filter(l => l && l.date === todayIso && !l.isSpecial);
-  const anyMarked = todaysLectures.some(l => l.attended !== undefined && l.attended !== null);
-  if (todaysLectures.length > 0 && anyMarked) return;
+  const allMarked = todaysLectures.length > 0 && todaysLectures.every(l => l.attended !== undefined && l.attended !== null);
+  if (allMarked) return;
 
   if (user.fields.notifState?.lastReminderDate === todayIso) return;
 

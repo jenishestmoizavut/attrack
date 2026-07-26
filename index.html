@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -2223,6 +2224,7 @@ When you add or load lectures, they’re marked attended by default.
         <div>
           <h3>Daily study targets</h3>
           <div class="hint">For my users who figured they cannot use Attrack because they don't have college!</div>
+          <div class="pill" id="studyStreakPill" style="display:none; margin-top:6px;">🔥 <span id="studyStreakCount">0</span>-day streak</div>
         </div>
         <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
           <span class="ai-spark" aria-hidden="true">✦</span>
@@ -3861,6 +3863,44 @@ function getStudyTargetsForCurrentFilter() {
     });
 }
 
+// Consecutive days (ending today or yesterday) with at least one completed
+// study target. Counting "yesterday" as still-alive means finishing today's
+// target doesn't reset the streak before the day's even over.
+function computeStudyStreak() {
+  const targets = Array.isArray(state.studyTargets) ? state.studyTargets : [];
+  const completedDates = new Set(targets.filter(t => t.completedAt).map(t => t.date));
+  if (completedDates.size === 0) return 0;
+
+  const todayIso = toISODate(new Date());
+  const yesterdayDate = new Date(Date.now() - 86400000);
+  const yesterdayIso = toISODate(yesterdayDate);
+
+  let cursor;
+  if (completedDates.has(todayIso)) cursor = new Date();
+  else if (completedDates.has(yesterdayIso)) cursor = yesterdayDate;
+  else return 0;
+
+  let streak = 0;
+  while (completedDates.has(toISODate(cursor))) {
+    streak++;
+    cursor = new Date(cursor.getTime() - 86400000);
+  }
+  return streak;
+}
+
+function updateStudyStreakDisplay() {
+  const pill = document.getElementById("studyStreakPill");
+  const countEl = document.getElementById("studyStreakCount");
+  if (!pill || !countEl) return;
+  const streak = computeStudyStreak();
+  if (streak > 0) {
+    countEl.textContent = streak;
+    pill.style.display = "inline-flex";
+  } else {
+    pill.style.display = "none";
+  }
+}
+
 async function fetchDailyMeme() {
   const localMemes = [
     "1.jpg",
@@ -3945,6 +3985,7 @@ if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
 }
 function renderStudyTargets() {
   if (!studyTargetsList) return;
+  updateStudyStreakDisplay();
   studyTargetsList.innerHTML = "";
 
   const targets = getStudyTargetsForCurrentFilter();
