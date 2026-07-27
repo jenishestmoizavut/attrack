@@ -1969,6 +1969,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <div id="authActionArrow" style="color: var(--accent); font-size: 1.2rem; font-weight: bold;">→</div>
 
       </div>
+      <button id="memeAdminBtn" class="btn small secondary" type="button" style="display:none; grid-column: 1 / -1;">Review memes 🕵️</button>
 
       <details class="card setup-section" open>
         <summary>Goal & app</summary>
@@ -2291,12 +2292,24 @@ When you add or load lectures, they’re marked attended by default.
     </div>
     <details class="meme-submission">
       <summary>Submit your own meme for review</summary>
-      <div class="field" style="margin-top:10px;"><label for="memeSubmissionUrl">Image URL</label><input id="memeSubmissionUrl" type="text" inputmode="url" placeholder="https://…" /></div>
+      <div class="field" style="margin-top:10px;">
+        <label for="memeSubmissionFile">Image file</label>
+        <input id="memeSubmissionFile" type="file" accept="image/png,image/jpeg,image/gif,image/webp" />
+        <div id="memeSubmissionPreviewWrap" style="display:none; margin-top:8px;"><img id="memeSubmissionPreview" alt="Preview" style="max-width:100%; max-height:160px; border-radius:8px; display:block;" /></div>
+      </div>
       <div class="field"><label for="memeSubmissionCaption">Caption (optional)</label><input id="memeSubmissionCaption" type="text" maxlength="160" placeholder="What makes it funny?" /></div>
       <button id="submitMemeBtn" class="btn small" type="button">Send for review</button>
       <div id="memeSubmissionStatus" class="hint" aria-live="polite"></div>
     </details>
     <button id="closeStudyMemeBtn" class="btn small" type="button" style="width:100%; justify-content:center;">Blessed. Continue.</button>
+  </div>
+</div>
+
+<div id="memeAdminBackdrop" class="study-meme-backdrop">
+  <div class="study-meme-card" role="dialog" aria-modal="true" aria-labelledby="memeAdminTitle" style="text-align:left; max-height:80vh; overflow:auto;">
+    <h3 id="memeAdminTitle">Pending meme submissions</h3>
+    <div id="memeAdminList"></div>
+    <button id="closeMemeAdminBtn" class="btn small secondary" type="button" style="width:100%; justify-content:center; margin-top:12px;">Close</button>
   </div>
 </div>
 
@@ -4859,16 +4872,68 @@ if (closeStudyMemeBtn) {
 }
 if (memeLikeBtn) memeLikeBtn.addEventListener("click", () => window.voteForMeme?.("like"));
 if (memeDislikeBtn) memeDislikeBtn.addEventListener("click", () => window.voteForMeme?.("dislike"));
+
+const memeAdminBtn = document.getElementById("memeAdminBtn");
+const memeAdminBackdrop = document.getElementById("memeAdminBackdrop");
+const memeAdminList = document.getElementById("memeAdminList");
+const closeMemeAdminBtn = document.getElementById("closeMemeAdminBtn");
+function renderMemeAdminList(items) {
+  if (!memeAdminList) return;
+  if (!items.length) { memeAdminList.innerHTML = '<p class="hint">Nothing pending. 🎉</p>'; return; }
+  memeAdminList.innerHTML = items.map(item => `
+    <div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px;">
+      <img src="${item.imageUrl}" alt="Submitted meme" style="max-width:100%; max-height:220px; border-radius:8px; display:block; margin-bottom:8px;" />
+      ${item.caption ? `<p style="margin:0 0 8px;">${item.caption.replace(/</g, "&lt;")}</p>` : ""}
+      <p class="hint" style="margin:0 0 8px;">From ${item.submittedByEmail || "unknown"}</p>
+      <div style="display:flex; gap:8px;">
+        <button class="btn small" type="button" data-approve="${item.id}">Approve</button>
+        <button class="btn small secondary" type="button" data-reject="${item.id}">Reject</button>
+      </div>
+    </div>`).join("");
+  memeAdminList.querySelectorAll("[data-approve]").forEach(btn => {
+    btn.addEventListener("click", () => window.setMemeSubmissionStatus?.(btn.dataset.approve, "approved"));
+  });
+  memeAdminList.querySelectorAll("[data-reject]").forEach(btn => {
+    btn.addEventListener("click", () => window.setMemeSubmissionStatus?.(btn.dataset.reject, "rejected"));
+  });
+}
+if (memeAdminBtn) {
+  memeAdminBtn.addEventListener("click", () => {
+    memeAdminBackdrop.style.display = "flex";
+    window.watchPendingMemeSubmissions?.(renderMemeAdminList);
+  });
+}
+if (closeMemeAdminBtn) closeMemeAdminBtn.addEventListener("click", () => { memeAdminBackdrop.style.display = "none"; });
+const memeSubmissionFile = document.getElementById("memeSubmissionFile");
+const memeSubmissionPreviewWrap = document.getElementById("memeSubmissionPreviewWrap");
+const memeSubmissionPreview = document.getElementById("memeSubmissionPreview");
+const MEME_MAX_BYTES = 5 * 1024 * 1024; // 5MB
+if (memeSubmissionFile) {
+  memeSubmissionFile.addEventListener("change", () => {
+    const file = memeSubmissionFile.files?.[0];
+    if (!file) { memeSubmissionPreviewWrap.style.display = "none"; return; }
+    if (file.size > MEME_MAX_BYTES) {
+      memeSubmissionStatus.textContent = "That image is over 5MB — please pick a smaller one.";
+      memeSubmissionFile.value = "";
+      memeSubmissionPreviewWrap.style.display = "none";
+      return;
+    }
+    memeSubmissionStatus.textContent = "";
+    memeSubmissionPreview.src = URL.createObjectURL(file);
+    memeSubmissionPreviewWrap.style.display = "block";
+  });
+}
 if (submitMemeBtn) submitMemeBtn.addEventListener("click", async () => {
-  const url = memeSubmissionUrl.value.trim();
+  const file = memeSubmissionFile?.files?.[0];
   const caption = memeSubmissionCaption.value.trim();
-  if (!url) { memeSubmissionStatus.textContent = "Add an image URL first."; return; }
+  if (!file) { memeSubmissionStatus.textContent = "Choose an image file first."; return; }
   submitMemeBtn.disabled = true;
-  memeSubmissionStatus.textContent = "Sending…";
+  memeSubmissionStatus.textContent = "Uploading…";
   try {
-    await window.submitMemeForReview?.(url, caption);
-    memeSubmissionUrl.value = "";
+    await window.submitMemeForReview?.(file, caption);
+    memeSubmissionFile.value = "";
     memeSubmissionCaption.value = "";
+    memeSubmissionPreviewWrap.style.display = "none";
     memeSubmissionStatus.textContent = "Submitted for review — thank you!";
   } catch (error) {
     memeSubmissionStatus.textContent = error.message || "Could not submit this meme.";
@@ -6342,6 +6407,8 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 		import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+        import { updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
   authDomain: "attrack-sync.firebaseapp.com",
@@ -6355,6 +6422,9 @@ const firebaseConfig = {
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
+        // Add your own email(s) here to unlock the "Review memes" admin panel.
+        const MEME_ADMIN_EMAILS = ["you@example.com"];
 		const analytics = getAnalytics(app);
         const provider = new GoogleAuthProvider();
 
@@ -6523,18 +6593,42 @@ const firebaseConfig = {
                 });
             } catch (error) { console.error("Meme vote failed:", error); alert("Your vote could not be saved. Please try again."); }
         };
-        window.submitMemeForReview = async (url, caption) => {
+        window.submitMemeForReview = async (file, caption) => {
             if (!auth.currentUser) return alert("Please sign in with Google before submitting a meme.");
-            const parsed = new URL(url);
-            if (!/^https?:$/.test(parsed.protocol)) throw new Error("Use a full http(s) image URL.");
+            if (!file || !file.type?.startsWith("image/")) throw new Error("Please choose an image file.");
+            if (file.size > 5 * 1024 * 1024) throw new Error("Image is too large (max 5MB).");
+            const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_").slice(-80);
+            const path = `memeSubmissions/${auth.currentUser.uid}/${Date.now()}-${safeName}`;
+            const fileRef = storageRef(storage, path);
+            await uploadBytes(fileRef, file, { contentType: file.type });
+            const imageUrl = await getDownloadURL(fileRef);
             await addDoc(collection(db, "memeSubmissions"), {
-                imageUrl: parsed.href, caption: caption.slice(0, 160), status: "pending",
+                imageUrl, storagePath: path, caption: caption.slice(0, 160), status: "pending",
                 submittedBy: auth.currentUser.uid, submittedByEmail: auth.currentUser.email || "",
                 submittedAt: serverTimestamp()
             });
         };
+
+        // --- Admin meme review (only visible/usable for MEME_ADMIN_EMAILS) ---
+        window.isMemeAdmin = () => !!auth.currentUser && MEME_ADMIN_EMAILS.includes(auth.currentUser.email);
+        let memeAdminUnsubscribe = null;
+        window.watchPendingMemeSubmissions = (onChange) => {
+            if (memeAdminUnsubscribe) memeAdminUnsubscribe();
+            const q = query(collection(db, "memeSubmissions"), where("status", "==", "pending"), orderBy("submittedAt", "asc"));
+            memeAdminUnsubscribe = onSnapshot(q, snap => {
+                onChange(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            }, err => { console.error("Meme review listener failed:", err); onChange([]); });
+        };
+        window.setMemeSubmissionStatus = async (submissionId, status) => {
+            if (!window.isMemeAdmin()) return alert("You don't have access to review memes.");
+            await updateDoc(doc(db, "memeSubmissions", submissionId), {
+                status, reviewedAt: serverTimestamp(), reviewedBy: auth.currentUser.email || ""
+            });
+        };
         // Monitor Login State & Listen for Real-Time Changes
         onAuthStateChanged(auth, (user) => {
+            const memeAdminBtn = document.getElementById('memeAdminBtn');
+            if (memeAdminBtn) memeAdminBtn.style.display = window.isMemeAdmin() ? 'grid' : 'none';
             const authTitle = document.getElementById('authStatusTitle');
             const authSub = document.getElementById('authStatusSub');
             const authArrow = document.getElementById('authActionArrow');
