@@ -4907,7 +4907,7 @@ if (closeMemeAdminBtn) closeMemeAdminBtn.addEventListener("click", () => { memeA
 const memeSubmissionFile = document.getElementById("memeSubmissionFile");
 const memeSubmissionPreviewWrap = document.getElementById("memeSubmissionPreviewWrap");
 const memeSubmissionPreview = document.getElementById("memeSubmissionPreview");
-const MEME_MAX_BYTES = 5 * 1024 * 1024; // 5MB
+const MEME_MAX_BYTES = 15 * 1024 * 1024; // 15MB — gets compressed way down before it's sent
 if (memeSubmissionFile) {
   memeSubmissionFile.addEventListener("change", () => {
     const file = memeSubmissionFile.files?.[0];
@@ -4928,7 +4928,7 @@ if (submitMemeBtn) submitMemeBtn.addEventListener("click", async () => {
   const caption = memeSubmissionCaption.value.trim();
   if (!file) { memeSubmissionStatus.textContent = "Choose an image file first."; return; }
   submitMemeBtn.disabled = true;
-  memeSubmissionStatus.textContent = "Uploading…";
+  memeSubmissionStatus.textContent = "Compressing & sending…";
   try {
     await window.submitMemeForReview?.(file, caption);
     memeSubmissionFile.value = "";
@@ -6407,7 +6407,6 @@ document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 		import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
         import { updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAFZp4TtN46dygOwXdMYpIDN_nmZj9O35I",
@@ -6422,7 +6421,6 @@ const firebaseConfig = {
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app);
         // Add your own email(s) here to unlock the "Review memes" admin panel.
         const MEME_ADMIN_EMAILS = ["you@example.com"];
 		const analytics = getAnalytics(app);
@@ -6593,17 +6591,37 @@ const firebaseConfig = {
                 });
             } catch (error) { console.error("Meme vote failed:", error); alert("Your vote could not be saved. Please try again."); }
         };
+        // Shrinks/compresses an image file client-side so it fits comfortably inside a
+        // Firestore document (1MB max per doc) with no Storage/billing needed.
+        async function compressImageToDataUrl(file, maxDim = 900, targetBytes = 700 * 1024) {
+            const bitmap = await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error("Could not read that image."));
+                img.src = URL.createObjectURL(file);
+            });
+            const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+            canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+            let quality = 0.85;
+            let dataUrl = canvas.toDataURL("image/jpeg", quality);
+            while (dataUrl.length > targetBytes * 1.37 && quality > 0.35) { // base64 ~= 1.37x raw bytes
+                quality -= 0.1;
+                dataUrl = canvas.toDataURL("image/jpeg", quality);
+            }
+            if (dataUrl.length > targetBytes * 1.37) throw new Error("Image is still too large even after compressing. Try a simpler/smaller image.");
+            return dataUrl;
+        }
         window.submitMemeForReview = async (file, caption) => {
             if (!auth.currentUser) return alert("Please sign in with Google before submitting a meme.");
             if (!file || !file.type?.startsWith("image/")) throw new Error("Please choose an image file.");
-            if (file.size > 5 * 1024 * 1024) throw new Error("Image is too large (max 5MB).");
-            const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_").slice(-80);
-            const path = `memeSubmissions/${auth.currentUser.uid}/${Date.now()}-${safeName}`;
-            const fileRef = storageRef(storage, path);
-            await uploadBytes(fileRef, file, { contentType: file.type });
-            const imageUrl = await getDownloadURL(fileRef);
+            if (file.size > 15 * 1024 * 1024) throw new Error("Image is too large (max 15MB before compression).");
+            const imageUrl = await compressImageToDataUrl(file);
             await addDoc(collection(db, "memeSubmissions"), {
-                imageUrl, storagePath: path, caption: caption.slice(0, 160), status: "pending",
+                imageUrl, caption: caption.slice(0, 160), status: "pending",
                 submittedBy: auth.currentUser.uid, submittedByEmail: auth.currentUser.email || "",
                 submittedAt: serverTimestamp()
             });
