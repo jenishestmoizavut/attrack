@@ -6833,67 +6833,36 @@ window.addEventListener('load', () => {
         </div>
     </div>
 </div>
-	<!-- =====================================================================
-     ATTRACK SWIPE PATCH
-     Paste this block just before </body> in index.html.
-     No other files need to change.
-     ===================================================================== -->
+<!-- ATTRACK SWIPE PATCH v2 -->
 <script>
 (function () {
-  /* These match your actual code exactly:
-     - nav buttons:   .nav-btn  (with data-view attribute)
-     - active class:  active
-     - switch fn:     switchView(viewId)                                   */
-
-  const MIN_SWIPE_PX   = 45;   // minimum horizontal distance to count as swipe
-  const MAX_DRIFT_PX   = 70;   // max vertical drift before we treat it as scroll
-  const EDGE_GUARD_PX  = 22;   // ignore touches starting within this many px of
-                                // left/right screen edge (browser back-gesture zone)
-
+  const MIN_SWIPE_PX  = 45;
+  const MAX_DRIFT_PX  = 70;
+  const EDGE_GUARD_PX = 22;
   let x0 = 0, y0 = 0;
 
-  /* Ordered list of swipeable tab views (matches your nav order) */
-  const TAB_VIEWS = [
-    "homeView",
-    "dayView",
-    "studyView",
-    "assignmentsView",
-    "setupView",
-  ];
-
-  function activeViewId() {
-    const active = document.querySelector(".nav-btn.active");
-    return active ? active.dataset.view : null;
-  }
-
   document.addEventListener("touchstart", function (e) {
-    const t = e.changedTouches[0];
-    x0 = t.clientX;
-    y0 = t.clientY;
+    x0 = e.changedTouches[0].clientX;
+    y0 = e.changedTouches[0].clientY;
   }, { passive: true });
 
   document.addEventListener("touchend", function (e) {
-    const t  = e.changedTouches[0];
-    const dx = t.clientX - x0;
-    const dy = t.clientY - y0;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
 
-    // Ignore tiny swipes, diagonal scrolls, and edge-started gestures
     if (Math.abs(dx) < MIN_SWIPE_PX)  return;
     if (Math.abs(dy) > MAX_DRIFT_PX)  return;
     if (x0 < EDGE_GUARD_PX || x0 > window.innerWidth - EDGE_GUARD_PX) return;
 
-    const current = activeViewId();
-    const idx     = TAB_VIEWS.indexOf(current);
+    // Get all nav buttons that have a data-view (skip installAppBtn which has none)
+    const tabs = Array.from(document.querySelectorAll(".nav-btn[data-view]"));
+    const idx  = tabs.findIndex(b => b.classList.contains("active"));
     if (idx === -1) return;
 
-    const next = dx < 0
-      ? TAB_VIEWS[idx + 1]   // swipe left  → next tab
-      : TAB_VIEWS[idx - 1];  // swipe right → previous tab
-
-    if (next) switchView(next);
+    const target = dx < 0 ? tabs[idx + 1] : tabs[idx - 1];
+    if (target) target.click(); // reuses the existing click → switchView wiring
   }, { passive: true });
 })();
 </script>
-<!-- ===================================================================== -->
 </body>
-</html>
+			</html>
