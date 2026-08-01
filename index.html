@@ -2326,6 +2326,31 @@ When you add or load lectures, they’re marked attended by default.
       </div>
       <button id="closeGeminiModalBtn" class="btn small secondary" type="button" aria-label="Close AI planner">Close</button>
     </div>
+
+    <label for="geminiPlanRange" style="display:block; font-size:0.8rem; font-weight:700; margin-top:4px;">Plan for</label>
+    <select id="geminiPlanRange" style="width:100%; box-sizing:border-box; margin-bottom:4px;">
+      <option value="7">Next 7 days</option>
+      <option value="14">Next 14 days</option>
+      <option value="30">Next 30 days</option>
+      <option value="semester">Rest of the semester</option>
+    </select>
+
+    <div style="font-size:0.8rem; font-weight:700; margin-top:8px;">Include in plan</div>
+    <div style="display:flex; flex-direction:column; gap:6px; margin:4px 0 4px;">
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:400; cursor:pointer;">
+        <input type="checkbox" id="geminiIncludeAttendance" checked> Attendance & buffer status
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:400; cursor:pointer;">
+        <input type="checkbox" id="geminiIncludeTimetable" checked> Weekly timetable
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:400; cursor:pointer;">
+        <input type="checkbox" id="geminiIncludeAssignments" checked> Assignments
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:400; cursor:pointer;">
+        <input type="checkbox" id="geminiIncludeStudyTargets" checked> Study targets
+      </label>
+    </div>
+
     <label for="geminiUserContext" style="display:block; font-size:0.8rem; font-weight:700; margin-top:4px;">Extra context for AI</label>
     <textarea id="geminiUserContext" placeholder="e.g. My semester ends in 3 months. I have to attend a wedding from 12-15 July. I want Sundays free if possible."></textarea>
     <label for="geminiPromptText" style="display:block; font-size:0.8rem; font-weight:700;">Generated prompt</label>
@@ -2491,6 +2516,8 @@ When you add or load lectures, they’re marked attended by default.
 const TARGET_KEY = "attrack_target_attendance"; // stores decimal e.g. "0.75"
 const SOUND_KEY = "attrack_sound_enabled";
 const GEMINI_CONTEXT_KEY = "attrack_gemini_user_context";
+const GEMINI_RANGE_KEY = "attrack_gemini_plan_range";
+const GEMINI_INCLUDE_KEY = "attrack_gemini_include_prefs";
 let attrackAudioCtx = null;
 let lastSavedStateJson = "";
 let undoStateJson = "";
@@ -3352,25 +3379,39 @@ if (saveTargetBtn) {
     }
 function shouldSendDailyReminder() {
   if (!("Notification" in window)) return false;
-  
+
   // 1. Check Permission
   if (Notification.permission !== "granted") return false;
+
+  // 2. Check the user actually turned this on (the toggle under Notifications)
+  if (localStorage.getItem("attrack_daily_reminder") !== "1") return false;
 
   const now = new Date();
   const isoDate = toISODate(now);
 
-  // 2. Check Time (Change '20' to '0' while testing to see it immediately!)
+  // 3. Check Time (Change '20' to '0' while testing to see it immediately!)
   if (now.getHours() < 20) return false; 
 
-  // 3. Check if we already reminded today
+  // 4. Check if we already reminded today
   const last = localStorage.getItem("attrack_last_reminder_date");
   if (last === isoDate) return false;
 
-  // 4. Check if there are ANY lectures today (regardless of attendance status)
+  // 5. Check if there are ANY lectures today (regardless of attendance status)
   const todays = state.lectures.filter(l => l.date === isoDate && !l.isCancelled);
   
   // If there are lectures today, we remind the user to check them
   return todays.length > 0;
+}
+
+// Runs the check above and, while the tab is open, keeps re-checking every
+// few minutes so the reminder actually fires once 8pm rolls around instead
+// of only being evaluated once at page load.
+function checkDailyReminder() {
+  try {
+    if (shouldSendDailyReminder()) sendDailyReminder();
+  } catch (e) {
+    console.warn("Daily reminder check failed:", e);
+  }
 }
 function sendDailyReminder() {
   navigator.serviceWorker.getRegistration().then(reg => {
@@ -3461,7 +3502,15 @@ function sendDailyReminder() {
       return !isNaN(targetRaw) ? targetRaw : 0.75;
     }
 
-    function generateAICoachPrompt(extraContext = "") {
+    function generateAICoachPrompt(extraContext = "", options = {}) {
+      const opts = {
+        range: options.range || "7", // "7" | "14" | "30" | "semester"
+        includeAttendance: options.includeAttendance !== false,
+        includeTimetable: options.includeTimetable !== false,
+        includeAssignments: options.includeAssignments !== false,
+        includeStudyTargets: options.includeStudyTargets !== false
+      };
+
       const target = getTargetAttendance();
       const start = state.startDate || toISODate(new Date());
       const validLectures = (state.lectures || []).filter(l => l.date && l.date >= start && !l.isCancelled);
@@ -3499,37 +3548,81 @@ function sendDailyReminder() {
         return `- ${t.title || "Study target"} (${t.minutes || 0} mins, ${t.category || "Study"}) scheduled for ${targetDate}`;
       }).join("\n") || "No upcoming study targets.";
 
-      return `You are the Attrack Academic Coach. Use the following live student data to create a highly actionable, zero-fluff plan for the next 7 days.
+      const rangeLabel = opts.range === "semester" ? "the rest of the semester" : `the next ${opts.range} days`;
 
-STUDENT PROFILE
+      const sections = [];
+      sections.push(`STUDENT PROFILE
 - Name: ${state.studentName || "Student"}
 - Target Attendance: ${Math.round(target * 100)}%
+- Tracking Start Date: ${formatDisplayDate(start)}`);
+
+      if (opts.includeAttendance) {
+        sections.push(`ATTENDANCE
 - Current Attendance: ${pct}%
 - Attendance Buffer Status: ${bufferText}
-- Tracking Start Date: ${formatDisplayDate(start)}
 
 SUBJECT ATTENDANCE BREAKDOWN
-${subjectStats}
+${subjectStats}`);
+      }
 
-WEEKLY TIMETABLE
-${timetable}
+      if (opts.includeTimetable) {
+        sections.push(`WEEKLY TIMETABLE
+${timetable}`);
+      }
 
-PENDING ASSIGNMENTS
-${pendingAssignments}
+      if (opts.includeAssignments) {
+        sections.push(`PENDING ASSIGNMENTS
+${pendingAssignments}`);
+      }
 
-UPCOMING STUDY TARGETS
-${pendingTargets}
+      if (opts.includeStudyTargets) {
+        sections.push(`UPCOMING STUDY TARGETS
+${pendingTargets}`);
+      }
 
-USER'S EXTRA CONTEXT
-${extraContext.trim() || "No extra context provided."}
+      sections.push(`USER'S EXTRA CONTEXT
+${extraContext.trim() || "No extra context provided."}`);
+
+      // Build the instructions list from only the data categories that were
+      // actually included, so the AI isn't asked to reference sections we
+      // deliberately left out.
+      const instructionLines = [];
+      if (opts.includeAttendance && opts.includeTimetable) {
+        instructionLines.push("Attendance Strategy: Use the buffer and timetable. Tell me which specific days or subjects need strict attendance, and where rest is safe.");
+      } else if (opts.includeAttendance) {
+        instructionLines.push("Attendance Strategy: Use the buffer status. Tell me which subjects need strict attendance and where I have room to rest.");
+      } else if (opts.includeTimetable) {
+        instructionLines.push("Schedule Overview: Use the timetable to flag heavy days and lighter days.");
+      }
+      if (opts.includeAssignments) {
+        instructionLines.push(opts.includeTimetable
+          ? "Task Triage: Cross-reference pending assignments with heavy lecture days. Tell me what to do first and what can wait."
+          : "Task Triage: Prioritize the pending assignments by due date and effort. Tell me what to do first and what can wait.");
+      }
+      if (opts.includeStudyTargets) {
+        instructionLines.push("Study Plan: Turn my study targets and extra context into a realistic plan. If the user mentions dates, events, travel, exams, semester deadlines, rest preferences, or constraints, adapt the plan around them.");
+      }
+      if (instructionLines.length === 0) {
+        instructionLines.push("Plan: Use my extra context to build a realistic, well-paced plan.");
+      }
+
+      const numbered = instructionLines.map((line, i) => `${i + 1}. ${line}`).join("\n");
+
+      const rangeInstruction = opts.range === "semester"
+        ? "This plan should cover the rest of the semester, not just the next few days. Structure it as phases or weekly milestones (e.g. Weeks 1-2, Weeks 3-4, closer to exams) rather than a single flat list, and call out anything time-sensitive first."
+        : `Focus this plan on ${rangeLabel}. Give a day-by-day or few-day breakdown, not a vague overview.`;
+
+      return `You are the Attrack Academic Coach. Use the following live student data to create a highly actionable, zero-fluff plan for ${rangeLabel}.
+
+${sections.join("\n\n")}
 
 INSTRUCTIONS
-Give the response in three short sections:
-1. Attendance Strategy: Use the buffer and timetable. Tell me which specific days or subjects need strict attendance, and where rest is safe.
-2. Task Triage: Cross-reference pending assignments with heavy lecture days. Tell me what to do first and what can wait.
-3. Study Plan: Turn my study targets and extra context into a realistic plan. If the user mentions dates, events, travel, exams, semester deadlines, rest preferences, or constraints, adapt the plan around them.
+Give the response in these short sections:
+${numbered}
 
-Keep it practical, student-friendly, and concise. Use bold labels for important warnings and decisions. If the plan needs more than 7 days because of the user's context, create a short longer-range strategy first, then a concrete next-7-days action list.`;
+${rangeInstruction}
+
+Keep it practical, student-friendly, and concise. Use bold labels for important warnings and decisions.`;
     }
 
     async function copyTextToClipboard(text) {
@@ -3548,20 +3641,54 @@ Keep it practical, student-friendly, and concise. Use bold labels for important 
       temp.remove();
     }
 
+    function loadGeminiIncludePrefs() {
+      try {
+        const raw = localStorage.getItem(GEMINI_INCLUDE_KEY);
+        if (!raw) return { attendance: true, timetable: true, assignments: true, studyTargets: true };
+        const parsed = JSON.parse(raw);
+        return {
+          attendance: parsed.attendance !== false,
+          timetable: parsed.timetable !== false,
+          assignments: parsed.assignments !== false,
+          studyTargets: parsed.studyTargets !== false
+        };
+      } catch (e) {
+        return { attendance: true, timetable: true, assignments: true, studyTargets: true };
+      }
+    }
+
     window.triggerGemini = function() {
       const contextInput = document.getElementById("geminiUserContext");
       if (contextInput) contextInput.value = localStorage.getItem(GEMINI_CONTEXT_KEY) || "";
-      const prompt = generateAICoachPrompt(contextInput ? contextInput.value : "");
+
+      // Restore saved range + include/exclude prefs (all included by default).
+      const rangeSelect = document.getElementById("geminiPlanRange");
+      if (rangeSelect) rangeSelect.value = localStorage.getItem(GEMINI_RANGE_KEY) || "7";
+      const prefs = loadGeminiIncludePrefs();
+      const attEl = document.getElementById("geminiIncludeAttendance");
+      const ttEl = document.getElementById("geminiIncludeTimetable");
+      const asEl = document.getElementById("geminiIncludeAssignments");
+      const stEl = document.getElementById("geminiIncludeStudyTargets");
+      if (attEl) attEl.checked = prefs.attendance;
+      if (ttEl) ttEl.checked = prefs.timetable;
+      if (asEl) asEl.checked = prefs.assignments;
+      if (stEl) stEl.checked = prefs.studyTargets;
+
       const backdrop = document.getElementById("geminiModalBackdrop");
-      const promptText = document.getElementById("geminiPromptText");
       const status = document.getElementById("geminiPromptStatus");
-      if (promptText) promptText.value = prompt;
-      if (typeof refreshGeminiPrompt === "function") refreshGeminiPrompt();
+      if (typeof refreshGeminiPrompt === "function") {
+        refreshGeminiPrompt();
+      } else {
+        const promptText = document.getElementById("geminiPromptText");
+        const prompt = generateAICoachPrompt(contextInput ? contextInput.value : "");
+        if (promptText) promptText.value = prompt;
+      }
       if (status) status.textContent = "";
       if (backdrop) {
         backdrop.style.display = "flex";
         backdrop.setAttribute("aria-hidden", "false");
       } else {
+        const prompt = generateAICoachPrompt(contextInput ? contextInput.value : "");
         copyTextToClipboard(prompt).then(() => alert("AI prompt copied. Paste it into your preferred AI chat app."));
       }
     };
@@ -4951,6 +5078,11 @@ const openGeminiBtn = document.getElementById("openGeminiBtn");
 const geminiUserContext = document.getElementById("geminiUserContext");
 const geminiPromptText = document.getElementById("geminiPromptText");
 const geminiPromptStatus = document.getElementById("geminiPromptStatus");
+const geminiPlanRange = document.getElementById("geminiPlanRange");
+const geminiIncludeAttendance = document.getElementById("geminiIncludeAttendance");
+const geminiIncludeTimetable = document.getElementById("geminiIncludeTimetable");
+const geminiIncludeAssignments = document.getElementById("geminiIncludeAssignments");
+const geminiIncludeStudyTargets = document.getElementById("geminiIncludeStudyTargets");
 
 function closeGeminiModal() {
   if (!geminiModalBackdrop) return;
@@ -4961,7 +5093,27 @@ function closeGeminiModal() {
 function refreshGeminiPrompt() {
   const extraContext = geminiUserContext ? geminiUserContext.value : "";
   if (geminiUserContext) localStorage.setItem(GEMINI_CONTEXT_KEY, extraContext);
-  if (geminiPromptText) geminiPromptText.value = generateAICoachPrompt(extraContext);
+
+  const range = geminiPlanRange ? geminiPlanRange.value : "7";
+  if (geminiPlanRange) localStorage.setItem(GEMINI_RANGE_KEY, range);
+
+  const includeOpts = {
+    attendance: geminiIncludeAttendance ? geminiIncludeAttendance.checked : true,
+    timetable: geminiIncludeTimetable ? geminiIncludeTimetable.checked : true,
+    assignments: geminiIncludeAssignments ? geminiIncludeAssignments.checked : true,
+    studyTargets: geminiIncludeStudyTargets ? geminiIncludeStudyTargets.checked : true
+  };
+  localStorage.setItem(GEMINI_INCLUDE_KEY, JSON.stringify(includeOpts));
+
+  if (geminiPromptText) {
+    geminiPromptText.value = generateAICoachPrompt(extraContext, {
+      range,
+      includeAttendance: includeOpts.attendance,
+      includeTimetable: includeOpts.timetable,
+      includeAssignments: includeOpts.assignments,
+      includeStudyTargets: includeOpts.studyTargets
+    });
+  }
   if (geminiPromptStatus) geminiPromptStatus.textContent = extraContext.trim()
     ? "Extra context included in the prompt."
     : "";
@@ -4976,6 +5128,8 @@ if (geminiModalBackdrop) {
 if (geminiUserContext) {
   geminiUserContext.addEventListener("input", refreshGeminiPrompt);
 }
+[geminiPlanRange, geminiIncludeAttendance, geminiIncludeTimetable, geminiIncludeAssignments, geminiIncludeStudyTargets]
+  .forEach(el => { if (el) el.addEventListener("change", refreshGeminiPrompt); });
 if (copyGeminiPromptBtn) {
   copyGeminiPromptBtn.addEventListener("click", async () => {
     refreshGeminiPrompt();
@@ -6148,14 +6302,15 @@ if ("serviceWorker" in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register("./sw.js");
-      // Notification permission is not requested automatically.
+      // Notification permission is not requested automatically —
+      // it's requested only when the user taps "Enable notifications".
 
+      // Run the daily reminder check now (covers the case where the app
+      // is opened after 8pm), then keep re-checking every 5 minutes while
+      // the tab stays open, since 8pm may arrive while the app is idle.
+      checkDailyReminder();
+      setInterval(checkDailyReminder, 5 * 60 * 1000);
 
-      // Listen for the FIRST click anywhere on the app to trigger the popup
-// Permission will be requested only when reminder logic runs
-
-      // ... keep your checkDailyReminder logic here ...
-      
     } catch (err) {
       console.error("SW registration failed", err);
     }
@@ -6184,13 +6339,6 @@ if ("serviceWorker" in navigator) {
     // fail silently
   }
 })();
-</script>
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js");
-  });
-}
 </script>
 <div id="newFeaturePopup" class="popup-overlay" style="display:none;">
   <div class="popup-body">
@@ -6833,5 +6981,36 @@ window.addEventListener('load', () => {
         </div>
     </div>
 </div>
+<!-- ATTRACK SWIPE PATCH v2 -->
+<script>
+(function () {
+  const MIN_SWIPE_PX  = 45;
+  const MAX_DRIFT_PX  = 70;
+  const EDGE_GUARD_PX = 22;
+  let x0 = 0, y0 = 0;
+
+  document.addEventListener("touchstart", function (e) {
+    x0 = e.changedTouches[0].clientX;
+    y0 = e.changedTouches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener("touchend", function (e) {
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+
+    if (Math.abs(dx) < MIN_SWIPE_PX)  return;
+    if (Math.abs(dy) > MAX_DRIFT_PX)  return;
+    if (x0 < EDGE_GUARD_PX || x0 > window.innerWidth - EDGE_GUARD_PX) return;
+
+    // Get all nav buttons that have a data-view (skip installAppBtn which has none)
+    const tabs = Array.from(document.querySelectorAll(".nav-btn[data-view]"));
+    const idx  = tabs.findIndex(b => b.classList.contains("active"));
+    if (idx === -1) return;
+
+    const target = dx < 0 ? tabs[idx + 1] : tabs[idx - 1];
+    if (target) target.click(); // reuses the existing click → switchView wiring
+  }, { passive: true });
+})();
+</script>
 </body>
-</html>
+			</html>

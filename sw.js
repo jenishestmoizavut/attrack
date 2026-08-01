@@ -54,10 +54,22 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 // 1. Install & Cache Core Assets
+// NOTE: cache.addAll() is all-or-nothing — if any single asset fails
+// (e.g. a flaky fetch of the cross-origin pdf.js from cdnjs), the whole
+// install rejects and the SW never activates. That silently breaks
+// enableNotifications() too, since it awaits navigator.serviceWorker.ready,
+// which never resolves without an active worker. Cache each asset
+// individually instead so one failure doesn't take down the rest.
 self.addEventListener("install", event => {
   self.skipWaiting(); // Force the waiting service worker to become the active service worker
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(
+        CORE_ASSETS.map(asset =>
+          cache.add(asset).catch(err => console.warn("SW: failed to cache", asset, err))
+        )
+      )
+    )
   );
 });
 
