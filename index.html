@@ -6298,19 +6298,27 @@ refreshSoundToggle();
 //document.getElementById("popupCloseBtn").onclick = () => {
   //document.getElementById("shareInfoPopup").style.display = "none";
 /* ---------- SERVICE WORKER & NOTIFICATIONS ---------- */
+function attrackToISODate(d) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 window.shouldSendDailyReminder = function () {
   if (!("Notification" in window)) return false;
   if (Notification.permission !== "granted") return false;
   if (localStorage.getItem("attrack_daily_reminder") !== "1") return false;
 
   const now = new Date();
-  const isoDate = toISODate(now);
+  const isoDate = attrackToISODate(now);
 
   if (now.getHours() < 20) return false; // change 20 -> 0 to test immediately
 
   const last = localStorage.getItem("attrack_last_reminder_date");
   if (last === isoDate) return false;
 
+  if (typeof state === "undefined" || !state.lectures) return false;
   const todays = state.lectures.filter(l => l.date === isoDate && !l.isCancelled);
   return todays.length > 0;
 };
@@ -6325,7 +6333,7 @@ window.sendDailyReminder = function () {
       tag: "attrack-daily-reminder",
       renotify: false
     });
-    localStorage.setItem("attrack_last_reminder_date", toISODate(new Date()));
+    localStorage.setItem("attrack_last_reminder_date", attrackToISODate(new Date()));
   });
 };
 
@@ -6344,8 +6352,6 @@ if ("serviceWorker" in navigator) {
     } catch (err) {
       console.error("SW registration failed", err);
     }
-    // Kept outside the try/catch above so a real SW failure doesn't
-    // also silently swallow/mislabel the reminder check.
     window.checkDailyReminder();
     setInterval(window.checkDailyReminder, 5 * 60 * 1000);
   });
