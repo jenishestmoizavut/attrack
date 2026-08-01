@@ -6298,22 +6298,56 @@ refreshSoundToggle();
 //document.getElementById("popupCloseBtn").onclick = () => {
   //document.getElementById("shareInfoPopup").style.display = "none";
 /* ---------- SERVICE WORKER & NOTIFICATIONS ---------- */
+window.shouldSendDailyReminder = function () {
+  if (!("Notification" in window)) return false;
+  if (Notification.permission !== "granted") return false;
+  if (localStorage.getItem("attrack_daily_reminder") !== "1") return false;
+
+  const now = new Date();
+  const isoDate = toISODate(now);
+
+  if (now.getHours() < 20) return false; // change 20 -> 0 to test immediately
+
+  const last = localStorage.getItem("attrack_last_reminder_date");
+  if (last === isoDate) return false;
+
+  const todays = state.lectures.filter(l => l.date === isoDate && !l.isCancelled);
+  return todays.length > 0;
+};
+
+window.sendDailyReminder = function () {
+  navigator.serviceWorker.getRegistration().then(reg => {
+    if (!reg) return;
+    reg.showNotification("Update today’s attendance 📋", {
+      body: "Just a gentle reminder to mark today’s lectures in Attrack.",
+      icon: "./icon-192.png",
+      badge: "./icon-192.png",
+      tag: "attrack-daily-reminder",
+      renotify: false
+    });
+    localStorage.setItem("attrack_last_reminder_date", toISODate(new Date()));
+  });
+};
+
+window.checkDailyReminder = function () {
+  try {
+    if (window.shouldSendDailyReminder()) window.sendDailyReminder();
+  } catch (e) {
+    console.warn("Daily reminder check failed:", e);
+  }
+};
+
 if ("serviceWorker" in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register("./sw.js");
-      // Notification permission is not requested automatically —
-      // it's requested only when the user taps "Enable notifications".
-
-      // Run the daily reminder check now (covers the case where the app
-      // is opened after 8pm), then keep re-checking every 5 minutes while
-      // the tab stays open, since 8pm may arrive while the app is idle.
-      checkDailyReminder();
-      setInterval(checkDailyReminder, 5 * 60 * 1000);
-
+      await navigator.serviceWorker.register("./sw.js");
     } catch (err) {
       console.error("SW registration failed", err);
     }
+    // Kept outside the try/catch above so a real SW failure doesn't
+    // also silently swallow/mislabel the reminder check.
+    window.checkDailyReminder();
+    setInterval(window.checkDailyReminder, 5 * 60 * 1000);
   });
 }
 </script>
