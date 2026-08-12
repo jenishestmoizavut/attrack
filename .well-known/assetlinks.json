@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.jenishestmoizavut.attrack",
+        "sha256_cert_fingerprints": ["18:DC:30:49:84:49:56:09:E5:1D:61:1C:64:F9:5B:2E:02:BD:DD:E3:CB:AE:F8:7E:C8:C7:82:32:31:F1:48:5F"]
+      }
+    }]
