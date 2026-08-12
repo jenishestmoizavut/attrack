@@ -57,21 +57,21 @@
   ],
   "screenshots": [
     {
-      "src": "./screenshots/home-narrow.png",
+      "src": "./icon-192.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Attrack home screen showing attendance overview"
     },
     {
-      "src": "./screenshots/schedule-narrow.png",
+      "src": "./icon-192.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Weekly schedule view"
     },
     {
-      "src": "./screenshots/home-wide.png",
+      "src": "./icon-192.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
