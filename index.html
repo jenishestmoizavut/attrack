@@ -2082,11 +2082,10 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <summary>Share, import & reminders</summary>
         <div class="setup-section-body compact-tools">
           <div style="display:flex; gap:8px; margin-bottom:8px;">
-            <button id="shareLinkBtn" class="btn share-hero-btn" type="button" style="flex:1; justify-content:center;">🔗 Share Schedule Link</button>
-            <button id="shareQrBtn" class="btn secondary" type="button" title="Show as QR code" style="flex:0 0 auto; padding:10px 14px;">📱</button>
+            <button id="shareQrBtn" class="btn share-hero-btn" type="button" style="flex:1; justify-content:center;">📱 Share as QR</button>
+            <button id="shareLinkBtn" class="btn secondary" type="button" title="Copy share link" style="flex:0 0 auto; padding:10px 14px;">🔗</button>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button id="triggerImportBtn" class="btn small secondary" style="flex:1;">Import file</button>
             <button id="downloadIcsBtn" class="btn small secondary" style="flex:1;">Calendar reminder</button>
             <button id="openGcalBtn" class="btn small secondary" style="flex:1;">Google Calendar</button>
           </div>
@@ -3203,13 +3202,13 @@ function openGoogleCalendar() {
 
     btn.textContent = "Copied!";
     btn.disabled = false;
-    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
+    setTimeout(() => btn.textContent = "🔗", 2500);
 
   } catch (e) {
     console.error(e);
     btn.disabled = false;
     btn.textContent = "Failed — try again";
-    setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
+    setTimeout(() => btn.textContent = "🔗", 2500);
   }
 }
 // --- NEW HELPER: Fill gaps in imported data with "Cancelled" records ---
