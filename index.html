@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -564,6 +563,33 @@ body.dark .btn.secondary:hover { background: #1f2937; }
 .subject-stat-bar-inner { height: 100%; border-radius: 999px; background: #22c55e; }
 
 .subject-stat-meta { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+.subject-stat-item { display: flex; flex-direction: column; }
+.subject-stat-row { cursor: pointer; }
+.subject-stat-toggle {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.subject-stat-item.expanded .subject-stat-toggle { transform: rotate(180deg); color: var(--accent); }
+.subject-stat-detail {
+  display: none;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border-radius: 8px;
+  background: var(--bg-soft);
+  color: var(--text-soft);
+}
+.subject-stat-item.expanded .subject-stat-detail { display: block; }
+.subject-stat-detail.good { color: #166534; background: #dcfce7; }
+.subject-stat-detail.bad { color: #991b1b; background: #fee2e2; }
 
 .pill {
   display: inline-flex;
@@ -1333,6 +1359,16 @@ div.popup-dot { display: none !important; }
   to   { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes attrackHighlightPulse {
+  0%   { box-shadow: 0 0 0 0 var(--accent); }
+  70%  { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.highlight-pulse {
+  animation: attrackHighlightPulse 0.9s ease-out 2;
+  border-color: var(--accent) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
@@ -1788,7 +1824,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 
     <div id="wizardStep3" style="display:none;">
       <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Add Subjects 📚</h2>
-      <p class="hint">Add subjects, then tap day bubbles to set weekly lecture counts. This keeps the PWA ready for quick daily logging.</p>
+      <p class="hint">Add subjects, then tap day bubbles to set weekly lecture counts. Each subject also gets an optional attendance target — handy if your college tracks some subjects (like labs) differently.</p>
       
       <div style="display: flex; gap: 8px; margin-top: 20px;">
         <input type="text" id="wizSubInput" placeholder="e.g. Finance" style="flex: 1;">
@@ -1844,7 +1880,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           </details>
         </div>
 
-        <div class="card">
+        <div class="card" id="subjectOverviewCard">
           <h3>Subject overview</h3>
           <div class="subject-stats-list" id="subjectStatsList"></div>
           <div class="hint" style="margin-top:8px;">Based on generated and manual lectures since your start date.</div>
@@ -2428,6 +2464,11 @@ When you add or load lectures, they’re marked attended by default.
       <label for="subjectModalName">Subject name</label>
       <input id="subjectModalName" type="text" placeholder="e.g. Finance" />
     </div>
+    <div class="field">
+      <label for="subjectModalTarget">Attendance target for this subject (%) — optional</label>
+      <input id="subjectModalTarget" type="number" min="50" max="100" step="1" placeholder="Uses overall target" />
+      <div class="hint" id="subjectModalTargetHint" style="margin-top:2px;"></div>
+    </div>
     <div id="subjectModalDays" class="subject-modal-days"></div>
     <div class="subject-modal-actions">
       <button id="cancelSubjectModalBtn" class="btn secondary" type="button" style="justify-content:center;">Cancel</button>
@@ -2470,39 +2511,15 @@ When you add or load lectures, they’re marked attended by default.
 
     <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px; gap:12px;">
       <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-        <span aria-hidden="true" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:999px; background:radial-gradient(circle at 35% 30%, #ffffff 0 18%, #a5b4fc 19% 42%, #6366f1 43% 100%); color:#fff; font-size:1rem; line-height:1; flex:0 0 24px;">✦</span>
-        <h2 style="margin:0; font-size:1.4rem;">Plan smarter with AI</h2>
+        <span aria-hidden="true" style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:1.1rem; line-height:1; flex:0 0 24px;">🎯</span>
+        <h2 style="margin:0; font-size:1.4rem;">Check your subject-wise buffer</h2>
       </div>
       <button id="closeVersionX" style="background:none; border:none; font-size:1.2rem; color:var(--muted); cursor:pointer;">✕</button>
     </div>
 
-    <p class="hint" style="margin-top:0; margin-bottom:14px;">Attrack can now prepare a clean AI prompt from your live academic data.</p>
+    <p class="hint" style="margin-top:0; margin-bottom:20px;">Your college tracks attendance per subject, not just overall — so Attrack now does too. Head to <strong>Subject overview</strong> and tap any subject to see its own attendance % and exactly how many lectures you can still skip in it.</p>
 
-    <ul style="padding-left:0; list-style:none; margin:0 0 20px 0; display:flex; flex-direction:column; gap:12px;">
-      <li style="display:flex; gap:10px; align-items:start;">
-        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">🔒</span>
-        <div>
-          <strong style="display:block; color:var(--text);">Attendance context</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Your AI prompt includes your target, current percentage, buffer, and subject-wise attendance.</span>
-        </div>
-      </li>
-      <li style="display:flex; gap:10px; align-items:start;">
-        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">⏱️</span>
-        <div>
-          <strong style="display:block; color:var(--text);">Task triage</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Pending assignments and upcoming study targets are included so the plan is practical.</span>
-        </div>
-      </li>
-      <li style="display:flex; gap:10px; align-items:start;">
-        <span style="background:var(--accent-soft); color:var(--accent); padding:4px 8px; border-radius:6px; font-size:1.2rem;">📚</span>
-        <div>
-          <strong style="display:block; color:var(--text);">You stay in control</strong>
-          <span style="font-size:0.9rem; color:var(--text-soft);">Attrack only prepares the prompt. You choose which AI app to paste it into.</span>
-        </div>
-      </li>
-    </ul>
-
-    <button id="closeVersionBtn" class="btn" style="width:100%; margin-top:10px; justify-content:center; padding:10px;">Got it</button>
+    <button id="closeVersionBtn" class="btn" style="width:100%; justify-content:center; padding:10px;">Take me there</button>
   </div>
 </div>
     
@@ -2733,7 +2750,7 @@ document.addEventListener("click", (event) => {
 }, true);
 
 
-const TOUR_KEY = "attrack_guided_tour_seen_v2";
+const TOUR_KEY = "attrack_guided_tour_seen_v3";
 let activeTour = null;
 
 function closeActionsMenu() {
@@ -2767,6 +2784,19 @@ function buildTourSteps() {
       title: "Subject overview",
       body: "Subject health stays visible, but compact, so you can spot trouble subjects quickly.",
       before: () => switchView("homeView")
+    },
+    {
+      target: ".subject-stats-list",
+      title: "Tap for subject-wise skip count",
+      body: "Tap any subject here to see exactly how many of that subject's lectures you can still skip, using its own target if you've set one.",
+      before: () => {
+        switchView("homeView");
+        setTimeout(() => {
+          const firstRow = document.querySelector("#subjectStatsList .subject-stat-row");
+          const firstItem = document.querySelector("#subjectStatsList .subject-stat-item");
+          if (firstRow && firstItem && !firstItem.classList.contains("expanded")) firstRow.click();
+        }, 30);
+      }
     },
     {
       target: "#dayView .day-lectures .card",
@@ -3442,9 +3472,14 @@ function sendDailyReminder() {
     }
     // Walks forward day-by-day using each subject's weeklyPattern (and holidays)
     // to figure out exactly how far ahead `canBunk` lectures will take you.
-    function getSkipUntilInfo(canBunk) {
+    // Pass `onlySubjectId` to scope the walk to a single subject's own
+    // weekly pattern instead of summing across all subjects.
+    function getSkipUntilInfo(canBunk, onlySubjectId = null) {
       if (!canBunk || canBunk <= 0) return null;
       const holidays = state.holidays || [];
+      const subjectsToWalk = onlySubjectId
+        ? state.subjects.filter(s => s.id === onlySubjectId)
+        : (state.subjects || []);
       let cur = new Date(); cur.setHours(0, 0, 0, 0);
       cur.setDate(cur.getDate() + 1); // start checking from tomorrow
       let remaining = canBunk;
@@ -3455,7 +3490,7 @@ function sendDailyReminder() {
         if (!holidays.includes(iso)) {
           const dow = cur.getDay();
           let dayCount = 0;
-          (state.subjects || []).forEach(subj => {
+          subjectsToWalk.forEach(subj => {
             if (!subj.schedule?.weeklyPattern) return;
             subj.schedule.weeklyPattern.forEach(p => { if (p.day === dow) dayCount += (p.count || 1); });
           });
@@ -3949,7 +3984,7 @@ function regenerateFromSchedules(fromIsoDate) {
       studentNameInput.value = state.studentName || "";
       startDateInput.value = state.startDate || toISODate(new Date());
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, do you know we are approaching double digit users now :)?`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, I have introduced a subjectwise buffer view thanks to community feedback <3`
         : "Welcome! Tell me your name below (Profile) and you can stay updated with Attrack! 😊";
     }
 
@@ -4514,6 +4549,39 @@ if (total === 0) {
     }
 
 
+    // Builds the "you can skip N lectures" / "attend N more" detail HTML for
+    // a single subject, mirroring the overall dashboard card's logic but
+    // scoped to that subject's own schedule and target.
+    function getSubjectSkipDetail(subj, att, tot) {
+      const target = getSubjectTargetDecimal(subj);
+      const targetPctLabel = Math.round(target * 100);
+      if (tot === 0) {
+        return { cls: "", html: `No lectures logged yet for this subject.` };
+      }
+      const canBunk = Math.floor((att - target * tot) / target);
+      if (canBunk >= 0) {
+        const skipInfo = getSkipUntilInfo(canBunk, subj.id);
+        let dateHtml = "";
+        if (canBunk > 0 && skipInfo && skipInfo.fullUntilDate) {
+          dateHtml = ` — that's until <strong>${formatShortDate(skipInfo.fullUntilDate)}</strong>`;
+          if (skipInfo.partialDate && skipInfo.partialCount > 0) {
+            dateHtml += ` and <strong>${skipInfo.partialCount}</strong> lecture${skipInfo.partialCount > 1 ? "s" : ""} on <strong>${formatShortDate(skipInfo.partialDate)}</strong>`;
+          }
+          dateHtml += ".";
+        }
+        return {
+          cls: "good",
+          html: `You can skip the next <strong>${canBunk}</strong> lecture${canBunk === 1 ? "" : "s"} in this subject and stay at/above ${targetPctLabel}%${dateHtml}`
+        };
+      } else {
+        const needToAttend = Math.ceil((target * tot - att) / (1 - target));
+        return {
+          cls: "bad",
+          html: `You need to attend <strong>${needToAttend}</strong> more lecture${needToAttend === 1 ? "" : "s"} in this subject to reach ${targetPctLabel}%.`
+        };
+      }
+    }
+
     function renderSubjectStats() {
       const start = state.startDate || toISODate(new Date());
     // In renderSubjectStats:
@@ -4524,14 +4592,34 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
         const att = subLecs.filter(l => l.attended).length;
         const tot = subLecs.length;
         const pct = tot > 0 ? (att/tot)*100 : 0;
-        
+
+        const item = document.createElement("div"); item.className = "subject-stat-item";
+
         const row = document.createElement("div"); row.className = "subject-stat-row";
         row.innerHTML = `
           <div class="subject-stat-name">${escapeHtml(subj.name)}</div>
           <div class="subject-stat-bar"><div class="subject-stat-bar-inner" style="width:${pct}%"></div></div>
           <div class="subject-stat-meta">${tot ? att+"/"+tot+" • "+formatPct(pct) : "No data"}</div>
+          <div class="subject-stat-toggle" aria-hidden="true">▾</div>
         `;
-        subjectStatsList.appendChild(row);
+
+        const detail = document.createElement("div"); detail.className = "subject-stat-detail";
+
+        row.addEventListener("click", () => {
+          const wasExpanded = item.classList.contains("expanded");
+          if (wasExpanded) {
+            item.classList.remove("expanded");
+            return;
+          }
+          const info = getSubjectSkipDetail(subj, att, tot);
+          detail.className = "subject-stat-detail" + (info.cls ? " " + info.cls : "");
+          detail.innerHTML = info.html;
+          item.classList.add("expanded");
+        });
+
+        item.appendChild(row);
+        item.appendChild(detail);
+        subjectStatsList.appendChild(item);
       });
     }
 
@@ -4664,10 +4752,33 @@ if (viewId === "studyView") { renderStudyTargets(); loadadsAd("studyViewAdSlot",
 
 const subjectModalBackdrop = document.getElementById("subjectModalBackdrop");
 const subjectModalName = document.getElementById("subjectModalName");
+const subjectModalTarget = document.getElementById("subjectModalTarget");
+const subjectModalTargetHint = document.getElementById("subjectModalTargetHint");
 const subjectModalDays = document.getElementById("subjectModalDays");
 const cancelSubjectModalBtn = document.getElementById("cancelSubjectModalBtn");
 const saveSubjectModalBtn = document.getElementById("saveSubjectModalBtn");
 let subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+
+// --- Per-subject attendance target helpers ---
+// Subjects store `targetPct` as a whole number (e.g. 80) when the user has
+// set one explicitly. undefined/null means "inherit the overall target".
+const LAST_SUBJECT_TARGET_KEY = "attrack_last_subject_target";
+
+function getStickySubjectTargetPct() {
+  const raw = parseFloat(localStorage.getItem(LAST_SUBJECT_TARGET_KEY));
+  return !isNaN(raw) ? raw : null;
+}
+function setStickySubjectTargetPct(pct) {
+  localStorage.setItem(LAST_SUBJECT_TARGET_KEY, String(pct));
+}
+// Resolves the decimal (0-1) target to use for a given subject, falling
+// back to the overall target when the subject has no override set.
+function getSubjectTargetDecimal(subj) {
+  if (subj && subj.targetPct !== undefined && subj.targetPct !== null && !isNaN(subj.targetPct)) {
+    return subj.targetPct / 100;
+  }
+  return getTargetAttendance();
+}
 
 function renderSubjectModalDays() {
   if (!subjectModalDays) return;
@@ -4704,6 +4815,7 @@ function openSubjectModal(subjId = null) {
     
     const subj = state.subjects.find(s => s.id === subjId);
     if (subjectModalName) subjectModalName.value = subj.name;
+    if (subjectModalTarget) subjectModalTarget.value = (subj.targetPct !== undefined && subj.targetPct !== null) ? subj.targetPct : "";
     
     // Reconstruct the pattern for the bubbles
     subjectModalPattern = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
@@ -4718,6 +4830,14 @@ function openSubjectModal(subjId = null) {
     if (saveBtn) saveBtn.textContent = "Add subject";
     subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
     if (subjectModalName) subjectModalName.value = "";
+    // Sticky: prefill with the last target the user typed for a subject
+    if (subjectModalTarget) {
+      const sticky = getStickySubjectTargetPct();
+      subjectModalTarget.value = sticky !== null ? sticky : "";
+    }
+  }
+  if (subjectModalTargetHint) {
+    subjectModalTargetHint.textContent = `Leave blank to use your overall target (${Math.round(getTargetAttendance() * 100)}%).`;
   }
 
   renderSubjectModalDays();
@@ -4743,29 +4863,55 @@ function saveSubjectFromModal() {
     if (subjectModalPattern[d] > 0) weeklyPattern.push({ day:d, count:subjectModalPattern[d] });
   }
 
+  // Parse the optional per-subject target. Blank = inherit overall target.
+  let targetPct = null;
+  if (subjectModalTarget && subjectModalTarget.value.trim() !== "") {
+    let t = parseFloat(subjectModalTarget.value);
+    if (!isNaN(t)) {
+      if (t < 50) t = 50;
+      if (t > 100) t = 100;
+      targetPct = t;
+      setStickySubjectTargetPct(t); // remember for the next subject added
+    }
+  }
+
   if (editingSubjectId) {
-    // EDIT MODE — ask user whether to apply schedule retroactively
     const subj = state.subjects.find(s => s.id === editingSubjectId);
+    // Only the weekly lecture pattern affects which lectures exist/were
+    // generated — target and name changes just change how existing
+    // lectures are scored, so they never need the "apply schedule change"
+    // (today-only vs. backfill) prompt.
+    const normalizePattern = (arr) => JSON.stringify(
+      (arr || []).map(p => ({ day: p.day, count: p.count })).sort((a, b) => a.day - b.day)
+    );
+    const prevWeeklyPattern = subj && subj.schedule ? subj.schedule.weeklyPattern : [];
+    const scheduleChanged = normalizePattern(prevWeeklyPattern) !== normalizePattern(weeklyPattern);
+
     if (subj) {
       subj.name = name;
       subj.schedule = { weeklyPattern };
+      subj.targetPct = targetPct; // null clears the override, back to overall target
     }
-    if (state.isInitialized) {
+
+    if (scheduleChanged && state.isInitialized) {
+      // EDIT MODE with a real timetable change — ask user whether to apply retroactively
       showTimetableApplyModal(() => {
         // "From today only" — regenerate only from today onwards
         regenerateFromSchedules(toISODate(new Date()));
-        saveState(); renderSubjectsList(); renderTimetable(); renderCalendar(); renderLectures();
+        saveState(); renderSubjectsList(); renderTimetable(); renderCalendar(); renderLectures(); renderSubjectStats();
       }, () => {
         // "Apply to all history" — regenerate from tracking start
         regenerateFromSchedules();
-        saveState(); renderSubjectsList(); renderTimetable(); renderCalendar(); renderLectures();
+        saveState(); renderSubjectsList(); renderTimetable(); renderCalendar(); renderLectures(); renderSubjectStats();
       });
       closeSubjectModal();
       return;
     }
+    // No timetable change (just name/target, or app not initialized yet) —
+    // save and re-render immediately, no regeneration prompt needed.
   } else {
     // ADD MODE — always generate from tracking start (no history issue)
-    state.subjects.push({ id: genId("sub"), name, schedule: { weeklyPattern } });
+    state.subjects.push({ id: genId("sub"), name, schedule: { weeklyPattern }, targetPct });
     if (state.isInitialized) {
       regenerateFromSchedules();
     }
@@ -4775,6 +4921,7 @@ function saveSubjectFromModal() {
   renderSubjectsList();
   renderTimetable(); 
   renderCalendar();
+  renderSubjectStats();
   closeSubjectModal();
 }
 
@@ -5349,6 +5496,26 @@ if (openGeminiBtn) {
       header.innerHTML = `<strong style="font-size:0.95rem; color:var(--text);">${escapeHtml(sub.name)}</strong>
                           <span style="color:var(--muted); cursor:pointer; font-size:1.1rem; padding:0 4px;" onclick="removeTempSub(${index})">✕</span>`;
 
+      // 2b. Optional per-subject target override
+      const targetRow = document.createElement("div");
+      targetRow.style.cssText = "display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:var(--text-soft);";
+      targetRow.innerHTML = `
+        <label style="flex:1;">Target for this subject (%)</label>
+        <input type="number" min="50" max="100" step="1" placeholder="Overall" value="${sub.targetPct ?? ''}"
+          style="width:64px; padding:4px 6px; border-radius:6px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); text-align:center;">
+      `;
+      const targetInputEl = targetRow.querySelector("input");
+      targetInputEl.addEventListener("change", () => {
+        let v = targetInputEl.value.trim();
+        if (v === "") { sub.targetPct = null; return; }
+        let t = parseFloat(v);
+        if (isNaN(t)) { sub.targetPct = null; targetInputEl.value = ""; return; }
+        if (t < 50) t = 50; if (t > 100) t = 100;
+        sub.targetPct = t;
+        targetInputEl.value = t;
+        setStickySubjectTargetPct(t); // sticky for the next subject added here too
+      });
+
       // 3. Bubbles (Mon - Sat)
       const daysRow = document.createElement("div");
       daysRow.style.cssText = "display:flex; gap:6px; justify-content:space-between;";
@@ -5378,6 +5545,7 @@ if (openGeminiBtn) {
       });
 
       row.appendChild(header);
+      row.appendChild(targetRow);
       row.appendChild(daysRow);
       wizSubList.appendChild(row);
     });
@@ -5390,7 +5558,8 @@ if (openGeminiBtn) {
     if (val && !tempSubjects.some(s => s.name === val)) {
       tempSubjects.push({
         name: val,
-        pattern: { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 } // Track days inside temp object
+        pattern: { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 }, // Track days inside temp object
+        targetPct: getStickySubjectTargetPct() // pre-fill from last-used subject target, if any
       });
       wizSubInput.value = "";
       renderTempSubjects();
@@ -5417,12 +5586,14 @@ if (openGeminiBtn) {
       state.subjects.push({
         id: genId("sub"),
         name: sub.name,
-        schedule: { weeklyPattern: weeklyPattern }
+        schedule: { weeklyPattern: weeklyPattern },
+        targetPct: (sub.targetPct !== undefined && sub.targetPct !== null && !isNaN(sub.targetPct)) ? sub.targetPct : null
       });
     });
 
     state.isInitialized = true;
     saveState();
+    localStorage.setItem("attrack_feature_seen_v2_subject_targets", "1"); // brand-new users already saw these fields in onboarding
 
     backdrop.style.display = "none";
 
@@ -5714,7 +5885,9 @@ refreshSoundToggle();
 renderStudyTargets();
 updateUndoUi();
 if (studyTargetDate) studyTargetDate.value = toISODate(new Date());
- //showNewFeaturePopupIfNeeded();
+// showNewFeaturePopupIfNeeded() disabled — the "Check your subject-wise
+// buffer" popup (versionModalBackdrop) now covers this announcement.
+// setTimeout(() => showNewFeaturePopupIfNeeded(), 1200);
 // --- Calendar Reminder Listeners ---
 const downloadIcsBtn = document.getElementById("downloadIcsBtn");
 const openGcalBtn = document.getElementById("openGcalBtn");
@@ -5886,7 +6059,7 @@ if (closeAbsentBtn) closeAbsentBtn.addEventListener("click", () => absentModalBa
 if (absentModalBackdrop) absentModalBackdrop.addEventListener("click", (e) => {
     if(e.target === absentModalBackdrop) absentModalBackdrop.style.display = "none";
 });
- const VERSION_2_KEY = "attrack_gemini_planner_seen";
+ const VERSION_2_KEY = "attrack_subjectwise_buffer_popup_seen";
 if (!localStorage.getItem(VERSION_2_KEY)) {
     const vModal = document.getElementById("versionModalBackdrop");
     if (vModal) vModal.style.display = "flex";
@@ -5906,6 +6079,23 @@ if(closeVersionBtn) {
   closeVersionBtn.addEventListener("click", () => {
     document.getElementById("versionModalBackdrop").style.display = "none";
     showPrivacyPopup();
+    switchView("homeView");
+    // Give the home view a moment to render, then draw clear attention to
+    // the Subject overview card — scroll to it, pulse its border, and
+    // auto-expand the first subject so the buffer detail is visible right
+    // away (scrolling alone is a no-op on desktop where both cards already
+    // sit side-by-side in view).
+    setTimeout(() => {
+      const card = document.getElementById("subjectOverviewCard");
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.add("highlight-pulse");
+        setTimeout(() => card.classList.remove("highlight-pulse"), 1900);
+      }
+      const firstRow = document.querySelector("#subjectStatsList .subject-stat-row");
+      const firstItem = document.querySelector("#subjectStatsList .subject-stat-item");
+      if (firstRow && firstItem && !firstItem.classList.contains("expanded")) firstRow.click();
+    }, 300);
   });
 }
               // --- FEEDBACK POPUP LOGIC ---
@@ -6382,10 +6572,14 @@ if ("serviceWorker" in navigator) {
 </script>
 <div id="newFeaturePopup" class="popup-overlay" style="display:none;">
   <div class="popup-body">
-    <h2>New Feature Added 🎉</h2>
-    <p>Class rep sharing link is now live!</p>
+    <h2>New: subject-wise targets 🎯</h2>
+    <p style="text-align:left; margin-top:8px;">Your college probably tracks attendance per subject, not overall — so now Attrack does too:</p>
+    <ul style="text-align:left; margin:8px 0 0; padding-left:20px; font-size:0.9rem; line-height:1.5;">
+      <li>Give any subject its own attendance target (in Setup, or when adding a subject) — handy for labs vs. lectures.</li>
+      <li>Tap a subject in "Subject overview" to see exactly how many of <em>that</em> subject's lectures you can still skip.</li>
+    </ul>
 
-    <button id="newFeatureCloseBtn" class="btn small">Okay!</button>
+    <button id="newFeatureCloseBtn" class="btn small" style="margin-top:16px;">Got it!</button>
   </div>
 </div>
 <div id="feedbackModal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.8); z-index:2000; align-items:center; justify-content:center; ">
@@ -6452,10 +6646,26 @@ if ("serviceWorker" in navigator) {
 </div>
 	
 <script>
+const NEW_FEATURE_SEEN_KEY = "attrack_feature_seen_v2_subject_targets";
+
 document.getElementById("newFeatureCloseBtn")?.addEventListener("click", () => {
   document.getElementById("newFeaturePopup").style.display = "none";
-  localStorage.setItem("attrack_feature_seen", "1");
+  localStorage.setItem(NEW_FEATURE_SEEN_KEY, "1");
 });
+
+// Shown once to existing users (people who already have subjects set up)
+// so it never competes with the first-run onboarding wizard for brand-new
+// users, who'll just find the features already built into the flow.
+function showNewFeaturePopupIfNeeded() {
+  if (localStorage.getItem(NEW_FEATURE_SEEN_KEY)) return;
+  if (!state.isInitialized || !state.subjects || state.subjects.length === 0) return;
+
+  const onboarding = document.getElementById("onboardingWizardBackdrop");
+  if (onboarding && onboarding.style.display !== "none") return; // wizard is showing, don't stack
+
+  const popup = document.getElementById("newFeaturePopup");
+  if (popup) popup.style.display = "flex";
+}
 </script>
 <script>
 // --- FEEDBACK LOGIC (Fixed Position) ---
@@ -6971,7 +7181,7 @@ function showPrivacyPopup() {
         document.getElementById('privacy-popup').style.display = 'block';
     }
 }
-// Chained after the "Plan smarter with AI" (Gemini) popup closes —
+// Chained after the "Check your subject-wise buffer" popup closes —
 // see closeVersionX / closeVersionBtn handlers.
 
 // Function to close the ad-disclaimer-only popup
@@ -6998,9 +7208,10 @@ function showAdDisclaimerPopupIfNeeded() {
 }
 
 // Safety-net trigger on load: the combined popup is normally chained after the
-// "Plan smarter with AI" modal closes, but that modal only shows once ever —
-// so returning users who already dismissed it would never re-trigger either
-// popup. This runs shortly after load and shows whichever popup is still owed.
+// "Check your subject-wise buffer" modal closes, but that modal only shows
+// once ever — so returning users who already dismissed it would never
+// re-trigger either popup. This runs shortly after load and shows whichever
+// popup is still owed.
 window.addEventListener('load', () => {
     setTimeout(() => {
         showPrivacyPopup();
