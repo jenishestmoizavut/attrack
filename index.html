@@ -2468,6 +2468,7 @@ When you add or load lectures, they’re marked attended by default.
       <label for="subjectModalTarget">Attendance target for this subject (%) — optional</label>
       <input id="subjectModalTarget" type="number" min="50" max="100" step="1" placeholder="Uses overall target" />
       <div class="hint" id="subjectModalTargetHint" style="margin-top:2px;"></div>
+      <button id="applyTargetToAllBtn" class="btn small secondary" type="button" style="margin-top:8px; justify-content:center;">Apply this % to all subjects</button>
     </div>
     <div id="subjectModalDays" class="subject-modal-days"></div>
     <div class="subject-modal-actions">
@@ -4757,6 +4758,7 @@ const subjectModalTargetHint = document.getElementById("subjectModalTargetHint")
 const subjectModalDays = document.getElementById("subjectModalDays");
 const cancelSubjectModalBtn = document.getElementById("cancelSubjectModalBtn");
 const saveSubjectModalBtn = document.getElementById("saveSubjectModalBtn");
+const applyTargetToAllBtn = document.getElementById("applyTargetToAllBtn");
 let subjectModalPattern = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
 
 // --- Per-subject attendance target helpers ---
@@ -4965,8 +4967,42 @@ function showTimetableApplyModal(onTodayOnly, onAllHistory) {
   });
 }
 
+function applyTargetToAllSubjects() {
+  if (!subjectModalTarget) return;
+  const raw = subjectModalTarget.value.trim();
+
+  let targetPct = null;
+  if (raw !== "") {
+    let t = parseFloat(raw);
+    if (isNaN(t)) {
+      alert("Enter a valid % first, or leave blank to reset all subjects to the overall target.");
+      return;
+    }
+    if (t < 50) t = 50;
+    if (t > 100) t = 100;
+    targetPct = t;
+    setStickySubjectTargetPct(t);
+  }
+
+  if (!state.subjects || !state.subjects.length) {
+    closeSubjectModal();
+    return;
+  }
+
+  const label = targetPct !== null ? `${targetPct}%` : "the overall target";
+  if (!confirm(`Set ${label} as the attendance target for all ${state.subjects.length} subjects?`)) return;
+
+  state.subjects.forEach(s => { s.targetPct = targetPct; });
+
+  saveState();
+  renderSubjectsList();
+  renderSubjectStats();
+  closeSubjectModal();
+}
+
 if (cancelSubjectModalBtn) cancelSubjectModalBtn.addEventListener("click", closeSubjectModal);
 if (saveSubjectModalBtn) saveSubjectModalBtn.addEventListener("click", saveSubjectFromModal);
+if (applyTargetToAllBtn) applyTargetToAllBtn.addEventListener("click", applyTargetToAllSubjects);
 if (subjectModalBackdrop) {
   subjectModalBackdrop.addEventListener("click", (event) => {
     if (event.target === subjectModalBackdrop) closeSubjectModal();
