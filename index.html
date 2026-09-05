@@ -4665,7 +4665,7 @@ if (total === 0) {
       }
       if (!total || total <= 0) return "";
       const totalLabel = isAuto
-        ? `<span title="Auto-calculated from your semester end date">~${total}<sup style="font-weight:400; opacity:0.7;">auto generated</sup></span>`
+        ? `<span title="Calculated from your semester end date">~${total}<sup style="font-weight:400; opacity:0.7;">auto generated</sup></span>`
         : `${total}`;
       const requiredTotal = Math.ceil(target * total);
       const neededMore = requiredTotal - att;
