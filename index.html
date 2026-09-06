@@ -12,14 +12,7 @@
   <meta name="application-name" content="Attrack" />
   <meta name="author" content="Jenish Chaplot" />
   <meta name="theme-color" content="#4f46e5" />
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Attrack",
-  "url": "https://jenishestmoizavut.github.io/attrack/"
-}
-</script>
+
   <!-- PWA / Mobile -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -33,6 +26,7 @@
 
   <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Attrack" />
   <meta property="og:url" content="https://jenishestmoizavut.github.io/attrack/" />
   <meta property="og:title" content="Attrack – Free Attendance Tracker for Students" />
   <meta property="og:description" content="Know your attendance %, how many classes you can miss, and manage assignments & study targets. No login. Works offline." />
@@ -40,7 +34,7 @@
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:locale" content="en_IN" />
-<meta property="og:site_name" content="Attrack" />
+
   <!-- Twitter / X Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://jenishestmoizavut.github.io/attrack/" />
@@ -1786,7 +1780,15 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
     
     <div id="wizardStep1">
             <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Welcome to Attrack</h2>
-            <div class="field" style="margin-top: 20px; text-align: left;">
+      <p class="hint">A phone-first attendance dashboard: check status, log today, manage tasks, and keep setup tucked away.</p>
+      <div class="tutorial-grid">
+        <div class="tutorial-card"><strong>Dashboard</strong><span>Your overall status, subject overview, and quick actions live first.</span></div>
+        <div class="tutorial-card"><strong>Daily</strong><span>Log lectures fast. Extra tools live under More actions.</span></div>
+        <div class="tutorial-card"><strong>Assignments</strong><span>Add assignments by subject and save due dates to Calendar.</span></div>
+        <div class="tutorial-card"><strong>Setup hub</strong><span>Target, subjects, timetable, sharing, reminders, dark mode, and sound.</span></div>
+      </div>
+      
+      <div class="field" style="margin-top: 20px; text-align: left;">
         <label>What should I call you?</label>
         <input type="text" id="wizName" placeholder="e.g. Chill Math Nerd">
       </div>
@@ -1794,16 +1796,11 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <label>When does tracking start?</label>
         <input type="date" id="wizDate">
       </div>
-      <div class="field" style="text-align: left;">
-        <label>Semester end date (optional)</label>
-        <input type="date" id="wizSemEndDate">
-        <div class="hint" style="margin-top:2px;">Lets Attrack estimate total lectures and term-end countdowns for you.</div>
-      </div>
       
       <button class="btn" id="wizBtn1" style="width: 100%; margin-top: 16px; justify-content: center; padding: 10px;">Next: Set a Goal →</button>
       
-      <div style="margin-top: 16px; font-size: 0.8rem;>
-        Have a classmate using Attrack? You can enter the schedule directly using their link!
+      <div style="margin-top: 16px; font-size: 0.8rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
+        Have a Class Rep magic link?
       </div>
 
       <div class="privacy-agreement" style="font-size: 0.8rem; color: var(--text-soft); margin-top: 14px; text-align: center;">
@@ -3112,7 +3109,6 @@ function openGoogleCalendar() {
       const shareState = {
         studentName: "", // Don't share name
         startDate: state.startDate,
-        semEndDate: state.semEndDate || null,
         subjects: state.subjects,
         // Share lectures but RESET attendance to 'true' (Present)
         // This lets the Rep share the *Schedule* without sharing their *Bunks*
@@ -3152,7 +3148,6 @@ function openGoogleCalendar() {
             state.subjects = json.subjects;
             state.lectures = json.lectures || [];
             if (json.startDate) state.startDate = json.startDate;
-            if (json.semEndDate) setSemEndDate(json.semEndDate);
             
             // Keep the user's existing name if they have one
             if (!state.studentName && json.studentName) state.studentName = json.studentName;
@@ -3194,7 +3189,6 @@ function openGoogleCalendar() {
 
   const shareState = {
     startDate: state.startDate,
-    semEndDate: state.semEndDate || null,
     subjects: state.subjects,
     lectures: state.lectures,
     // --- 🔴 FIX: SEND HOLIDAYS ---
@@ -3289,7 +3283,7 @@ async function checkUrlForImport() {
   const importId = params.get("import");
   if (!importId) return;
 
-  if (!confirm("Load the shared schedule?\n\nThis will load the Subjects, Holidays, Semester dates, Attendance target, and ALL Lectures from the link.\n\n(Note: This replaces your current data with the shared data.)")) {
+  if (!confirm("Load the shared schedule?\n\nThis will load the Subjects, Holidays, and ALL Lectures from the link.\n\n(Note: This replaces your current data with the shared data.)")) {
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
     return;
   }
@@ -3302,7 +3296,6 @@ async function checkUrlForImport() {
 
     // 1. Import Basic Settings
     if (data.startDate) state.startDate = data.startDate;
-    if (data.semEndDate) setSemEndDate(data.semEndDate);
     if (data.target) localStorage.setItem("attrack_target_attendance", data.target);
 
     // 2. Import Subjects & Holidays (Full Overwrite as requested)
@@ -3582,8 +3575,43 @@ function sendDailyReminder() {
       const subjectStats = (state.subjects || []).map(subj => {
         const subLecs = validLectures.filter(l => l.subjectId === subj.id);
         const subAtt = subLecs.filter(l => l.attended).length;
-        const subPct = subLecs.length > 0 ? `, ${((subAtt / subLecs.length) * 100).toFixed(1)}%` : "";
-        return `- ${subj.name || "Unnamed subject"}: ${subAtt}/${subLecs.length} attended${subPct}`;
+        const subTot = subLecs.length;
+        const subPct = subTot > 0 ? `${((subAtt / subTot) * 100).toFixed(1)}%` : "no data yet";
+
+        const subTargetDecimal = getSubjectTargetDecimal(subj);
+        const subTargetPctLabel = Math.round(subTargetDecimal * 100);
+        const hasCustomTarget = subj.targetPct !== undefined && subj.targetPct !== null && !isNaN(subj.targetPct);
+        const targetNote = hasCustomTarget
+          ? ` (custom target: ${subTargetPctLabel}%)`
+          : ` (target: ${subTargetPctLabel}%, overall default)`;
+
+        let bufferNote = "";
+        if (subTot > 0) {
+          const subBunk = Math.floor((subAtt - subTargetDecimal * subTot) / subTargetDecimal);
+          bufferNote = subBunk >= 0
+            ? `, can skip ${subBunk} more and stay at/above ${subTargetPctLabel}%`
+            : `, needs to attend ${Math.ceil((subTargetDecimal * subTot - subAtt) / (1 - subTargetDecimal))} more in a row to reach ${subTargetPctLabel}%`;
+        }
+
+        // Full-term countdown: manual total-lectures override, or an
+        // estimate derived from the semester end date + weekly pattern.
+        let termNote = "";
+        let termTotal = subj.totalLectures;
+        let isAutoTotal = false;
+        if (!termTotal || termTotal <= 0) {
+          termTotal = computeAutoTotalLectures(subj);
+          isAutoTotal = true;
+        }
+        if (termTotal && termTotal > 0) {
+          const requiredTotal = Math.ceil(subTargetDecimal * termTotal);
+          const neededMore = requiredTotal - subAtt;
+          const totalLabel = isAutoTotal ? `~${termTotal} est.` : `${termTotal}`;
+          termNote = neededMore <= 0
+            ? `; full term (${totalLabel} lectures): already secured ${subTargetPctLabel}%+`
+            : `; full term (${totalLabel} lectures): needs ${neededMore} more to hit ${subTargetPctLabel}% by term end`;
+        }
+
+        return `- ${subj.name || "Unnamed subject"}: ${subAtt}/${subTot} attended (${subPct})${targetNote}${bufferNote}${termNote}`;
       }).join("\n") || "No subjects added.";
 
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -3610,8 +3638,8 @@ function sendDailyReminder() {
       const sections = [];
       sections.push(`STUDENT PROFILE
 - Name: ${state.studentName || "Student"}
-- Target Attendance: ${Math.round(target * 100)}%
-- Tracking Start Date: ${formatDisplayDate(start)}`);
+- Overall Target Attendance: ${Math.round(target * 100)}%
+- Tracking Start Date: ${formatDisplayDate(start)}${state.semEndDate ? `\n- Semester End Date: ${formatDisplayDate(state.semEndDate)}` : ""}`);
 
       if (opts.includeAttendance) {
         sections.push(`ATTENDANCE
@@ -3645,9 +3673,9 @@ ${extraContext.trim() || "No extra context provided."}`);
       // deliberately left out.
       const instructionLines = [];
       if (opts.includeAttendance && opts.includeTimetable) {
-        instructionLines.push("Attendance Strategy: Use the buffer and timetable. Tell me which specific days or subjects need strict attendance, and where rest is safe.");
+        instructionLines.push("Attendance Strategy: Use each subject's own target, buffer, and full-term countdown (not just the overall %) plus the timetable. Tell me which specific subjects or days need strict attendance, which have safe room to rest, and call out any subject where the term-end target is no longer reachable.");
       } else if (opts.includeAttendance) {
-        instructionLines.push("Attendance Strategy: Use the buffer status. Tell me which subjects need strict attendance and where I have room to rest.");
+        instructionLines.push("Attendance Strategy: Use each subject's own target, buffer, and full-term countdown. Tell me which subjects need strict attendance, where I have room to rest, and flag any subject where the term-end target is no longer reachable.");
       } else if (opts.includeTimetable) {
         instructionLines.push("Schedule Overview: Use the timetable to flag heavy days and lighter days.");
       }
@@ -4027,7 +4055,7 @@ function regenerateFromSchedules(fromIsoDate) {
       const semInputProfile = document.getElementById("semEndDateInputProfile");
       if (semInputProfile) semInputProfile.value = state.semEndDate || "";
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, add your semester end date to your profile to know your per subject requirements!`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, I have introduced a subjectwise buffer view thanks to community feedback <3`
         : "Welcome! Tell me your name below (Profile) and you can stay updated with Attrack! 😊";
     }
 
@@ -4612,7 +4640,7 @@ if (total === 0) {
         const skipInfo = getSkipUntilInfo(canBunk, subj.id);
         let dateHtml = "";
         if (canBunk > 0 && skipInfo && skipInfo.fullUntilDate) {
-          dateHtml = ` — until <strong>${formatShortDate(skipInfo.fullUntilDate)}</strong>`;
+          dateHtml = ` — that's until <strong>${formatShortDate(skipInfo.fullUntilDate)}</strong>`;
           if (skipInfo.partialDate && skipInfo.partialCount > 0) {
             dateHtml += ` and <strong>${skipInfo.partialCount}</strong> lecture${skipInfo.partialCount > 1 ? "s" : ""} on <strong>${formatShortDate(skipInfo.partialDate)}</strong>`;
           }
@@ -4620,7 +4648,7 @@ if (total === 0) {
         }
         return {
           cls: "good",
-          html: `Skip up to <strong>${canBunk}</strong> more lecture${canBunk === 1 ? "" : "s"} and stay ${targetPctLabel}%+${dateHtml}${termHtml}`
+          html: `You can skip the next <strong>${canBunk}</strong> lecture${canBunk === 1 ? "" : "s"} in this subject and stay at/above ${targetPctLabel}%${dateHtml}${termHtml}`
         };
       } else {
         const needToAttend = Math.ceil((target * tot - att) / (1 - target));
@@ -4671,15 +4699,13 @@ if (total === 0) {
         isAuto = true;
       }
       if (!total || total <= 0) return "";
-      const totalLabel = isAuto
-        ? `<span title="Calculated from your semester end date">~${total}<sup style="font-weight:400; opacity:0.7;">auto generated</sup></span>`
-        : `${total}`;
+      const totalLabel = isAuto ? `~${total} (auto)` : `${total}`;
       const requiredTotal = Math.ceil(target * total);
       const neededMore = requiredTotal - att;
       const remainingPlanned = Math.max(0, total - tot);
 
       if (neededMore <= 0) {
-        return `<div style="margin-top:6px;">Full term (<strong>${totalLabel}</strong> lectures): ${targetPctLabel}%+ already secured — nice!</div>`;
+        return `<div style="margin-top:6px;">Full term (${totalLabel} lectures): ${targetPctLabel}%+ already secured — nice!</div>`;
       }
 
       // Project the date by which you'd have attended `neededMore` more
@@ -4690,7 +4716,7 @@ if (total === 0) {
       let dateHtml = "";
       let pastSemEnd = false;
       if (untilDate) {
-        dateHtml = ` — attend every one of them and you'll get there by <strong>${formatShortDate(untilDate)}</strong>.`;
+        dateHtml = ` — by <strong>${formatShortDate(untilDate)}</strong>.`;
         if (state.semEndDate) {
           const semEnd = parseISO(state.semEndDate);
           semEnd.setHours(23, 59, 59, 999);
@@ -4700,12 +4726,12 @@ if (total === 0) {
 
       if (neededMore > remainingPlanned || pastSemEnd) {
         const reason = neededMore > remainingPlanned
-          ? `that's more than the ${remainingPlanned} lecture${remainingPlanned === 1 ? "" : "s"} left this term`
-          : `that lands after your semester end date (${formatShortDate(parseISO(state.semEndDate))})`;
-        return `<div style="margin-top:6px; color:#991b1b;">Term countdown: you'd need <strong>${neededMore}</strong> more to hit ${targetPctLabel}% of all ${totalLabel} lectures — but ${reason}, so it's no longer reachable this term.</div>`;
+          ? `only ${remainingPlanned} left`
+          : `after sem end (${formatShortDate(parseISO(state.semEndDate))})`;
+        return `<div style="margin-top:6px; color:#991b1b;">Term: need <strong>${neededMore}</strong> more of ${totalLabel} for ${targetPctLabel}% — not reachable, ${reason}.</div>`;
       }
 
-      return `<div style="margin-top:6px;">Term countdown: attend <strong>${neededMore}</strong> more of the <strong>${remainingPlanned}</strong> lecture${remainingPlanned === 1 ? "" : "s"} left to reach ${targetPctLabel}% of all <strong>${totalLabel}</strong> lectures this term${dateHtml}</div>`;
+      return `<div style="margin-top:6px;">Term: attend <strong>${neededMore}</strong> more of <strong>${remainingPlanned}</strong> left for ${targetPctLabel}% of ${totalLabel}${dateHtml}</div>`;
     }
 
     function renderSubjectStats() {
@@ -5550,7 +5576,6 @@ if (openGeminiBtn) {
 
   const wizName = document.getElementById("wizName");
   const wizDate = document.getElementById("wizDate");
-  const wizSemEndDate = document.getElementById("wizSemEndDate");
   const wizTarget = document.getElementById("wizTarget");
   const wizSubInput = document.getElementById("wizSubInput");
   const wizAddSubBtn = document.getElementById("wizAddSubBtn");
@@ -5580,7 +5605,6 @@ if (openGeminiBtn) {
   btn1.addEventListener("click", () => {
     state.studentName = wizName.value.trim();
     state.startDate = wizDate.value || toISODate(new Date());
-    if (wizSemEndDate && wizSemEndDate.value) setSemEndDate(wizSemEndDate.value);
     step1.style.display = "none";
     step2.style.display = "block";
   });
@@ -5748,7 +5772,6 @@ refreshSoundToggle();
     switchView("homeView");
     
     setTimeout(() => { startGuidedTour(true); }, 650);
-    setTimeout(() => { showPrivacyPopup(); showAdDisclaimerPopupIfNeeded(); }, 900);
   });
 
   const wizImportLink = document.getElementById("wizImportLink");
@@ -7246,16 +7269,16 @@ else {
             }
         });
 </script>
-<div id="privacy-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(2,6,23,0.6);">
-    <div class="modal-content" style="background-color: var(--card-bg); margin: 15% auto; padding: 25px; border: 1px solid var(--border); width: 80%; max-width: 400px; border-radius: 8px; color: var(--text); text-align: center;">
-        <h2 style="color: var(--accent); margin-top: 0;">Privacy & Transparency</h2>
-        <p style="font-size: 0.95rem; margin-bottom: 20px; color: var(--text-soft);">Before you dive in, we want you to know exactly how your data is handled. Your tracking data is stored securely but remains visible to the administrator for debugging. We never sell your data.</p>
+<div id="privacy-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+    <div class="modal-content" style="background-color: #1e1e1e; margin: 15% auto; padding: 25px; border: 1px solid #333; width: 80%; max-width: 400px; border-radius: 8px; color: #e0e0e0; text-align: center;">
+        <h2 style="color: #bb86fc; margin-top: 0;">Privacy & Transparency</h2>
+        <p style="font-size: 0.95rem; margin-bottom: 20px;">Before you dive in, we want you to know exactly how your data is handled. Your tracking data is stored securely but remains visible to the administrator for debugging. We never sell your data.</p>
 
-        <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Read Full Privacy Policy</a>
+        <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Privacy Policy</a>
         <br>
-        <a href="disclaimer.html" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Read Disclaimer</a>
+        <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Disclaimer</a>
 
-        <div style="display: flex; flex-direction: column; gap: 12px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: var(--text-soft);">
+        <div style="display: flex; flex-direction: column; gap: 12px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: #e0e0e0;">
             <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
                 <input type="checkbox" id="privacyAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
                 <span>I have read and agree to the Privacy Policy.</span>
@@ -7268,7 +7291,7 @@ else {
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-            <button id="privacyAgreeBtn" onclick="closePrivacyPopup()" disabled style="background-color: var(--border); color: var(--muted); border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: background-color 0.2s, color 0.2s;">I Agree & Continue</button>
+            <button id="privacyAgreeBtn" onclick="closePrivacyPopup()" disabled style="background-color: #555; color: #999; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: background-color 0.2s, color 0.2s;">I Agree & Continue</button>
         </div>
     </div>
 </div>
@@ -7287,8 +7310,8 @@ else {
         
         agreeBtn.disabled = !bothChecked;
         agreeBtn.style.cursor = bothChecked ? 'pointer' : 'not-allowed';
-        agreeBtn.style.backgroundColor = bothChecked ? 'var(--accent)' : 'var(--border)';
-        agreeBtn.style.color = bothChecked ? '#fff' : 'var(--muted)';
+        agreeBtn.style.backgroundColor = bothChecked ? '#bb86fc' : '#555';
+        agreeBtn.style.color = bothChecked ? '#121212' : '#999';
     }
 
     if (privacyCheckbox && disclaimerCheckbox) {
@@ -7348,31 +7371,28 @@ function showAdDisclaimerPopupIfNeeded() {
     }
 }
 
-// Safety-net trigger on load: for brand-new users the combined popup is
-// chained after the front-door onboarding wizard finishes (see wizBtn3
-// handler above), so it never stacks on top of the wizard. For returning
-// users the wizard never shows, so this runs shortly after load instead —
-// but only once the wizard backdrop is confirmed hidden, so the two never
-// overlap even if timing shifts.
+// Safety-net trigger on load: the combined popup is normally chained after the
+// "Check your subject-wise buffer" modal closes, but that modal only shows
+// once ever — so returning users who already dismissed it would never
+// re-trigger either popup. This runs shortly after load and shows whichever
+// popup is still owed.
 window.addEventListener('load', () => {
     setTimeout(() => {
-        const onboarding = document.getElementById("onboardingWizardBackdrop");
-        if (onboarding && onboarding.style.display !== "none") return; // wizard will chain these itself
         showPrivacyPopup();
         showAdDisclaimerPopupIfNeeded();
     }, 600);
 });
 </script>
 
-<div id="ad-disclaimer-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(2,6,23,0.6);">
-    <div class="modal-content" style="background-color: var(--card-bg); margin: 15% auto; padding: 25px; border: 1px solid var(--border); width: 80%; max-width: 400px; border-radius: 8px; color: var(--text); text-align: center;">
-        <h2 style="color: var(--accent); margin-top: 0;">📢 Ad Disclaimer</h2>
-        <p style="font-size: 0.95rem; margin-bottom: 20px; color: var(--text-soft);">Attrack now shows a small number of ads to help keep the app free. Ads are clearly labeled and served by a third-party network, which may use cookies to personalize them. This doesn't change how your attendance data is handled.</p>
+<div id="ad-disclaimer-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+    <div class="modal-content" style="background-color: #1e1e1e; margin: 15% auto; padding: 25px; border: 1px solid #333; width: 80%; max-width: 400px; border-radius: 8px; color: #e0e0e0; text-align: center;">
+        <h2 style="color: #bb86fc; margin-top: 0;">📢 Ad Disclaimer</h2>
+        <p style="font-size: 0.95rem; margin-bottom: 20px;">Attrack now shows a small number of ads to help keep the app free. Ads are clearly labeled and served by a third-party network, which may use cookies to personalize them. This doesn't change how your attendance data is handled.</p>
 
-        <a href="disclaimer.html" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Read Full Ad Disclaimer</a>
+        <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Ad Disclaimer</a>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            <button id="adDisclaimerAgreeBtn" onclick="closeAdDisclaimerPopup()" style="background-color: var(--accent); color: #fff; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer;">Got it</button>
+            <button id="adDisclaimerAgreeBtn" onclick="closeAdDisclaimerPopup()" style="background-color: #bb86fc; color: #121212; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer;">Got it</button>
         </div>
     </div>
 </div>
