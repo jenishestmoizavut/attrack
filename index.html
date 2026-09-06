@@ -2247,13 +2247,31 @@ When you add or load lectures, they’re marked attended by default.
 </div>
 
   <div class="card" style="margin-top:12px;">
-    <h3>Pending Tasks ⏳</h3>
+    <div class="setup-inline" style="align-items:center; justify-content:space-between;">
+      <h3 style="margin:0;">Pending Tasks ⏳</h3>
+      <button id="editPendingTasksBtn" class="btn small secondary" type="button">Edit</button>
+    </div>
+    <div id="pendingTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
+      <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" id="selectAllPendingTasks" style="width:16px; height:16px; cursor:pointer;"> Select all
+      </label>
+      <button id="deleteSelectedPendingBtn" class="btn small danger" type="button">Delete selected (<span id="pendingSelCount">0</span>)</button>
+    </div>
     <div id="assignmentsListPending" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
     <div id="noPendingMsg" class="hint" style="text-align:center; padding:10px;">No pending tasks! 🎉</div>
   </div>
 
   <div class="card" style="margin-top:12px; opacity:0.8;">
-    <h3>Completed ✅</h3>
+    <div class="setup-inline" style="align-items:center; justify-content:space-between;">
+      <h3 style="margin:0;">Completed ✅</h3>
+      <button id="editDoneTasksBtn" class="btn small secondary" type="button">Edit</button>
+    </div>
+    <div id="doneTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
+      <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" id="selectAllDoneTasks" style="width:16px; height:16px; cursor:pointer;"> Select all
+      </label>
+      <button id="deleteSelectedDoneBtn" class="btn small danger" type="button">Delete selected (<span id="doneSelCount">0</span>)</button>
+    </div>
     <div id="assignmentsListDone" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
   </div>
 
@@ -5889,25 +5907,73 @@ document.addEventListener("click", (e) => {
 });
 
 // 3. Render Function (Updated)
+// Multi-select "Edit" mode for the Tasks lists — one flag per list (Pending,
+// Completed) plus a shared set of selected assignment ids, since ids are
+// unique across both lists anyway.
+let editModePending = false;
+let editModeDone = false;
+const selectedTaskIds = new Set();
+
+function setTasksEditMode(which, on) {
+  if (which === "pending") editModePending = on; else editModeDone = on;
+  if (!on) {
+    // Leaving edit mode for a list drops any selections that belonged to it,
+    // without disturbing a selection in progress on the other list.
+    const stillRelevant = (state.assignments || []).filter(a =>
+      which === "pending" ? a.completed : !a.completed
+    ).map(a => a.id);
+    stillRelevant.forEach(id => selectedTaskIds.delete(id));
+  }
+  renderAssignments();
+}
+
 function renderAssignments() {
   if (!assignmentsListPending) return; 
   assignmentsListPending.innerHTML = "";
   assignmentsListDone.innerHTML = "";
+
+  const editPendingBtn = document.getElementById("editPendingTasksBtn");
+  const editDoneBtn = document.getElementById("editDoneTasksBtn");
+  const pendingBulkBar = document.getElementById("pendingTasksBulkBar");
+  const doneBulkBar = document.getElementById("doneTasksBulkBar");
+  if (editPendingBtn) editPendingBtn.textContent = editModePending ? "Done" : "Edit";
+  if (editDoneBtn) editDoneBtn.textContent = editModeDone ? "Done" : "Edit";
+  if (pendingBulkBar) pendingBulkBar.style.display = editModePending ? "flex" : "none";
+  if (doneBulkBar) doneBulkBar.style.display = editModeDone ? "flex" : "none";
   
   const sorted = (state.assignments || []).slice().sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
   let pendingCount = 0;
+  let pendingSelectableCount = 0, pendingSelectedCount = 0;
+  let doneSelectableCount = 0, doneSelectedCount = 0;
 
   sorted.forEach(ass => {
     const subj = state.subjects.find(s => s.id === ass.subjectId);
+    const inEditMode = ass.completed ? editModeDone : editModePending;
+
     const row = document.createElement("div");
     row.className = "subject-stat-row";
     
-    // CSS Grid: Checkbox | Text | Action Buttons
+    // CSS Grid: (Select?) | Checkbox | Text | Action Buttons
     row.style.display = "grid"; 
-    row.style.gridTemplateColumns = "24px 1fr auto"; 
+    row.style.gridTemplateColumns = inEditMode ? "22px 24px 1fr auto" : "24px 1fr auto"; 
     row.style.gap = "10px";
     row.style.marginBottom = "8px";
     row.style.alignItems = "center";
+
+    // Selection checkbox (edit mode only)
+    if (inEditMode) {
+      if (ass.completed) doneSelectableCount++; else pendingSelectableCount++;
+      const selCb = document.createElement("input");
+      selCb.type = "checkbox";
+      selCb.checked = selectedTaskIds.has(ass.id);
+      if (selCb.checked) { if (ass.completed) doneSelectedCount++; else pendingSelectedCount++; }
+      selCb.style.width = "16px"; selCb.style.height = "16px"; selCb.style.cursor = "pointer";
+      selCb.addEventListener("change", () => {
+        if (selCb.checked) selectedTaskIds.add(ass.id); else selectedTaskIds.delete(ass.id);
+        updateBulkDeleteUi();
+      });
+      row.appendChild(selCb);
+    }
 
     // Checkbox
     const cb = document.createElement("input");
@@ -5970,6 +6036,7 @@ function renderAssignments() {
     delBtn.onclick = () => {
       if(confirm("Delete task?")) {
         state.assignments = state.assignments.filter(x => x.id !== ass.id);
+        selectedTaskIds.delete(ass.id);
         saveState(); renderAssignments();
       }
     };
@@ -5982,7 +6049,78 @@ function renderAssignments() {
   });
 
   if(noPendingMsg) noPendingMsg.style.display = pendingCount === 0 ? "block" : "none";
+
+  const selectAllPending = document.getElementById("selectAllPendingTasks");
+  const selectAllDone = document.getElementById("selectAllDoneTasks");
+  if (selectAllPending) selectAllPending.checked = pendingSelectableCount > 0 && pendingSelectedCount === pendingSelectableCount;
+  if (selectAllDone) selectAllDone.checked = doneSelectableCount > 0 && doneSelectedCount === doneSelectableCount;
+  const pendingSelCountEl = document.getElementById("pendingSelCount");
+  const doneSelCountEl = document.getElementById("doneSelCount");
+  if (pendingSelCountEl) pendingSelCountEl.textContent = pendingSelectedCount;
+  if (doneSelCountEl) doneSelCountEl.textContent = doneSelectedCount;
 }
+
+// Refreshes just the selection counts/checkboxes without a full re-render
+// (called on every individual checkbox toggle, so it stays cheap).
+function updateBulkDeleteUi() {
+  const pendingIds = (state.assignments || []).filter(a => !a.completed).map(a => a.id);
+  const doneIds = (state.assignments || []).filter(a => a.completed).map(a => a.id);
+  const pendingSelected = pendingIds.filter(id => selectedTaskIds.has(id)).length;
+  const doneSelected = doneIds.filter(id => selectedTaskIds.has(id)).length;
+
+  const pendingSelCountEl = document.getElementById("pendingSelCount");
+  const doneSelCountEl = document.getElementById("doneSelCount");
+  if (pendingSelCountEl) pendingSelCountEl.textContent = pendingSelected;
+  if (doneSelCountEl) doneSelCountEl.textContent = doneSelected;
+
+  const selectAllPending = document.getElementById("selectAllPendingTasks");
+  const selectAllDone = document.getElementById("selectAllDoneTasks");
+  if (selectAllPending) selectAllPending.checked = pendingIds.length > 0 && pendingSelected === pendingIds.length;
+  if (selectAllDone) selectAllDone.checked = doneIds.length > 0 && doneSelected === doneIds.length;
+}
+
+function deleteSelectedTasks(which) {
+  const relevantIds = (state.assignments || [])
+    .filter(a => (which === "pending" ? !a.completed : a.completed))
+    .map(a => a.id)
+    .filter(id => selectedTaskIds.has(id));
+  if (relevantIds.length === 0) return;
+  if (!confirm(`Delete ${relevantIds.length} selected task${relevantIds.length === 1 ? "" : "s"}?`)) return;
+  const idSet = new Set(relevantIds);
+  state.assignments = (state.assignments || []).filter(a => !idSet.has(a.id));
+  relevantIds.forEach(id => selectedTaskIds.delete(id));
+  saveState();
+  renderAssignments();
+}
+
+const editPendingTasksBtn = document.getElementById("editPendingTasksBtn");
+const editDoneTasksBtn = document.getElementById("editDoneTasksBtn");
+if (editPendingTasksBtn) editPendingTasksBtn.addEventListener("click", () => setTasksEditMode("pending", !editModePending));
+if (editDoneTasksBtn) editDoneTasksBtn.addEventListener("click", () => setTasksEditMode("done", !editModeDone));
+
+const selectAllPendingTasksEl = document.getElementById("selectAllPendingTasks");
+if (selectAllPendingTasksEl) {
+  selectAllPendingTasksEl.addEventListener("change", () => {
+    const ids = (state.assignments || []).filter(a => !a.completed).map(a => a.id);
+    if (selectAllPendingTasksEl.checked) ids.forEach(id => selectedTaskIds.add(id));
+    else ids.forEach(id => selectedTaskIds.delete(id));
+    renderAssignments();
+  });
+}
+const selectAllDoneTasksEl = document.getElementById("selectAllDoneTasks");
+if (selectAllDoneTasksEl) {
+  selectAllDoneTasksEl.addEventListener("change", () => {
+    const ids = (state.assignments || []).filter(a => a.completed).map(a => a.id);
+    if (selectAllDoneTasksEl.checked) ids.forEach(id => selectedTaskIds.add(id));
+    else ids.forEach(id => selectedTaskIds.delete(id));
+    renderAssignments();
+  });
+}
+
+const deleteSelectedPendingBtnEl = document.getElementById("deleteSelectedPendingBtn");
+if (deleteSelectedPendingBtnEl) deleteSelectedPendingBtnEl.addEventListener("click", () => deleteSelectedTasks("pending"));
+const deleteSelectedDoneBtnEl = document.getElementById("deleteSelectedDoneBtn");
+if (deleteSelectedDoneBtnEl) deleteSelectedDoneBtnEl.addEventListener("click", () => deleteSelectedTasks("done"));
 
 if (addAssignmentBtn) {
   addAssignmentBtn.addEventListener("click", () => {
