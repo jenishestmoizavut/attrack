@@ -54,28 +54,5 @@
       "url": "./index.html?view=mark",
       "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
     }
-  ],
-  "screenshots": [
-    {
-      "src": "./icon-192.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Attrack home screen showing attendance overview"
-    },
-    {
-      "src": "./icon-192.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Weekly schedule view"
-    },
-    {
-      "src": "./icon-192.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Attrack dashboard on desktop"
-    }
   ]
 }
