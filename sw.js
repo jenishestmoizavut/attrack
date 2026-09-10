@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.2.0"; // Bumped: added push notifications
+const CACHE_VERSION = "v2.2.1"; // Bumped: added push notifications
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
