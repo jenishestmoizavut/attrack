@@ -3617,7 +3617,7 @@ function sendDailyReminder() {
         let termTotal = subj.totalLectures;
         let isAutoTotal = false;
         if (!termTotal || termTotal <= 0) {
-          termTotal = computeAutoTotalLectures(subj);
+          termTotal = computeAutoTotalLectures(subj, subTot);
           isAutoTotal = true;
         }
         if (termTotal && termTotal > 0) {
@@ -4677,30 +4677,40 @@ if (total === 0) {
       }
     }
 
-    // Counts how many of a subject's lectures fall between tracking start
-    // and the semester end date (inclusive), using its weekly pattern and
-    // excluding holidays — used as an automatic stand-in for "total
-    // lectures this term" when the user hasn't entered one manually.
-    function computeAutoTotalLectures(subj) {
+    // Estimates a subject's total lecture count for the term when the user
+    // hasn't entered one manually. Past lectures use `conductedSoFar` — the
+    // ACTUAL count already logged in the app (auto-generated + any manually
+    // added extras, e.g. makeup classes) — so those are never missed. Only
+    // the still-to-come portion (tomorrow through the semester end date) is
+    // estimated from the weekly pattern, since the future hasn't happened
+    // yet and manual one-offs can't be predicted.
+    function computeAutoTotalLectures(subj, conductedSoFar) {
       if (!state.semEndDate || !subj.schedule?.weeklyPattern?.length) return null;
-      const start = parseISO(state.startDate || toISODate(new Date()));
-      start.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
       const end = parseISO(state.semEndDate);
       end.setHours(0, 0, 0, 0);
-      if (end < start) return null;
+      const already = conductedSoFar || 0;
+
+      if (end < today) {
+        // Semester end date has already passed — go entirely off what's logged.
+        return already > 0 ? already : null;
+      }
+
       const holidays = state.holidays || [];
-      let cur = new Date(start);
-      let total = 0;
+      let cur = new Date(today);
+      cur.setDate(cur.getDate() + 1); // future lectures start tomorrow
+      let futureCount = 0;
       let guard = 0;
       while (cur <= end && guard < 5000) {
         const iso = toISODate(cur);
         if (!holidays.includes(iso)) {
           const dow = cur.getDay();
-          subj.schedule.weeklyPattern.forEach(p => { if (p.day === dow) total += (p.count || 1); });
+          subj.schedule.weeklyPattern.forEach(p => { if (p.day === dow) futureCount += (p.count || 1); });
         }
         cur.setDate(cur.getDate() + 1);
         guard++;
       }
+      const total = already + futureCount;
       return total > 0 ? total : null;
     }
 
@@ -4713,7 +4723,7 @@ if (total === 0) {
       let total = subj.totalLectures;
       let isAuto = false;
       if (!total || total <= 0) {
-        total = computeAutoTotalLectures(subj);
+        total = computeAutoTotalLectures(subj, tot);
         isAuto = true;
       }
       if (!total || total <= 0) return "";
