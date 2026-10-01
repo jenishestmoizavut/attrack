@@ -766,16 +766,6 @@ td .btn.small:hover { opacity: 1; }
 
 .lectures-empty, .hint { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
 
-/* Compact, glanceable agenda on the Dashboard. PWAs cannot provide a live
-   native home-screen widget on every platform, so this is the fast in-app path. */
-.today-glance { margin: 14px 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-soft); }
-.today-glance-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.today-glance-title { font-size: 0.88rem; font-weight: 700; }
-.today-glance-date { font-size: 0.73rem; color: var(--muted); }
-.today-glance-list { display: grid; gap: 6px; margin-top: 10px; }
-.today-glance-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; border-radius: 8px; background: var(--card-bg); font-size: 0.8rem; }
-.today-glance-status { color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
-
 .quiet-note { font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
 
 .promo-card {
@@ -1869,17 +1859,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
             </div>
           </div>
           <div id="finalAttendanceSummary"></div>
-
-           <section class="today-glance" aria-labelledby="todayGlanceTitle">
-             <div class="today-glance-head">
-               <div>
-                 <div class="today-glance-title" id="todayGlanceTitle">Today’s lectures</div>
-                 <div class="today-glance-date" id="todayGlanceDate"></div>
-               </div>
-               <button class="btn small" id="todayGlanceLogBtn" type="button">Log today</button>
-             </div>
-             <div class="today-glance-list" id="todayGlanceList"></div>
-           </section>
 
           <div class="dashboard-actions" style="grid-template-columns: 1fr 1fr;">
             <button class="btn dashboard-action primary-mobile" id="quickLogTodayBtn" type="button">Log today</button>
@@ -3971,7 +3950,6 @@ let isEditingTt = false;
       renderSummary();
       renderSubjectStats();
       renderSetupSummaries();
-       if (typeof renderTodayGlance === "function") renderTodayGlance();
       if (typeof renderStudyTargets === "function") renderStudyTargets();
     }
 
@@ -4922,7 +4900,6 @@ if (didGenerate) {
 
     loadadsAd("dayViewAdSlot", "00244a2b0b21b7020f7519a5319093fa");
   }
-  if (viewId === "homeView" && typeof renderTodayGlance === "function") renderTodayGlance();
 if (viewId === "assignmentsView") { renderAssignments();
 renderAssignmentChips();
 loadadsAd("assignmentsViewAdSlot", "00244a2b0b21b7020f7519a5319093fa");
@@ -4950,31 +4927,6 @@ if (viewId === "studyView") { renderStudyTargets(); loadadsAd("studyViewAdSlot",
 
   return false;
 }
-
-function renderTodayGlance() {
-  const list = document.getElementById("todayGlanceList");
-  const dateLabel = document.getElementById("todayGlanceDate");
-  if (!list || !dateLabel || !state) return;
-
-  const todayIso = toISODate(new Date());
-  dateLabel.textContent = formatDisplayDate(todayIso);
-  const subjectMap = Object.fromEntries((state.subjects || []).map(s => [s.id, s.name || "Unknown subject"]));
-  const lectures = (state.lectures || []).filter(l => l.date === todayIso && !l.isCancelled);
-
-  if (state.holidays?.includes(todayIso)) {
-    list.innerHTML = '<div class="quiet-note">Marked as a holiday — no lectures scheduled.</div>';
-  } else if (!lectures.length) {
-    list.innerHTML = '<div class="quiet-note">No lectures scheduled today.</div>';
-  } else {
-    list.innerHTML = lectures.map(lecture => {
-      const subject = escapeHtml(subjectMap[lecture.subjectId] || "Unknown subject");
-      const note = lecture.title ? ` · ${escapeHtml(lecture.title)}` : "";
-      return `<div class="today-glance-row"><span>${subject}${note}</span><span class="today-glance-status">${lecture.attended ? "Present" : "Absent"}</span></div>`;
-    }).join("");
-  }
-}
-
-
 
 const subjectModalBackdrop = document.getElementById("subjectModalBackdrop");
 const subjectModalName = document.getElementById("subjectModalName");
@@ -5357,12 +5309,10 @@ markHolidayBtn.addEventListener("click", () => {
 });
     subjectFilterEl.addEventListener("change", renderLectures);
 const quickLogTodayBtn = document.getElementById("quickLogTodayBtn");
-const todayGlanceLogBtn = document.getElementById("todayGlanceLogBtn");
 const quickTasksBtn = document.getElementById("quickTasksBtn");
 const quickStudyBtn = document.getElementById("quickStudyBtn");
 const startTourBtn = document.getElementById("startTourBtn");
 if (quickLogTodayBtn) quickLogTodayBtn.addEventListener("click", () => switchView("dayView"));
-if (todayGlanceLogBtn) todayGlanceLogBtn.addEventListener("click", () => switchView("dayView"));
 if (quickTasksBtn) quickTasksBtn.addEventListener("click", () => switchView("assignmentsView"));
 if (quickStudyBtn) quickStudyBtn.addEventListener("click", () => switchView("studyView"));
 if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(true));
