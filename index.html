@@ -1808,6 +1808,10 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         🔗 Have a shared schedule link? Import it here
       </div>
 
+      <div style="margin-top: 10px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" onclick="document.getElementById('onboardingWizardBackdrop').style.display='none'; switchView('setupView'); window.loginToFirebase();">
+        ☁️ Returning user? Sign in with Google to restore your data
+      </div>
+
       <div class="privacy-agreement" style="font-size: 0.75rem; color: var(--muted); margin-top: 14px; text-align: center;">
         By continuing, you agree to our <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a>.
       </div>
@@ -3250,11 +3254,13 @@ function openGoogleCalendar() {
       body: JSON.stringify(shareState)
     });
 
-    const id = await response.text();
-
-    const base = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+    const isInternalApp = window.location.origin.includes("appassets.androidplatform.net") || window.location.protocol === "file:";
+    const base = isInternalApp ? "https://jenishestmoizavut.github.io/attrack/" : (window.location.origin + window.location.pathname.replace(/index\.html$/, ""));
     const magicLink = `${base}?import=${id}`;
 
+    if (window.AndroidBridge && typeof window.AndroidBridge.shareText === "function") {
+      window.AndroidBridge.shareText(magicLink, "My Attrack Schedule Link");
+    }
     await navigator.clipboard.writeText(magicLink);
 
     window.__attrackLastShareLink = magicLink;
@@ -3980,27 +3986,41 @@ let isEditingTt = false;
       if (typeof renderStudyTargets === "function") renderStudyTargets();
     }
 
-    // NEW: Function to receive real-time updates from Firebase
-    window.applyCloudUpdate = function(cloudState) {
+    // Function to receive real-time updates from Firebase
+    window.applyCloudUpdate = function(cloudState, force = false) {
       if (!cloudState || typeof cloudState !== "object") return;
-      const cloudHadSyncMeta = !!cloudState.__sync;
       cloudState = normalizeStateShape(cloudState);
-	if (cloudState.__sync?.deviceId === getDeviceId() && window.suppressNextCloudEcho) {
+
+      // Ignore echoes from this same device's push
+      if (cloudState.__sync?.deviceId === getDeviceId() && window.suppressNextCloudEcho) {
         window.suppressNextCloudEcho = false;
         return;
       }
-      const localLooksEmpty = !(state.subjects && state.subjects.length) && !(state.lectures && state.lectures.length);
-      if (cloudHadSyncMeta) {
-        if (!isIncomingCloudNewer(state, cloudState)) return;
-      } else if (!localLooksEmpty) {
-        return;
-      }
-      // Only update if it's actually different (prevents infinite loops)
-if (!Array.isArray(cloudState.assignments)) cloudState.assignments = [];
-        if (!Array.isArray(cloudState.studyTargets)) cloudState.studyTargets = [];
-      if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
-        if (!cloudHadSyncMeta || localLooksEmpty || cloudState.__sync?.deviceId === getDeviceId()) {
+
+      const localHasData = (state.subjects && state.subjects.length > 0) || (state.lectures && state.lectures.length > 0);
+      const cloudHasData = (cloudState.subjects && cloudState.subjects.length > 0) || (cloudState.lectures && cloudState.lectures.length > 0);
+
+      if (!Array.isArray(cloudState.assignments)) cloudState.assignments = [];
+      if (!Array.isArray(cloudState.studyTargets)) cloudState.studyTargets = [];
+
+      // When user just logged in, or forced, or local has no real data: ALWAYS apply cloud data!
+      if (force || window.__justLoggedInToGoogle || !localHasData || !state.isInitialized) {
+        window.__justLoggedInToGoogle = false;
+        if (cloudHasData || !localHasData) {
           applyAcceptedCloudState(cloudState);
+          const onboarding = document.getElementById("onboardingWizardBackdrop");
+          if (onboarding && cloudHasData) onboarding.style.display = "none";
+          showUndoToast("Cloud data synced! ☁️");
+          return;
+        }
+      }
+
+      // Only update if it's actually different (prevents infinite loops)
+      if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
+        if (!localHasData || cloudState.__sync?.deviceId === getDeviceId() || isIncomingCloudNewer(state, cloudState)) {
+          applyAcceptedCloudState(cloudState);
+          const onboarding = document.getElementById("onboardingWizardBackdrop");
+          if (onboarding && cloudHasData) onboarding.style.display = "none";
           return;
         }
         const revisionKey = cloudRevisionKey(cloudState);
@@ -5851,6 +5871,7 @@ if (openGeminiBtn) {
     state.isInitialized = true;
     saveState();
     localStorage.setItem("attrack_feature_seen_v2_subject_targets", "1"); // brand-new users already saw these fields in onboarding
+    localStorage.setItem("attrack_subjectwise_buffer_popup_seen", "true");
 
     backdrop.style.display = "none";
 
@@ -6438,10 +6459,13 @@ if (absentModalBackdrop) absentModalBackdrop.addEventListener("click", (e) => {
     if(e.target === absentModalBackdrop) absentModalBackdrop.style.display = "none";
 });
  const VERSION_2_KEY = "attrack_subjectwise_buffer_popup_seen";
+// Show the subject-wise announcement popup ONLY to returning users who already have subjects configured
 if (!localStorage.getItem(VERSION_2_KEY)) {
-    const vModal = document.getElementById("versionModalBackdrop");
-    if (vModal) vModal.style.display = "flex";
-    localStorage.setItem(VERSION_2_KEY, "true");
+    if (state.isInitialized && state.subjects && state.subjects.length > 0) {
+        const vModal = document.getElementById("versionModalBackdrop");
+        if (vModal) vModal.style.display = "flex";
+        localStorage.setItem(VERSION_2_KEY, "true");
+    }
 }
 
 const closeVersionX = document.getElementById("closeVersionX");
@@ -6794,10 +6818,16 @@ refreshSoundToggle();
   const shareStatus = document.getElementById("shareStatus");
   if (shareBtn) {
     shareBtn.addEventListener("click", async () => {
+      const isInternalApp = window.location.origin.includes("appassets.androidplatform.net") || window.location.protocol === "file:";
+      const shareUrl = isInternalApp ? "https://jenishestmoizavut.github.io/attrack/" : window.location.href;
+      if (window.AndroidBridge && typeof window.AndroidBridge.shareText === "function") {
+        window.AndroidBridge.shareText(shareUrl, "Attrack Attendance Tracker");
+        return;
+      }
       if (navigator.share) {
-        try { await navigator.share({ title: "Attrack", url: window.location.href }); } catch(e){}
+        try { await navigator.share({ title: "Attrack", url: shareUrl }); } catch(e){}
       } else {
-        navigator.clipboard.writeText(window.location.href);
+        navigator.clipboard.writeText(shareUrl);
         shareStatus.style.display = "inline";
       }
     });
@@ -7249,12 +7279,15 @@ const firebaseConfig = {
             setAuthLoadingUi(true);
 
             if (window.AndroidBridge && typeof window.AndroidBridge.startGoogleSignIn === 'function') {
+                window.__justLoggedInToGoogle = true;
                 window.AndroidBridge.startGoogleSignIn();
                 return;
             }
             try { 
+                window.__justLoggedInToGoogle = true;
                 await signInWithPopup(auth, provider); 
             } catch (error) { 
+                window.__justLoggedInToGoogle = false;
                 setAuthLoadingUi(false);
                 alert("Login failed. Check console."); 
                 console.error(error); 
@@ -7263,9 +7296,11 @@ const firebaseConfig = {
 
         window.loginWithIdToken = async (idToken) => {
             try {
+                window.__justLoggedInToGoogle = true;
                 const credential = GoogleAuthProvider.credential(idToken);
                 await signInWithCredential(auth, credential);
             } catch (error) {
+                window.__justLoggedInToGoogle = false;
                 console.error("Native Google login failed:", error);
                 alert("Login error: " + (error.message || error));
             } finally {
@@ -7516,11 +7551,11 @@ authBar.onclick = async () => {
                     if (docSnap.exists()) {
                         // Data exists in cloud -> Pull it down and update screen instantly!
                         if (window.applyCloudUpdate) {
-                            window.applyCloudUpdate(docSnap.data().appData);
+                            window.applyCloudUpdate(docSnap.data().appData, true);
                         }
                     } else {
-                        // FIRST LOGIN: Cloud is empty. Push local laptop data UP to cloud!
-                        const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || "{}"));
+                        // FIRST LOGIN: Cloud is empty. Push local data UP to cloud!
+                        const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || localStorage.getItem("attrack_state") || "{}"));
                         window.syncToFirebase(localData);
                     }
                 });
@@ -7542,72 +7577,33 @@ else {
             }
         });
 </script>
-<div id="privacy-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
-    <div class="modal-content" style="background-color: #1e1e1e; margin: 15% auto; padding: 25px; border: 1px solid #333; width: 80%; max-width: 400px; border-radius: 8px; color: #e0e0e0; text-align: center;">
-        <h2 style="color: #bb86fc; margin-top: 0;">Privacy & Transparency</h2>
-        <p style="font-size: 0.95rem; margin-bottom: 20px;">Before you dive in, we want you to know exactly how your data is handled. Your tracking data is stored securely but remains visible to the administrator for debugging. We never sell your data.</p>
-
-        <a href="privacy.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Privacy Policy</a>
-        <br>
-        <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Disclaimer</a>
-
-        <div style="display: flex; flex-direction: column; gap: 12px; margin: 18px 0 6px; text-align: left; font-size: 0.85rem; color: #e0e0e0;">
-            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="privacyAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
-                <span>I have read and agree to the Privacy Policy.</span>
-            </label>
-            
-            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="disclaimerAgreeCheckbox" style="margin-top: 3px; flex-shrink: 0;">
-                <span>I have read the Disclaimer.</span>
-            </label>
+<div id="privacy-popup" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); align-items: flex-end; justify-content: center;">
+    <div class="card" style="background: var(--card-bg, #1e293b); border: 1px solid var(--border); border-bottom: none; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 22px 20px max(24px, env(safe-area-inset-bottom)); color: var(--text, #f1f5f9); box-shadow: 0 -12px 36px rgba(0,0,0,0.45); animation: slideUp 0.25s ease-out; box-sizing: border-box;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <span style="font-size: 1.3rem;">🔒</span>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text, #fff);">Privacy & Terms</h3>
         </div>
+        <p style="font-size: 0.88rem; color: var(--text-soft, #94a3b8); line-height: 1.5; margin: 0 0 16px;">
+            Your attendance data is stored securely and never sold. By continuing, you agree to our 
+            <a href="privacy.html" target="_blank" style="color: var(--accent, #38bdf8); text-decoration: underline;">Privacy Policy</a> 
+            and <a href="disclaimer.html" target="_blank" style="color: var(--accent, #38bdf8); text-decoration: underline;">Disclaimer</a>.
+        </p>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-            <button id="privacyAgreeBtn" onclick="closePrivacyPopup()" disabled style="background-color: #555; color: #999; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: background-color 0.2s, color 0.2s;">I Agree & Continue</button>
-        </div>
+        <button id="privacyAgreeBtn" onclick="closePrivacyPopup()" class="btn" style="width: 100%; justify-content: center; padding: 13px; font-size: 0.98rem; font-weight: 700; border-radius: 12px;">
+            Agree & Continue
+        </button>
     </div>
 </div>
-	<script>
-// Enable/disable the agree button based on BOTH checkboxes
-(function() {
-    const privacyCheckbox = document.getElementById('privacyAgreeCheckbox');
-    const disclaimerCheckbox = document.getElementById('disclaimerAgreeCheckbox');
-    const agreeBtn = document.getElementById('privacyAgreeBtn');
-    
-    function updateButtonState() {
-        if (!privacyCheckbox || !disclaimerCheckbox || !agreeBtn) return;
-        
-        // Button unlocks ONLY if both targets are checked
-        const bothChecked = privacyCheckbox.checked && disclaimerCheckbox.checked;
-        
-        agreeBtn.disabled = !bothChecked;
-        agreeBtn.style.cursor = bothChecked ? 'pointer' : 'not-allowed';
-        agreeBtn.style.backgroundColor = bothChecked ? '#bb86fc' : '#555';
-        agreeBtn.style.color = bothChecked ? '#121212' : '#999';
-    }
-
-    if (privacyCheckbox && disclaimerCheckbox) {
-        privacyCheckbox.addEventListener('change', updateButtonState);
-        disclaimerCheckbox.addEventListener('change', updateButtonState);
-    }
-})();
-
-// Function to close the popup (only fires once the user has checked both parameters)
+<script>
+// Function to close the popup
 function closePrivacyPopup() {
-    const privacyCheckbox = document.getElementById('privacyAgreeCheckbox');
-    const disclaimerCheckbox = document.getElementById('disclaimerAgreeCheckbox');
-    
-    if (!privacyCheckbox || !disclaimerCheckbox || !privacyCheckbox.checked || !disclaimerCheckbox.checked) return; 
-
-    document.getElementById('privacy-popup').style.display = 'none';
+    const popup = document.getElementById('privacy-popup');
+    if (popup) popup.style.display = 'none';
 
     // Record explicit consent
     localStorage.setItem('hasSeenPrivacyPopup', 'true');
     localStorage.setItem('privacyPolicyAgreed', 'true');
     localStorage.setItem('privacyPolicyAgreedAt', new Date().toISOString());
-    // Agreeing here covers the Ad Disclaimer too, so the separate
-    // re-prompt below never needs to fire for brand-new users.
     localStorage.setItem('adDisclaimerAcknowledged', 'true');
     localStorage.setItem('adDisclaimerAcknowledgedAt', new Date().toISOString());
 }
@@ -7615,11 +7611,10 @@ function closePrivacyPopup() {
 // Function to show the popup
 function showPrivacyPopup() {
     if (!localStorage.getItem('privacyPolicyAgreed')) {
-        document.getElementById('privacy-popup').style.display = 'block';
+        const popup = document.getElementById('privacy-popup');
+        if (popup) popup.style.display = 'flex';
     }
 }
-// Chained after the "Check your subject-wise buffer" popup closes —
-// see closeVersionX / closeVersionBtn handlers.
 
 // Function to close the ad-disclaimer-only popup
 function closeAdDisclaimerPopup() {
@@ -7629,26 +7624,17 @@ function closeAdDisclaimerPopup() {
     localStorage.setItem('adDisclaimerAcknowledgedAt', new Date().toISOString());
 }
 
-// Shows the ad-disclaimer-only popup, but ONLY for existing users who already
-// agreed to the Privacy Policy previously and never saw an Ad Disclaimer.
-// Brand-new users go through the combined checkbox popup above instead, so
-// this never double-prompts them.
 function showAdDisclaimerPopupIfNeeded() {
     const mainPopup = document.getElementById('privacy-popup');
-    const mainPopupVisible = mainPopup && mainPopup.style.display === 'block';
-    if (mainPopupVisible) return; // combined popup already covers it
+    const mainPopupVisible = mainPopup && mainPopup.style.display === 'flex';
+    if (mainPopupVisible) return;
 
     if (localStorage.getItem('privacyPolicyAgreed') && !localStorage.getItem('adDisclaimerAcknowledged')) {
         const popup = document.getElementById('ad-disclaimer-popup');
-        if (popup) popup.style.display = 'block';
+        if (popup) popup.style.display = 'flex';
     }
 }
 
-// Safety-net trigger on load: the combined popup is normally chained after the
-// "Check your subject-wise buffer" modal closes, but that modal only shows
-// once ever — so returning users who already dismissed it would never
-// re-trigger either popup. This runs shortly after load and shows whichever
-// popup is still owed.
 window.addEventListener('load', () => {
     setTimeout(() => {
         showPrivacyPopup();
@@ -7657,16 +7643,19 @@ window.addEventListener('load', () => {
 });
 </script>
 
-<div id="ad-disclaimer-popup" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
-    <div class="modal-content" style="background-color: #1e1e1e; margin: 15% auto; padding: 25px; border: 1px solid #333; width: 80%; max-width: 400px; border-radius: 8px; color: #e0e0e0; text-align: center;">
-        <h2 style="color: #bb86fc; margin-top: 0;">📢 Ad Disclaimer</h2>
-        <p style="font-size: 0.95rem; margin-bottom: 20px;">Attrack now shows a small number of ads to help keep the app free. Ads are clearly labeled and served by a third-party network, which may use cookies to personalize them. This doesn't change how your attendance data is handled.</p>
-
-        <a href="disclaimer.html" target="_blank" style="color: #bb86fc; text-decoration: none; font-size: 0.9rem;">Read Full Ad Disclaimer</a>
-
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            <button id="adDisclaimerAgreeBtn" onclick="closeAdDisclaimerPopup()" style="background-color: #bb86fc; color: #121212; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer;">Got it</button>
+<div id="ad-disclaimer-popup" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); align-items: flex-end; justify-content: center;">
+    <div class="card" style="background: var(--card-bg, #1e293b); border: 1px solid var(--border); border-bottom: none; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 22px 20px max(24px, env(safe-area-inset-bottom)); color: var(--text, #f1f5f9); box-shadow: 0 -12px 36px rgba(0,0,0,0.45); animation: slideUp 0.25s ease-out; box-sizing: border-box;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <span style="font-size: 1.3rem;">📢</span>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text, #fff);">Ad Disclaimer</h3>
         </div>
+        <p style="font-size: 0.88rem; color: var(--text-soft, #94a3b8); line-height: 1.5; margin: 0 0 16px;">
+            Attrack displays minimal, non-intrusive ads to help keep the app free for students. This does not change how your attendance data is privately handled.
+        </p>
+
+        <button id="adDisclaimerAgreeBtn" onclick="closeAdDisclaimerPopup()" class="btn" style="width: 100%; justify-content: center; padding: 13px; font-size: 0.98rem; font-weight: 700; border-radius: 12px;">
+            Got it, continue
+        </button>
     </div>
 </div>
 <!-- ATTRACK SWIPE PATCH v2 -->
