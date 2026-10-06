@@ -1775,69 +1775,96 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
   </div>
 </div>
 
-<div id="onboardingWizardBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:3000; align-items:center; justify-content:center; ">
-  <div class="card" style="width:min(420px, 90%); padding:24px; text-align:center; position:relative; overflow:hidden;">
+<div id="onboardingWizardBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div class="card" style="width:min(440px, 92%); padding:22px; text-align:center; position:relative; overflow:hidden; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,0.35);">
     
+    <!-- Step Progress Indicator -->
+    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:18px;">
+      <div id="wizStepDot1" style="height:6px; width:28px; border-radius:999px; background:var(--accent); transition:all 0.25s;"></div>
+      <div id="wizStepDot2" style="height:6px; width:12px; border-radius:999px; background:var(--border); transition:all 0.25s;"></div>
+      <div id="wizStepDot3" style="height:6px; width:12px; border-radius:999px; background:var(--border); transition:all 0.25s;"></div>
+    </div>
+
+    <!-- Step 1: Welcome & Profile -->
     <div id="wizardStep1">
-            <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Welcome to Attrack</h2>
-      <p class="hint">A phone-first attendance dashboard: check status, log today, manage tasks, and keep setup tucked away.</p>
-      <div class="tutorial-grid">
-        <div class="tutorial-card"><strong>Dashboard</strong><span>Your overall status, subject overview, and quick actions live first.</span></div>
-        <div class="tutorial-card"><strong>Daily</strong><span>Log lectures fast. Extra tools live under More actions.</span></div>
-        <div class="tutorial-card"><strong>Assignments</strong><span>Add assignments by subject and save due dates to Calendar.</span></div>
-        <div class="tutorial-card"><strong>Setup hub</strong><span>Target, subjects, timetable, sharing, reminders, dark mode, and sound.</span></div>
+      <div style="font-size:2.2rem; margin-bottom:6px;">👋</div>
+      <h2 style="font-size: 1.35rem; margin-bottom: 6px; font-weight:700;">Welcome to Attrack</h2>
+      <p style="font-size: 0.88rem; color: var(--text-soft); line-height: 1.45; margin-bottom: 18px;">
+        Track lectures, know exactly how many classes you can safely skip, and never fall below your target.
+      </p>
+      
+      <div class="field" style="text-align: left; margin-bottom: 12px;">
+        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Your name (optional)</label>
+        <input type="text" id="wizName" placeholder="e.g. Alex" style="width:100%; border-radius:8px;">
+      </div>
+      <div class="field" style="text-align: left; margin-bottom: 16px;">
+        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Tracking starts from</label>
+        <input type="date" id="wizDate" style="width:100%; border-radius:8px;">
       </div>
       
-      <div class="field" style="margin-top: 20px; text-align: left;">
-        <label>What should I call you?</label>
-        <input type="text" id="wizName" placeholder="e.g. Chill Math Nerd">
-      </div>
-      <div class="field" style="text-align: left;">
-        <label>When does tracking start?</label>
-        <input type="date" id="wizDate">
-      </div>
+      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 12px; font-weight:700; border-radius:10px;">Continue: Set Goal →</button>
       
-      <button class="btn" id="wizBtn1" style="width: 100%; margin-top: 16px; justify-content: center; padding: 10px;">Next: Set a Goal →</button>
-      
-      <div style="margin-top: 16px; font-size: 0.8rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
-        Have a Class Rep magic link?
+      <div style="margin-top: 14px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
+        🔗 Have a shared schedule link? Import it here
       </div>
 
-      <div class="privacy-agreement" style="font-size: 0.8rem; color: var(--text-soft); margin-top: 14px; text-align: center;">
-        By continuing, you agree to the <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a> and <a href="disclaimer.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Ad Disclaimer</a>.
+      <div class="privacy-agreement" style="font-size: 0.75rem; color: var(--muted); margin-top: 14px; text-align: center;">
+        By continuing, you agree to our <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a>.
       </div>
     </div>
 
+    <!-- Step 2: Goal Percentage -->
     <div id="wizardStep2" style="display:none;">
-      <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Set Your Target 🎯</h2>
-      <p class="hint">What attendance percentage are you aiming to stay above?</p>
+      <div style="font-size:2.2rem; margin-bottom:6px;">🎯</div>
+      <h2 style="font-size: 1.35rem; margin-bottom: 6px; font-weight:700;">Attendance Goal</h2>
+      <p style="font-size: 0.88rem; color: var(--text-soft); line-height: 1.45; margin-bottom: 16px;">
+        What percentage are you aiming for? We'll alert you if you dip below this.
+      </p>
       
-      <div class="field" style="margin-top: 20px; text-align: left;">
-        <label>Target (%)</label>
-        <input type="number" id="wizTarget" value="75" min="50" max="100">
+      <div style="display:flex; justify-content:center; gap:8px; margin-bottom:14px;">
+        <button type="button" class="btn small wiz-preset-btn" data-target="75" style="flex:1; padding:8px 0; border-radius:8px; font-weight:700;">75%</button>
+        <button type="button" class="btn small secondary wiz-preset-btn" data-target="80" style="flex:1; padding:8px 0; border-radius:8px; font-weight:700;">80%</button>
+        <button type="button" class="btn small secondary wiz-preset-btn" data-target="85" style="flex:1; padding:8px 0; border-radius:8px; font-weight:700;">85%</button>
+      </div>
+
+      <div class="field" style="text-align: left; margin-bottom: 16px;">
+        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Target percentage (%)</label>
+        <input type="number" id="wizTarget" value="75" min="50" max="100" style="width:100%; border-radius:8px; text-align:center; font-size:1.1rem; font-weight:700;">
       </div>
       
-      <div style="display:flex; gap: 8px; margin-top: 24px;">
-        <button class="btn secondary" id="wizBack1" style="flex:1; justify-content: center; padding: 10px;">← Back</button>
-        <button class="btn" id="wizBtn2" style="flex:1; justify-content: center; padding: 10px;">Next: Subjects →</button>
+      <div style="display:flex; gap: 8px; margin-top: 20px;">
+        <button class="btn secondary" id="wizBack1" style="flex:1; justify-content: center; padding: 11px; border-radius:10px;">← Back</button>
+        <button class="btn" id="wizBtn2" style="flex:2; justify-content: center; padding: 11px; font-weight:700; border-radius:10px;">Next: Subjects →</button>
       </div>
     </div>
 
+    <!-- Step 3: Add Subjects -->
     <div id="wizardStep3" style="display:none;">
-      <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Add Subjects 📚</h2>
-      <p class="hint">Add subjects, then tap day bubbles to set weekly lecture counts. Each subject also gets an optional attendance target — handy if your college tracks some subjects (like labs) differently.</p>
+      <div style="font-size:2.2rem; margin-bottom:6px;">📚</div>
+      <h2 style="font-size: 1.35rem; margin-bottom: 6px; font-weight:700;">Your Subjects</h2>
+      <p style="font-size: 0.88rem; color: var(--text-soft); line-height: 1.45; margin-bottom: 14px;">
+        Add the subjects you're taking this semester. You can edit weekly timetables anytime.
+      </p>
       
-      <div style="display: flex; gap: 8px; margin-top: 20px;">
-        <input type="text" id="wizSubInput" placeholder="e.g. Finance" style="flex: 1;">
-        <button class="btn secondary" id="wizAddSubBtn">Add</button>
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <input type="text" id="wizSubInput" placeholder="e.g. Mathematics" style="flex: 1; border-radius:8px;">
+        <button class="btn" id="wizAddSubBtn" style="padding:0 16px; border-radius:8px;">+ Add</button>
+      </div>
+
+      <!-- Quick suggestions chips -->
+      <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px;" id="wizSuggestions">
+        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Math</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Physics</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Coding</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Chemistry</span>
       </div>
       
-      <div id="wizSubList" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; min-height:40px; justify-content:center;">
-        </div>
+      <div id="wizSubList" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; padding-right:4px;">
+      </div>
       
-      <div style="display:flex; gap: 8px; margin-top: 24px;">
-        <button class="btn secondary" id="wizBack2" style="flex:1; justify-content: center; padding: 10px;">← Back</button>
-        <button class="btn" id="wizBtn3" style="flex:1; justify-content: center; padding: 10px;" disabled>Finish Setup ✨</button>
+      <div style="display:flex; gap: 8px; margin-top: 18px;">
+        <button class="btn secondary" id="wizBack2" style="flex:1; justify-content: center; padding: 11px; border-radius:10px;">← Back</button>
+        <button class="btn" id="wizBtn3" style="flex:2; justify-content: center; padding: 11px; font-weight:700; border-radius:10px;">Finish Setup ✨</button>
       </div>
     </div>
 
@@ -5627,35 +5654,74 @@ if (openGeminiBtn) {
   // Default to today's date
   wizDate.value = toISODate(new Date());
 
+  function updateStepDots(stepNum) {
+    const d1 = document.getElementById("wizStepDot1");
+    const d2 = document.getElementById("wizStepDot2");
+    const d3 = document.getElementById("wizStepDot3");
+    if (!d1 || !d2 || !d3) return;
+    d1.style.background = stepNum >= 1 ? "var(--accent)" : "var(--border)";
+    d1.style.width = stepNum === 1 ? "28px" : "12px";
+    d2.style.background = stepNum >= 2 ? "var(--accent)" : "var(--border)";
+    d2.style.width = stepNum === 2 ? "28px" : "12px";
+    d3.style.background = stepNum >= 3 ? "var(--accent)" : "var(--border)";
+    d3.style.width = stepNum === 3 ? "28px" : "12px";
+  }
+
   // --- STEP 1: Name & Date ---
   btn1.addEventListener("click", () => {
-    state.studentName = wizName.value.trim();
+    state.studentName = wizName.value.trim() || "Student";
     state.startDate = wizDate.value || toISODate(new Date());
     step1.style.display = "none";
     step2.style.display = "block";
+    updateStepDots(2);
   });
 
   // --- STEP 2: Target Percentage ---
   back1.addEventListener("click", () => {
     step2.style.display = "none";
     step1.style.display = "block";
+    updateStepDots(1);
+  });
+
+  document.querySelectorAll(".wiz-preset-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".wiz-preset-btn").forEach(btn => btn.classList.add("secondary"));
+      b.classList.remove("secondary");
+      wizTarget.value = b.dataset.target;
+    });
   });
 
   btn2.addEventListener("click", () => {
     let t = parseInt(wizTarget.value, 10);
     if (isNaN(t) || t < 50) t = 50;
     if (t > 100) t = 100;
-    
+    state.target = t;
     localStorage.setItem("attrack_target_attendance", (t / 100).toString());
     
     step2.style.display = "none";
     step3.style.display = "block";
+    updateStepDots(3);
   });
 
   // --- STEP 3: Subjects & Tap-Timetable ---
   back2.addEventListener("click", () => {
     step3.style.display = "none";
     step2.style.display = "block";
+    updateStepDots(2);
+  });
+
+  document.querySelectorAll(".chip-suggest").forEach(ch => {
+    ch.addEventListener("click", () => {
+      const name = ch.textContent.replace("+", "").trim();
+      if (name && !tempSubjects.some(s => s.name === name)) {
+        tempSubjects.push({
+          name: name,
+          pattern: { 0:0, 1:1, 2:1, 3:1, 4:1, 5:1, 6:0 },
+          targetPct: getStickySubjectTargetPct()
+        });
+        renderTempSubjects();
+      }
+    });
   });
 
   // Global helper to remove a subject from the temp array
@@ -5740,7 +5806,8 @@ if (openGeminiBtn) {
       wizSubList.appendChild(row);
     });
     
-    btn3.disabled = tempSubjects.length === 0;
+    btn3.textContent = tempSubjects.length === 0 ? "Skip for now →" : "Finish Setup ✨";
+    btn3.disabled = false;
   }
 
   wizAddSubBtn.addEventListener("click", () => {
