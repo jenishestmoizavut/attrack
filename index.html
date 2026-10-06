@@ -46,7 +46,7 @@
   <link rel="icon" type="image/png" href="./icon-192.png" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
   <link rel="manifest" href="manifest.json" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="./qrcode.min.js"></script>
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
@@ -386,30 +386,42 @@ select:focus,
   box-shadow: 0 0 0 1px rgba(79,70,229,0.25);
 }
 
+button {
+  font-family: inherit;
+  border-radius: 999px;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
 .btn {
   border-radius: 999px;
   border: none;
-  padding: 6px 10px;
-  font-size: 0.8rem;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: var(--accent);
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: #fff;
-  transition: background 0.15s ease, transform 0.05s ease, opacity 0.1s ease;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+  user-select: none;
 }
 
-.btn:hover    { background: #4338ca; transform: translateY(-0.5px); }
-.btn:active   { transform: translateY(1px) scale(0.99); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn.small    { padding: 4px 7px; font-size: 0.75rem; }
+.btn:hover    { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38); }
+.btn:active   { transform: translateY(1px) scale(0.97); box-shadow: 0 1px 4px rgba(79, 70, 229, 0.2); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn.small    { padding: 5px 12px; font-size: 0.78rem; border-radius: 999px; }
 
 .btn.share-hero-btn {
-  padding: 10px 16px;
+  padding: 11px 18px;
   font-size: 0.95rem;
   font-weight: 700;
+  border-radius: 999px;
   box-shadow: 0 3px 14px rgba(79, 70, 229, 0.4);
 }
 .btn.share-hero-btn:hover {
@@ -418,13 +430,40 @@ select:focus,
 body.dark .btn.share-hero-btn { box-shadow: 0 3px 14px rgba(99, 102, 241, 0.45); }
 body.dark .btn.share-hero-btn:hover { box-shadow: 0 4px 18px rgba(99, 102, 241, 0.55); }
 
-.btn.secondary              { background: #e5e7eb; color: #111827; }
-.btn.secondary:hover        { background: #d1d5db; }
-body.dark .btn.secondary    { background: #111827; color: #e5e7eb; }
-body.dark .btn.secondary:hover { background: #1f2937; }
+.btn.secondary {
+  background: var(--bg-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.btn.secondary:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+body.dark .btn.secondary {
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+body.dark .btn.secondary:hover {
+  background: #334155;
+  color: #fff;
+  border-color: #6366f1;
+}
 
-.btn.danger       { background: var(--danger); color: #fff; }
-.btn.danger:hover { background: #991b1b; }
+.btn.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+.btn.danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+}
 
 .share-btn {
   padding: 4px 10px;
@@ -1528,10 +1567,11 @@ div.popup-dot { display: none !important; }
   #dayView .toolbar.daily-actions > .btn {
     width: 100%;
     justify-content: center;
-    padding: 8px;
-    min-height: 38px;
-    font-size: 0.85rem;
-    border-radius: 8px;
+    padding: 10px;
+    min-height: 42px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: 12px;
     margin: 0;
   }
 
@@ -1542,14 +1582,16 @@ div.popup-dot { display: none !important; }
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 8px;
-    min-height: 38px;
+    padding: 10px;
+    min-height: 42px;
     background: var(--bg-soft);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.85rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
     font-weight: 600;
     box-sizing: border-box;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
   #dayView .actions-menu-panel {
     position: static;
@@ -1560,19 +1602,19 @@ div.popup-dot { display: none !important; }
     width: 100%;
     padding: 12px;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 14px;
     background: var(--card-bg);
     box-sizing: border-box;
-    box-shadow: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     animation: attrackFadeUp 0.15s ease-out;
   }
   #dayView .actions-menu-panel .btn {
     width: 100%;
     justify-content: center;
-    min-height: 36px;
-    padding: 6px;
-    font-size: 0.8rem;
-    border-radius: 8px;
+    min-height: 38px;
+    padding: 8px;
+    font-size: 0.82rem;
+    border-radius: 10px;
     white-space: normal;
     line-height: 1.2;
   }
@@ -1711,10 +1753,10 @@ div.popup-dot { display: none !important; }
   align-items: center;
 }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="./pdf.min.js"></script>
 <script>
   // Set the worker source immediately
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js';
 </script>
 </head>
 <body>
@@ -1802,7 +1844,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <input type="date" id="wizDate" style="width:100%; border-radius:8px;">
       </div>
       
-      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 12px; font-weight:700; border-radius:10px;">Continue: Set Goal →</button>
+      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 13px; font-size: 0.95rem; font-weight:700; border-radius:12px;">Continue: Set Goal →</button>
       
       <div style="margin-top: 14px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
         🔗 Have a shared schedule link? Import it here
@@ -1826,19 +1868,19 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       </p>
       
       <div style="display:flex; justify-content:center; gap:8px; margin-bottom:14px;">
-        <button type="button" class="btn small wiz-preset-btn" data-target="75" style="flex:1; padding:8px 0; border-radius:8px; font-weight:700;">75%</button>
-        <button type="button" class="btn small secondary wiz-preset-btn" data-target="80" style="flex:1; padding:8px 0; border-radius:8px; font-weight:700;">80%</button>
-        <button type="button" class="btn small secondary wiz-preset-btn" data-target="85" style="flex:1; padding:8px 0; border-radius:8px; font-weight:700;">85%</button>
+        <button type="button" class="btn small wiz-preset-btn" data-target="75" style="flex:1; padding:9px 0; border-radius:999px; font-weight:700;">75%</button>
+        <button type="button" class="btn small secondary wiz-preset-btn" data-target="80" style="flex:1; padding:9px 0; border-radius:999px; font-weight:700;">80%</button>
+        <button type="button" class="btn small secondary wiz-preset-btn" data-target="85" style="flex:1; padding:9px 0; border-radius:999px; font-weight:700;">85%</button>
       </div>
 
       <div class="field" style="text-align: left; margin-bottom: 16px;">
         <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Target percentage (%)</label>
-        <input type="number" id="wizTarget" value="75" min="50" max="100" style="width:100%; border-radius:8px; text-align:center; font-size:1.1rem; font-weight:700;">
+        <input type="number" id="wizTarget" value="75" min="50" max="100" style="width:100%; border-radius:10px; text-align:center; font-size:1.1rem; font-weight:700;">
       </div>
       
       <div style="display:flex; gap: 8px; margin-top: 20px;">
-        <button class="btn secondary" id="wizBack1" style="flex:1; justify-content: center; padding: 11px; border-radius:10px;">← Back</button>
-        <button class="btn" id="wizBtn2" style="flex:2; justify-content: center; padding: 11px; font-weight:700; border-radius:10px;">Next: Subjects →</button>
+        <button class="btn secondary" id="wizBack1" style="flex:1; justify-content: center; padding: 12px; border-radius:12px;">← Back</button>
+        <button class="btn" id="wizBtn2" style="flex:2; justify-content: center; padding: 12px; font-weight:700; border-radius:12px;">Next: Subjects →</button>
       </div>
     </div>
 
@@ -1851,24 +1893,24 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       </p>
       
       <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-        <input type="text" id="wizSubInput" placeholder="e.g. Mathematics" style="flex: 1; border-radius:8px;">
-        <button class="btn" id="wizAddSubBtn" style="padding:0 16px; border-radius:8px;">+ Add</button>
+        <input type="text" id="wizSubInput" placeholder="e.g. Mathematics" style="flex: 1; border-radius:10px;">
+        <button class="btn" id="wizAddSubBtn" style="padding:0 18px; border-radius:999px; font-weight:600;">+ Add</button>
       </div>
 
       <!-- Quick suggestions chips -->
       <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px;" id="wizSuggestions">
-        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Math</span>
-        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Physics</span>
-        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Coding</span>
-        <span class="chip-suggest" style="font-size:0.75rem; padding:3px 9px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Chemistry</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:4px 10px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Math</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:4px 10px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Physics</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:4px 10px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Coding</span>
+        <span class="chip-suggest" style="font-size:0.75rem; padding:4px 10px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border); color:var(--text-soft); cursor:pointer;">+ Chemistry</span>
       </div>
       
       <div id="wizSubList" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; padding-right:4px;">
       </div>
       
       <div style="display:flex; gap: 8px; margin-top: 18px;">
-        <button class="btn secondary" id="wizBack2" style="flex:1; justify-content: center; padding: 11px; border-radius:10px;">← Back</button>
-        <button class="btn" id="wizBtn3" style="flex:2; justify-content: center; padding: 11px; font-weight:700; border-radius:10px;">Finish Setup ✨</button>
+        <button class="btn secondary" id="wizBack2" style="flex:1; justify-content: center; padding: 12px; border-radius:12px;">← Back</button>
+        <button class="btn" id="wizBtn3" style="flex:2; justify-content: center; padding: 12px; font-weight:700; border-radius:12px;">Finish Setup ✨</button>
       </div>
     </div>
 
@@ -4010,6 +4052,7 @@ let isEditingTt = false;
           applyAcceptedCloudState(cloudState);
           const onboarding = document.getElementById("onboardingWizardBackdrop");
           if (onboarding && cloudHasData) onboarding.style.display = "none";
+          if (cloudHasData && typeof switchView === "function") switchView("homeView");
           showUndoToast("Cloud data synced! ☁️");
           return;
         }
@@ -4021,6 +4064,7 @@ let isEditingTt = false;
           applyAcceptedCloudState(cloudState);
           const onboarding = document.getElementById("onboardingWizardBackdrop");
           if (onboarding && cloudHasData) onboarding.style.display = "none";
+          if (cloudHasData && typeof switchView === "function") switchView("homeView");
           return;
         }
         const revisionKey = cloudRevisionKey(cloudState);
@@ -5803,12 +5847,21 @@ if (openGeminiBtn) {
          const btn = document.createElement("div");
          
          // Style dynamic based on count
-         let bg = "var(--card-bg)", color = "var(--muted)", border = "var(--border)";
-         if(count === 1) { bg = "var(--accent-soft)"; color = "var(--accent)"; border = "var(--accent)"; }
-         else if(count > 1) { bg = "var(--accent)"; color = "#fff"; border = "var(--accent)"; }
+         let bg = "var(--bg-soft)", color = "var(--text-soft)", border = "var(--border)", shadow = "none";
+         if(count === 1) { 
+           bg = "var(--accent-soft)"; 
+           color = "var(--accent)"; 
+           border = "var(--accent)"; 
+           shadow = "0 2px 6px rgba(99, 102, 241, 0.2)";
+         } else if(count > 1) { 
+           bg = "linear-gradient(135deg, #6366f1, #4f46e5)"; 
+           color = "#fff"; 
+           border = "transparent"; 
+           shadow = "0 3px 8px rgba(79, 70, 229, 0.35)";
+         }
 
          btn.className = "wizard-day-btn";
-         btn.style.cssText = `flex:1; text-align:center; padding:7px 0; border-radius:10px; border:1px solid ${border}; background:${bg}; color:${color}; font-weight:700; cursor:pointer; user-select:none; transition:all 0.15s;`;
+         btn.style.cssText = `flex:1; text-align:center; padding:8px 0; border-radius:12px; border:1px solid ${border}; background:${bg}; color:${color}; font-weight:700; cursor:pointer; user-select:none; transition:all 0.18s ease; box-shadow:${shadow};`;
          const fullDays = ["Sun","Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
          btn.innerHTML = `<strong>${fullDays[i]}</strong><span>${count === 0 ? "Off" : count + " lec"}</span>`;
 
@@ -7549,14 +7602,23 @@ authBar.onclick = async () => {
                 // THE MAGIC: Real-time listener
                 onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                     if (docSnap.exists()) {
-                        // Data exists in cloud -> Pull it down and update screen instantly!
-                        if (window.applyCloudUpdate) {
-                            window.applyCloudUpdate(docSnap.data().appData, true);
+                        const raw = docSnap.data();
+                        const cloudState = raw?.appData || (raw?.subjects ? raw : null);
+                        if (cloudState && window.applyCloudUpdate) {
+                            window.applyCloudUpdate(cloudState, true);
+                        } else if (!cloudState) {
+                            // Document exists but no appData in it yet -> push local data up if we have it
+                            const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || localStorage.getItem("attrack_state") || "{}"));
+                            if (localData.subjects && localData.subjects.length > 0) {
+                                window.syncToFirebase(localData);
+                            }
                         }
                     } else {
                         // FIRST LOGIN: Cloud is empty. Push local data UP to cloud!
                         const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || localStorage.getItem("attrack_state") || "{}"));
-                        window.syncToFirebase(localData);
+                        if (localData.subjects && localData.subjects.length > 0) {
+                            window.syncToFirebase(localData);
+                        }
                     }
                 });
             }
