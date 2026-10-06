@@ -7180,7 +7180,7 @@ function showNewFeaturePopupIfNeeded() {
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 		import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
         import { updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -7212,9 +7212,65 @@ const firebaseConfig = {
 
         enableIndexedDbPersistence(db).catch((err) => console.warn("Offline sync issue:", err.code));
 
+        let isAuthInProgress = false;
+
+        function setAuthLoadingUi(isLoading) {
+            isAuthInProgress = isLoading;
+            const authTitle = document.getElementById('authStatusTitle');
+            const authSub = document.getElementById('authStatusSub');
+            const authBar = document.getElementById('googleAuthBar');
+            if (isLoading) {
+                if (authTitle) authTitle.textContent = "Connecting to Google...";
+                if (authSub) authSub.textContent = "Please wait a moment";
+                if (authBar) {
+                    authBar.style.opacity = "0.7";
+                    authBar.style.pointerEvents = "none";
+                }
+            } else {
+                if (!auth.currentUser) {
+                    if (authTitle) authTitle.textContent = "Backup to Google";
+                    if (authSub) authSub.textContent = "Sync attendance across devices";
+                }
+                if (authBar) {
+                    authBar.style.opacity = "1";
+                    authBar.style.pointerEvents = "auto";
+                }
+            }
+        }
+
+        window.onGoogleSignInFinished = (success, reason) => {
+            if (!success) {
+                setAuthLoadingUi(false);
+            }
+        };
+
         window.loginToFirebase = async () => {
-            try { await signInWithPopup(auth, provider); } 
-            catch (error) { alert("Login failed. Check console."); console.error(error); }
+            if (isAuthInProgress) return;
+            setAuthLoadingUi(true);
+
+            if (window.AndroidBridge && typeof window.AndroidBridge.startGoogleSignIn === 'function') {
+                window.AndroidBridge.startGoogleSignIn();
+                return;
+            }
+            try { 
+                await signInWithPopup(auth, provider); 
+            } catch (error) { 
+                setAuthLoadingUi(false);
+                alert("Login failed. Check console."); 
+                console.error(error); 
+            }
+        };
+
+        window.loginWithIdToken = async (idToken) => {
+            try {
+                const credential = GoogleAuthProvider.credential(idToken);
+                await signInWithCredential(auth, credential);
+            } catch (error) {
+                console.error("Native Google login failed:", error);
+                alert("Login error: " + (error.message || error));
+            } finally {
+                setAuthLoadingUi(false);
+            }
         };
 
 // Called by your saveState() function to push data UP
@@ -7443,6 +7499,9 @@ const firebaseConfig = {
 authBar.onclick = async () => {
                         if (confirm("Sign out of Attrack? Your data will stay safely on this device, but won't sync to the cloud until you log back in.")) {
                             try {
+                                if (window.AndroidBridge && typeof window.AndroidBridge.signOutGoogle === 'function') {
+                                    window.AndroidBridge.signOutGoogle();
+                                }
                                 await signOut(auth);
                                 // Optional alert, or just let the listener handle the UI change automatically
                             } catch (error) {
