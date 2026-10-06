@@ -1210,44 +1210,51 @@ div.popup-dot { display: none !important; }
 
 .tour-spotlight {
   position: fixed;
-  border-radius: 14px;
-  box-shadow: 0 0 0 9999px rgba(2,6,23,0.44), 0 0 0 3px var(--accent), 0 8px 26px rgba(0,0,0,0.22);
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.72), 0 0 0 3px var(--accent), 0 12px 36px rgba(0, 0, 0, 0.45);
   pointer-events: none;
-  transition: all 0.22s ease;
+  transition: all 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: 3001;
 }
 
 .tour-tooltip {
   position: fixed;
-  width: min(300px, calc(100vw - 24px));
-  max-width: 300px;
+  width: min(340px, calc(100vw - 28px));
+  max-width: 340px;
   background: var(--card-bg);
   color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.28);
-  font-size: 0.86rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
+  font-size: 0.88rem;
   z-index: 3002;
-  animation: attrackFadeUp 0.18s ease-out both;
+  animation: attrackPop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.tour-tooltip h4 { margin: 0 0 5px; font-size: 0.95rem; }
-.tour-tooltip p  { margin: 0; color: var(--text-soft); line-height: 1.42; }
+.tour-tooltip h4 { margin: 0 0 6px; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.tour-tooltip p  { margin: 0; color: var(--text-soft); line-height: 1.5; font-size: 0.86rem; }
 
-.tour-progress { color: var(--muted); font-size: 0.74rem; margin-top: 10px; }
+.tour-progress {
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
 
 .tour-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .tour-actions-left,
-.tour-actions-right { display: flex; gap: 6px; align-items: center; }
-.tour-actions .btn  { font-size: 0.75rem; padding: 5px 9px; }
+.tour-actions-right { display: flex; gap: 8px; align-items: center; }
+.tour-actions .btn  { font-size: 0.8rem; padding: 6px 14px; }
 
 /* iOS install sheet */
 .ios-modal-backdrop {
@@ -2115,15 +2122,11 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       <details class="card setup-section">
         <summary>Notifications</summary>
         <div class="setup-section-body">
-          <div class="hint" style="margin-bottom:8px;">Get a push alert when a missed class would drop you below your target — even if the app is closed. Requires sign-in (Sync).</div>
-          <button id="enableNotifsBtn" class="btn" type="button" style="width:100%; justify-content:center;">🔔 Enable notifications</button>
-          <div id="notifStatus" class="hint" style="margin-top:6px;"></div>
-
-          <div style="display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border, #e5e5e5);">
-            <input type="checkbox" id="dailyReminderToggle" onchange="handleDailyReminderToggle(this.checked)" style="width:18px; height:18px;">
-            <label for="dailyReminderToggle" style="cursor:pointer; flex:1;">Remind me if I haven't marked today's lectures</label>
+          <div style="display:flex; align-items:center; gap:10px; padding:4px 0;">
+            <input type="checkbox" id="dailyReminderToggle" onchange="handleDailyReminderToggle(this.checked)" style="width:20px; height:20px; cursor:pointer;">
+            <label for="dailyReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Daily attendance &amp; task reminders</label>
           </div>
-          <div class="hint" style="margin-top:4px;">Only fires on days your timetable has a lecture, and skips days marked as a holiday.</div>
+          <div class="hint" style="margin-top:6px;">Sends an evening notification (7:00 PM) if you have unmarked lectures today or assignments due soon.</div>
           <script>document.getElementById("dailyReminderToggle").checked = localStorage.getItem("attrack_daily_reminder") === "1";</script>
         </div>
       </details>
@@ -2960,17 +2963,15 @@ function positionTour(step, index, total) {
     activeTour.spotlight.style.height = Math.min(window.innerHeight - 16, rect.height + pad * 2) + "px";
 
     activeTour.tooltip.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span class="tour-progress">Step ${index + 1} of ${total}</span>
+        <button class="btn small secondary" type="button" data-tour="skip" style="padding:3px 9px; font-size:0.74rem;">Skip</button>
+      </div>
       <h4>${step.title}</h4>
       <p>${step.body}</p>
-      <div class="tour-progress">${index + 1} of ${total}</div>
-      <div class="tour-actions">
-        <div class="tour-actions-left">
-          <button class="btn small secondary" type="button" data-tour="skip">Skip</button>
-        </div>
-        <div class="tour-actions-right">
-          <button class="btn small secondary" type="button" data-tour="back" ${index === 0 ? "disabled" : ""}>Back</button>
-          <button class="btn small" type="button" data-tour="next">${index === total - 1 ? "Done" : "Next"}</button>
-        </div>
+      <div class="tour-actions" style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn small secondary" type="button" data-tour="back" ${index === 0 ? "disabled" : ""} style="padding:6px 14px;">← Back</button>
+        <button class="btn small" type="button" data-tour="next" style="padding:6px 18px; font-weight:700;">${index === total - 1 ? "Finish Tour ✨" : "Next →"}</button>
       </div>
     `;
 
@@ -2984,7 +2985,7 @@ function positionTour(step, index, total) {
     left = Math.max(12, Math.min(left, window.innerWidth - tipRect.width - 12));
     activeTour.tooltip.style.left = left + "px";
     activeTour.tooltip.style.top = top + "px";
-  }, 180);
+  }, 320);
 }
 
 function endGuidedTour(markSeen = true) {
@@ -3040,7 +3041,7 @@ function startGuidedTour(force = false) {
   function showTourStep() {
     const step = steps[activeTour.index];
     if (step.before) step.before();
-    setTimeout(() => positionTour(step, activeTour.index, steps.length), 90);
+    setTimeout(() => positionTour(step, activeTour.index, steps.length), 260);
   }
 
   showTourStep();
@@ -5733,6 +5734,12 @@ if (openGeminiBtn) {
 
   // --- STEP 1: Name & Date ---
   btn1.addEventListener("click", () => {
+    localStorage.setItem('hasSeenPrivacyPopup', 'true');
+    localStorage.setItem('privacyPolicyAgreed', 'true');
+    localStorage.setItem('privacyPolicyAgreedAt', new Date().toISOString());
+    localStorage.setItem('adDisclaimerAcknowledged', 'true');
+    localStorage.setItem('adDisclaimerAcknowledgedAt', new Date().toISOString());
+
     state.studentName = wizName.value.trim() || "Student";
     state.startDate = wizDate.value || toISODate(new Date());
     step1.style.display = "none";
@@ -6354,10 +6361,6 @@ if (openGcalBtn) {
 		// Installed-app shortcuts use ?view=today / ?view=mark and open the day editor.
       const launchView = new URLSearchParams(window.location.search).get("view");
       switchView((launchView === "today" || launchView === "mark") ? "dayView" : "homeView");
-      setTimeout(() => {
-        const onboarding = document.getElementById("onboardingWizardBackdrop");
-        if (!onboarding || onboarding.style.display === "none") startGuidedTour(false);
-      }, 900);
 // Add this inside your init() or at the bottom of your script
 // Notification permission is no longer requested automatically. Calendar reminders use downloadable calendar events.
 		// --- NOTES FINDER LOGIC ---
@@ -7699,9 +7702,17 @@ function showAdDisclaimerPopupIfNeeded() {
 
 window.addEventListener('load', () => {
     setTimeout(() => {
-        showPrivacyPopup();
-        showAdDisclaimerPopupIfNeeded();
-    }, 600);
+        const onboarding = document.getElementById("onboardingWizardBackdrop");
+        if (onboarding && onboarding.style.display !== "none") {
+            // First-time onboarding wizard is active, do not clutter with popups!
+            return;
+        }
+        if (!localStorage.getItem('privacyPolicyAgreed')) {
+            showPrivacyPopup();
+        } else if (!localStorage.getItem('adDisclaimerAcknowledged')) {
+            showAdDisclaimerPopupIfNeeded();
+        }
+    }, 800);
 });
 </script>
 
