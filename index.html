@@ -1200,7 +1200,62 @@ div.popup-dot { display: none !important; }
 .wizard-day-btn span    { font-size: 0.94rem; }
 
 
-/* --- 9. MODALS -------------------------------------------------- */
+/* --- 9. TOUR & iOS MODAL -------------------------------------------------- */
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.44);
+  z-index: 1500;
+}
+
+.tour-spotlight {
+  position: fixed;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.72), 0 0 0 3px var(--accent), 0 12px 36px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  transition: all 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 3001;
+}
+
+.tour-tooltip {
+  position: fixed;
+  width: min(340px, calc(100vw - 28px));
+  max-width: 340px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1.5px solid var(--accent);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
+  font-size: 0.88rem;
+  z-index: 3002;
+  animation: attrackPop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.tour-tooltip h4 { margin: 0 0 6px; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.tour-tooltip p  { margin: 0; color: var(--text-soft); line-height: 1.5; font-size: 0.86rem; }
+
+.tour-progress {
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.tour-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.tour-actions-left,
+.tour-actions-right { display: flex; gap: 8px; align-items: center; }
+.tour-actions .btn  { font-size: 0.8rem; padding: 6px 14px; }
+
 /* iOS install sheet */
 .ios-modal-backdrop {
   position: fixed;
@@ -1437,6 +1492,7 @@ div.popup-dot { display: none !important; }
   .setup-section-body      { padding: 0 14px 14px; }
   .setup-section-body.compact-tools { grid-template-columns: 1fr 1fr; }
   .setup-app-actions       { grid-template-columns: 1fr 1fr; }
+  .setup-app-actions #startTourBtn { grid-column: 1 / -1; }
 
   /* Lists */
   .subjects-list      { max-height: 128px; }
@@ -1481,6 +1537,16 @@ div.popup-dot { display: none !important; }
     text-overflow: ellipsis;
   }
   .footer-actions .version-badge { width: 100%; text-align: center; }
+
+  #tutorialModal  { padding: 12px; font-size: 0.9rem; }
+
+  /* Tour */
+  .tour-tooltip { left: 12px !important; right: 12px !important; top: auto !important; bottom: 14px !important; width: auto; max-width: none; box-shadow: 0 -10px 30px rgba(0,0,0,0.35); }
+  .tour-actions           { align-items: stretch; }
+  .tour-actions .btn      { flex: 1; justify-content: center; }
+
+  /* Tutorial grid collapses */
+  .tutorial-grid { grid-template-columns: 1fr; }
 
   /* Study */
   .study-grid { grid-template-columns: 1fr; }
@@ -1769,40 +1835,34 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
     </div>
 
     <!-- Step 1: Welcome & Profile -->
-    <div id="wizardStep1" style="padding: 6px 4px 6px;">
-      <div style="width: 52px; height: 52px; margin: 0 auto 14px; background: linear-gradient(135deg, #0284c7, #38bdf8); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(56, 189, 248, 0.25);">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
-      </div>
-      <h2 style="font-size: 1.35rem; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.02em; color: var(--text);">Welcome to Attrack</h2>
-      <p style="font-size: 0.86rem; color: var(--text-soft); line-height: 1.45; margin: 0 0 18px; font-weight: 400;">
-        Track daily lectures, smart skip counts, and study goals with ease.
+    <div id="wizardStep1">
+      <div style="font-size:2.2rem; margin-bottom:6px;">👋</div>
+      <h2 style="font-size: 1.35rem; margin-bottom: 6px; font-weight:700;">Welcome to Attrack</h2>
+      <p style="font-size: 0.88rem; color: var(--text-soft); line-height: 1.45; margin-bottom: 18px;">
+        Track lectures, know exactly how many classes you can safely skip, and never fall below your target.
       </p>
       
       <div class="field" style="text-align: left; margin-bottom: 12px;">
-        <label style="font-weight: 600; font-size: 0.8rem; margin-bottom: 5px; display: block; color: var(--text-soft);">Your name (optional)</label>
-        <input type="text" id="wizName" placeholder="e.g. Alex" style="width: 100%; border-radius: 10px; padding: 11px 14px; font-size: 0.92rem; background: var(--bg-soft); border: 1px solid var(--border);">
+        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Your name (optional)</label>
+        <input type="text" id="wizName" placeholder="e.g. Alex" style="width:100%; border-radius:8px;">
       </div>
-      <div class="field" style="text-align: left; margin-bottom: 18px;">
-        <label style="font-weight: 600; font-size: 0.8rem; margin-bottom: 5px; display: block; color: var(--text-soft);">Semester starts from</label>
-        <input type="date" id="wizDate" style="width: 100%; border-radius: 10px; padding: 11px 14px; font-size: 0.92rem; background: var(--bg-soft); border: 1px solid var(--border);">
+      <div class="field" style="text-align: left; margin-bottom: 16px;">
+        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Tracking starts from</label>
+        <input type="date" id="wizDate" style="width:100%; border-radius:8px;">
       </div>
       
-      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 13px; font-size: 0.96rem; font-weight: 700; border-radius: 12px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);">Get Started →</button>
+      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 13px; font-size: 0.95rem; font-weight:700; border-radius:12px;">Continue: Set Goal →</button>
       
-      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 0.82rem; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border-radius: 8px; background: rgba(56, 189, 248, 0.08);" onclick="document.getElementById('onboardingWizardBackdrop').style.display='none'; switchView('setupView'); window.loginToFirebase();">
-          <span>☁️</span> <span style="font-weight: 600;">Returning user? Sign in to restore data</span>
-        </div>
-        <div style="font-size: 0.8rem; color: var(--text-soft); cursor: pointer; text-decoration: underline;" id="wizImportLink">
-          Have a shared schedule link or file? Import it
-        </div>
+      <div style="margin-top: 14px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
+        🔗 Have a shared schedule link? Import it here
       </div>
 
-      <div class="privacy-agreement" style="font-size: 0.72rem; color: var(--muted); margin-top: 14px; text-align: center;">
-        By continuing, you agree to our <a href="privacy.html" target="_blank" style="color: var(--text-soft); text-decoration: underline;">Privacy Policy</a>.
+      <div style="margin-top: 10px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" onclick="document.getElementById('onboardingWizardBackdrop').style.display='none'; switchView('setupView'); window.loginToFirebase();">
+        ☁️ Returning user? Sign in with Google to restore your data
+      </div>
+
+      <div class="privacy-agreement" style="font-size: 0.75rem; color: var(--muted); margin-top: 14px; text-align: center;">
+        By continuing, you agree to our <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a>.
       </div>
     </div>
 
@@ -1871,7 +1931,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
               <h3>Dashboard</h3>
                     </div>
           </div>
-<div id="syncAlertCard" onclick="document.querySelector('[data-view=\'setupView\']').click()" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; margin-bottom: 16px; cursor: pointer; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px;">
+<div id="syncAlertCard" onclick="document.querySelector('[data-view=\'setupView\']').click()" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; margin-bottom: 16px; cursor: pointer; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; display: flex;">
             <span style="font-size: 1.2rem;">⚠️</span>
             <div style="flex: 1; text-align: left;">
               <div style="font-weight: 700; font-size: 0.9rem; color: #ef4444;">Backup Disconnected</div>
@@ -2047,13 +2107,14 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
             <input id="semEndDateInput" type="date" />
             <div class="hint" style="margin-top:2px;">Used to flag if a subject's "total lectures this term" target is still reachable by term's end.</div>
           </div>
-<div class="setup-app-actions" style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px;">
+<div class="setup-app-actions" style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
             <button id="darkToggle" class="btn small secondary" type="button">
               <span id="darkIcon">Moon</span> <span id="darkLabel">Dark</span>
             </button>
             <button id="soundToggle" class="btn small secondary" type="button">
               Sound: <span id="soundState" class="sound-state">Off</span>
             </button>
+            <button id="startTourBtn" class="btn small secondary" type="button">Tour</button>
           </div>
         </div>
       </details>
@@ -2066,7 +2127,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
             <label for="dailyReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Daily attendance &amp; task reminders</label>
           </div>
           <div class="hint" style="margin-top:6px;">Sends an evening notification (7:00 PM) if you have unmarked lectures today or assignments due soon.</div>
-          <script>document.getElementById("dailyReminderToggle").checked = (typeof state !== 'undefined' && state && state.reminders) || localStorage.getItem("attrack_daily_reminder") === "1";</script>
+          <script>document.getElementById("dailyReminderToggle").checked = localStorage.getItem("attrack_daily_reminder") === "1";</script>
         </div>
       </details>
       <details class="card setup-section">
@@ -2799,6 +2860,8 @@ document.addEventListener("click", (event) => {
 
 
 const TOUR_KEY = "attrack_guided_tour_seen_v3";
+let activeTour = null;
+
 function closeActionsMenu() {
   if (window.matchMedia("(max-width: 768px)").matches) return;
   document.querySelectorAll(".actions-menu[open]").forEach(menu => menu.open = false);
@@ -2811,8 +2874,178 @@ function openSetupSection(labelText) {
   });
 }
 
-function startGuidedTour() {}
-function endGuidedTour() {}
+function buildTourSteps() {
+  return [
+    {
+      target: ".dashboard-card",
+      title: "Dashboard first",
+      body: "This is the phone home base: attendance status, quick actions, and profile edits without extra scrolling.",
+      before: () => switchView("homeView")
+    },
+    {
+      target: "#quickLogTodayBtn",
+      title: "Log today",
+      body: "Use this as the daily muscle-memory button. It jumps straight into lecture logging.",
+      before: () => switchView("homeView")
+    },
+    {
+      target: ".subject-stats-list",
+      title: "Subject overview",
+      body: "Subject health stays visible, but compact, so you can spot trouble subjects quickly.",
+      before: () => switchView("homeView")
+    },
+    {
+      target: ".subject-stats-list",
+      title: "Tap for subject-wise skip count",
+      body: "Tap any subject here to see exactly how many of that subject's lectures you can still skip, using its own target if you've set one.",
+      before: () => {
+        switchView("homeView");
+        setTimeout(() => {
+          const firstRow = document.querySelector("#subjectStatsList .subject-stat-row");
+          const firstItem = document.querySelector("#subjectStatsList .subject-stat-item");
+          if (firstRow && firstItem && !firstItem.classList.contains("expanded")) firstRow.click();
+        }, 30);
+      }
+    },
+    {
+      target: "#dayView .day-lectures .card",
+      title: "Daily logging",
+      body: "The common actions are up front: load a day, add a lecture, and mark the whole day present or absent.",
+      before: () => switchView("dayView")
+    },
+    {
+      target: ".actions-menu-panel",
+      title: "Key tools stay visible",
+      body: "No-lecture day, notes, and absent log are visible chips on phone, so they are not buried while logging.",
+      before: () => { switchView("dayView"); setTimeout(() => { const menu = document.querySelector(".actions-menu"); if (menu) menu.open = true; }, 40); }
+    },
+    {
+      target: "#assignmentsView .card",
+      title: "Tasks",
+      body: "Assignments live separately so attendance logging stays clean. Add by subject and save due dates to Calendar.",
+      before: () => { closeActionsMenu(); switchView("assignmentsView"); }
+    },
+    {
+      target: "#setupView .setup-grid",
+      title: "Setup hub",
+      body: "Target, subjects, timetable, sharing, imports, reminders, dark mode, sound, and this tour are grouped here.",
+      before: () => { closeActionsMenu(); switchView("setupView"); openSetupSection("Goal"); }
+    },
+    {
+      target: "#installAppBtn",
+      fallback: ".nav",
+      title: "Install as a PWA",
+      body: "When your browser supports install, the Install button appears here. On iPhone, it shows Add to Home Screen steps.",
+      before: () => switchView("homeView")
+    }
+  ];
+}
+
+function getTourTarget(step) {
+  let el = document.querySelector(step.target);
+  if ((!el || el.offsetParent === null) && step.fallback) el = document.querySelector(step.fallback);
+  return el;
+}
+
+function positionTour(step, index, total) {
+  const target = getTourTarget(step);
+  if (!target || !activeTour) return;
+
+  target.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
+
+  setTimeout(() => {
+    if (!activeTour) return;
+    const rect = target.getBoundingClientRect();
+    const pad = 8;
+    activeTour.spotlight.style.left = Math.max(8, rect.left - pad) + "px";
+    activeTour.spotlight.style.top = Math.max(8, rect.top - pad) + "px";
+    activeTour.spotlight.style.width = Math.min(window.innerWidth - 16, rect.width + pad * 2) + "px";
+    activeTour.spotlight.style.height = Math.min(window.innerHeight - 16, rect.height + pad * 2) + "px";
+
+    activeTour.tooltip.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span class="tour-progress">Step ${index + 1} of ${total}</span>
+        <button class="btn small secondary" type="button" data-tour="skip" style="padding:3px 9px; font-size:0.74rem;">Skip</button>
+      </div>
+      <h4>${step.title}</h4>
+      <p>${step.body}</p>
+      <div class="tour-actions" style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn small secondary" type="button" data-tour="back" ${index === 0 ? "disabled" : ""} style="padding:6px 14px;">← Back</button>
+        <button class="btn small" type="button" data-tour="next" style="padding:6px 18px; font-weight:700;">${index === total - 1 ? "Finish Tour ✨" : "Next →"}</button>
+      </div>
+    `;
+
+    const tipRect = activeTour.tooltip.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    let top = rect.bottom + 12;
+    if (spaceBelow < tipRect.height + 24) top = rect.top - tipRect.height - 12;
+    if (top < 12) top = 12;
+
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    left = Math.max(12, Math.min(left, window.innerWidth - tipRect.width - 12));
+    activeTour.tooltip.style.left = left + "px";
+    activeTour.tooltip.style.top = top + "px";
+  }, 320);
+}
+
+function endGuidedTour(markSeen = true) {
+  closeActionsMenu();
+  if (activeTour) {
+    activeTour.backdrop.remove();
+    activeTour.spotlight.remove();
+    activeTour.tooltip.remove();
+    window.removeEventListener("resize", activeTour.onResize);
+    activeTour = null;
+  }
+  if (markSeen) localStorage.setItem(TOUR_KEY, "true");
+}
+
+function startGuidedTour(force = false) {
+  const onboarding = document.getElementById("onboardingWizardBackdrop");
+  if (!force && onboarding && onboarding.style.display !== "none") return;
+  if (!force && localStorage.getItem(TOUR_KEY) === "true") return;
+  endGuidedTour(false);
+
+  const steps = buildTourSteps();
+  const backdrop = document.createElement("div");
+  const spotlight = document.createElement("div");
+  const tooltip = document.createElement("div");
+  backdrop.className = "tour-backdrop";
+  spotlight.className = "tour-spotlight";
+  tooltip.className = "tour-tooltip";
+  document.body.append(backdrop, spotlight, tooltip);
+
+  activeTour = {
+    index: 0,
+    steps,
+    backdrop,
+    spotlight,
+    tooltip,
+    onResize: () => positionTour(steps[activeTour.index], activeTour.index, steps.length)
+  };
+  window.addEventListener("resize", activeTour.onResize);
+
+  tooltip.addEventListener("click", (event) => {
+    const action = event.target && event.target.dataset ? event.target.dataset.tour : "";
+    if (!action) return;
+    if (action === "skip") return endGuidedTour(true);
+    if (action === "back") activeTour.index = Math.max(0, activeTour.index - 1);
+    if (action === "next") {
+      if (activeTour.index >= steps.length - 1) return endGuidedTour(true);
+      activeTour.index += 1;
+    }
+    showTourStep();
+  });
+  backdrop.addEventListener("click", () => endGuidedTour(true));
+
+  function showTourStep() {
+    const step = steps[activeTour.index];
+    if (step.before) step.before();
+    setTimeout(() => positionTour(step, activeTour.index, steps.length), 260);
+  }
+
+  showTourStep();
+}
 
   const NOTIF_ASKED_KEY = "attrack_notif_permission_asked";
 // ---------------- Full Schedule Export/Import (Class Rep Mode) ----------------
@@ -5170,9 +5403,11 @@ markHolidayBtn.addEventListener("click", () => {
 const quickLogTodayBtn = document.getElementById("quickLogTodayBtn");
 const quickTasksBtn = document.getElementById("quickTasksBtn");
 const quickStudyBtn = document.getElementById("quickStudyBtn");
+const startTourBtn = document.getElementById("startTourBtn");
 if (quickLogTodayBtn) quickLogTodayBtn.addEventListener("click", () => switchView("dayView"));
 if (quickTasksBtn) quickTasksBtn.addEventListener("click", () => switchView("assignmentsView"));
 if (quickStudyBtn) quickStudyBtn.addEventListener("click", () => switchView("studyView"));
+if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(true));
     navButtons.forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
 if (addStudyTargetBtn) addStudyTargetBtn.addEventListener("click", addStudyTarget);
 if (studyTargetTitle) {
@@ -5697,21 +5932,20 @@ if (openGeminiBtn) {
     saveState();
     localStorage.setItem("attrack_feature_seen_v2_subject_targets", "1"); // brand-new users already saw these fields in onboarding
     localStorage.setItem("attrack_subjectwise_buffer_popup_seen", "true");
-    localStorage.setItem("hasSeenPrivacyPopup", "true");
-    localStorage.setItem("privacyPolicyAgreed", "true");
-    localStorage.setItem("adDisclaimerAcknowledged", "true");
 
     backdrop.style.display = "none";
 
     renderStudent();
     renderSubjectsList();
     renderSetupTarget();
-    refreshSoundToggle();
+refreshSoundToggle();
     renderTimetable();
     renderSummary();
     renderSubjectStats();
     
     switchView("homeView");
+    
+    setTimeout(() => { startGuidedTour(true); }, 650);
   });
 
   const wizImportLink = document.getElementById("wizImportLink");
@@ -7158,21 +7392,19 @@ const firebaseConfig = {
             }, { merge: true }).catch(err => console.warn("Notif prefs sync skipped:", err));
         };
 		
-        // Daily 7pm attendance, assignments & study goals reminder
+// Daily 7pm "mark today's attendance" reminder — piggybacks on the
+        // same fcmToken from enableNotifications() below, just a second flag.
         window.handleDailyReminderToggle = (enabled) => {
+            if (enabled && Notification.permission !== "granted") {
+                alert('Tap "Enable notifications" above first, then turn this on.');
+                document.getElementById("dailyReminderToggle").checked = false;
+                return;
+            }
             localStorage.setItem("attrack_daily_reminder", enabled ? "1" : "0");
-            if (typeof state !== "undefined" && state) {
-                state.reminders = enabled;
-                if (typeof saveState === "function") saveState();
-            }
-            if (window.AndroidBridge && typeof window.AndroidBridge.showToast === "function") {
-                window.AndroidBridge.showToast(enabled ? "Daily reminders enabled (7:00 PM)" : "Daily reminders disabled");
-            }
-            if (typeof auth !== "undefined" && auth && auth.currentUser) {
-                setDoc(doc(db, "users", auth.currentUser.uid), {
-                    notifPrefs: { dailyReminder: enabled }
-                }, { merge: true }).catch(err => console.warn("Daily reminder sync skipped:", err));
-            }
+            if (!auth.currentUser) return;
+            setDoc(doc(db, "users", auth.currentUser.uid), {
+                notifPrefs: { dailyReminder: enabled }
+            }, { merge: true }).catch(err => console.warn("Daily reminder sync skipped:", err));
         };	 
         window.enableNotifications = async () => {
             const statusEl = document.getElementById("notifStatus");
@@ -7471,7 +7703,7 @@ function showAdDisclaimerPopupIfNeeded() {
 window.addEventListener('load', () => {
     setTimeout(() => {
         const onboarding = document.getElementById("onboardingWizardBackdrop");
-        if ((onboarding && onboarding.style.display !== "none") || (typeof state !== "undefined" && state && !state.isInitialized)) {
+        if (onboarding && onboarding.style.display !== "none") {
             // First-time onboarding wizard is active, do not clutter with popups!
             return;
         }
