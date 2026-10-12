@@ -367,23 +367,101 @@ h1, h2, h3 { margin: 0 0 8px; }
 
 input[type="text"],
 input[type="date"],
+input[type="time"],
 input[type="number"],
 select {
-  padding: 6px 8px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
+  font-family: inherit;
   outline: none;
   background: var(--card-bg);
   color: var(--text);
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+input[type="time"],
+input[type="date"] {
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+  padding-right: 34px !important;
+  cursor: pointer;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  padding: 2px;
+  border-radius: 6px;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+body.dark input[type="time"]::-webkit-calendar-picker-indicator,
+body.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: var(--accent-soft);
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1.8px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  background: var(--card-bg);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all 0.18s ease;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked::before {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
 }
 
 input[type="text"]:focus,
 input[type="date"]:focus,
+input[type="time"]:focus,
 select:focus,
 .timetable-table input[type="number"]:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(79,70,229,0.25);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.18);
 }
 
 button {
@@ -1310,6 +1388,203 @@ div.popup-dot { display: none !important; }
 .study-target-title       { font-weight: 700; font-size: 0.92rem; }
 .study-target-meta        { color: var(--muted); font-size: 0.76rem; margin-top: 3px; }
 
+/* --- Pro Option Box / Settings Group --- */
+.pro-option-box {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pro-option-box:focus-within {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.pro-option-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.pro-option-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pro-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.24);
+  letter-spacing: 0.2px;
+}
+
+.quick-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.quick-preset-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.quick-preset-pill:hover,
+.quick-preset-pill:active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* --- Task Tracker & Study Hub Modern Item Cards --- */
+.view-hero-card {
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  margin-bottom: 12px;
+}
+
+body.dark .view-hero-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.task-item-card,
+.study-target-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  align-items: center;
+}
+
+.task-item-card:hover,
+.study-target-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+body.dark .task-item-card:hover,
+body.dark .study-target-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.task-item-card.is-completed,
+.study-target-card.is-done {
+  opacity: 0.65;
+  background: var(--bg-soft);
+}
+
+.study-target-card-title {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.task-badge-row,
+.study-target-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+.task-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  line-height: 1.2;
+}
+
+.task-badge.subject {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.task-badge.due-today {
+  background: rgba(245, 158, 11, 0.14);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.task-badge.overdue {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.task-badge.reminder {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.task-btn-action {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.86rem;
+  background: var(--bg-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.task-btn-action:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.task-btn-action.danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
 .study-progress      { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 10px; }
 .study-progress-fill { height: 100%; width: 0; border-radius: 999px; background: #16a34a; transition: width 0.35s cubic-bezier(.2,.8,.2,1); }
 .study-progress-fill.just-completed { animation: progressCelebrate 0.7s ease-out; }
@@ -2089,14 +2364,22 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           </div>
           <div class="hint" style="margin-top:4px;">Notifies you everyday if you have unmarked lectures for the day.</div>
           
-          <div style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <label for="lectureReminderTime" style="font-size:0.85rem; font-weight:600;">Reminder time (everyday):</label>
-            <input type="time" id="lectureReminderTime" value="19:00" onchange="handleLectureReminderTimeChange(this.value)" style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-weight:600;">
-          </div>
-          <div class="hint" style="margin-top:4px;">Default is 7:00 PM (19:00). Fires daily at this time.</div>
-
-          <div style="margin-top:14px; padding:10px 12px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.35); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.4;">
-            <strong style="color:#f59e0b;">⚠️ Beta Notice:</strong> Reminders &amp; notifications are in experimental beta and will not work reliably on web browsers. Currently being implemented on the APK.
+          <div class="pro-option-box" style="margin-top:12px;">
+            <div class="pro-option-header">
+              <span class="pro-option-title">⏰ Reminder Time (Daily)</span>
+              <span class="pro-badge">7:00 PM Default</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <span style="font-size:0.85rem; font-weight:600;">Time:</span>
+              <input type="time" id="lectureReminderTime" value="19:00" onchange="handleLectureReminderTimeChange(this.value)">
+            </div>
+            <div class="quick-pill-row">
+              <button type="button" class="quick-preset-pill" onclick="setLectureReminderQuick('18:00')">6:00 PM</button>
+              <button type="button" class="quick-preset-pill" onclick="setLectureReminderQuick('19:00')">7:00 PM</button>
+              <button type="button" class="quick-preset-pill" onclick="setLectureReminderQuick('20:00')">8:00 PM</button>
+              <button type="button" class="quick-preset-pill" onclick="setLectureReminderQuick('21:00')">9:00 PM</button>
+            </div>
+            <div class="quiet-note" style="margin-top:6px; font-size:0.75rem;">Fires every evening on your Android device if you have unmarked lectures.</div>
           </div>
 
           <div style="margin-top:12px; display:flex; gap:8px;">
@@ -2332,82 +2615,97 @@ When you add or load lectures, they’re marked attended by default.
     <div id="timetableView" class="view">
 	</div>
 <div id="assignmentsView" class="view">
-<div class="card">
-  <div class="setup-inline" style="align-items:flex-start;">
-    <div>
-      <h3>Add Assignment 📝</h3>
-      <div class="hint">Tap subjects to select (one or more). <br>Click 📅 to save on Google Calendar!</div>
+  <div class="card view-hero-card">
+    <div class="setup-inline" style="align-items:flex-start;">
+      <div>
+        <div class="gemini-modal-kicker">
+          <span class="ai-spark" aria-hidden="true">✦</span>
+          Task Tracker
+        </div>
+        <h3 style="margin:2px 0 4px;">Assignments &amp; Tasks</h3>
+        <div class="quiet-note">Tap subjects to select • Save directly to Google Calendar 📅</div>
+      </div>
+      <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
+        <span class="ai-spark" aria-hidden="true">✦</span>
+        <span>Plan with AI</span>
+      </button>
     </div>
-    <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
-      <span class="ai-spark" aria-hidden="true">✦</span>
-      <span>Plan with AI</span>
+    
+    <div class="field" style="margin-top:14px;">
+      <label style="font-weight:600;">Subjects:</label>
+      <div id="assSubjectChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:12px; gap:12px;">
+      <div class="field">
+        <label for="newAssTitle" style="font-weight:600;">Title</label>
+        <input type="text" id="newAssTitle" placeholder="e.g. Lab Report 3">
+      </div>
+      <div class="field">
+        <label for="newAssDate" style="font-weight:600;">Due Date</label>
+        <input type="date" id="newAssDate">
+      </div>
+    </div>
+
+    <div class="pro-option-box">
+      <div class="pro-option-header">
+        <span class="pro-option-title">🔔 Due Date Reminder</span>
+        <span class="pro-badge">Smart Alert</span>
+      </div>
+      <select id="newAssReminder" style="width:100%;">
+        <option value="1day" selected>1 day before (Default, 7:00 PM)</option>
+        <option value="sameDay">On due date (Morning 9:00 AM)</option>
+        <option value="2days">2 days before</option>
+        <option value="3days">3 days before</option>
+        <option value="none">No reminder</option>
+      </select>
+      <div class="quick-pill-row">
+        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('1day')">1d before</button>
+        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('sameDay')">Due date</button>
+        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('2days')">2d before</button>
+        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('none')">None</button>
+      </div>
+    </div>
+    
+    <button id="addAssignmentBtn" class="btn" style="margin-top:14px; width:100%; justify-content:center; padding:10px 16px;">
+      + Add Task(s)
     </button>
   </div>
-  
-  <div class="field" style="margin-top:12px;">
-    <label>Subjects:</label>
-    <div id="assSubjectChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
+
+  <div class="card" style="margin-top:12px; border-radius:16px;">
+    <div class="setup-inline" style="align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <h3 style="margin:0;">Pending Tasks</h3>
+        <span id="pendingCountBadge" class="pro-badge">⏳</span>
       </div>
-  </div>
-
-  <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:12px; gap:12px;">
-    <div class="field">
-      <label>Due Date</label>
-      <input type="date" id="newAssDate">
-    </div>
-    <div class="field">
-      <label>Title (Optional)</label>
-      <input type="text" id="newAssTitle" placeholder="e.g. Lab Report">
-    </div>
-  </div>
-
-  <div class="field" style="margin-top:12px;">
-    <label for="newAssReminder" style="display:flex; justify-content:space-between; align-items:center;">
-      <span>Reminder Option</span>
-      <span style="font-size:0.7rem; background:rgba(245,158,11,0.2); color:#f59e0b; padding:1px 6px; border-radius:4px; font-weight:600;">Beta</span>
-    </label>
-    <select id="newAssReminder" style="width:100%; padding:8px; border-radius:8px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
-      <option value="1day" selected>1 day before (Default)</option>
-      <option value="sameDay">On due date (Morning 9:00 AM)</option>
-      <option value="2days">2 days before</option>
-      <option value="3days">3 days before</option>
-      <option value="none">No reminder</option>
-    </select>
-    <div class="hint" style="color:#f59e0b; font-size:0.75rem; margin-top:4px;">⚠️ Beta: Task reminders are experimental and work in progress on APK (may not work).</div>
-  </div>
-  
-  <button id="addAssignmentBtn" class="btn small" style="margin-top:14px; width:100%; justify-content:center;">
-    + Add Task(s)
-  </button>
-</div>
-
-  <div class="card" style="margin-top:12px;">
-    <div class="setup-inline" style="align-items:center; justify-content:space-between;">
-      <h3 style="margin:0;">Pending Tasks ⏳</h3>
       <button id="editPendingTasksBtn" class="btn small secondary" type="button">Edit</button>
     </div>
-    <div id="pendingTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
+    <div id="pendingTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; padding:8px 12px; background:var(--bg-soft); border-radius:10px;">
       <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
-        <input type="checkbox" id="selectAllPendingTasks" style="width:16px; height:16px; cursor:pointer;"> Select all
+        <input type="checkbox" id="selectAllPendingTasks"> Select all
       </label>
       <button id="deleteSelectedPendingBtn" class="btn small danger" type="button">Delete selected (<span id="pendingSelCount">0</span>)</button>
     </div>
-    <div id="assignmentsListPending" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
-    <div id="noPendingMsg" class="hint" style="text-align:center; padding:10px;">No pending tasks! 🎉</div>
+    <div id="assignmentsListPending" style="max-height:none; overflow:visible;"></div>
+    <div id="noPendingMsg" class="hint" style="text-align:center; padding:18px;">No pending tasks! All caught up 🎉</div>
   </div>
 
-  <div class="card" style="margin-top:12px; opacity:0.8;">
-    <div class="setup-inline" style="align-items:center; justify-content:space-between;">
-      <h3 style="margin:0;">Completed ✅</h3>
+  <div class="card" style="margin-top:12px; border-radius:16px;">
+    <div class="setup-inline" style="align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <h3 style="margin:0;">Completed Tasks</h3>
+        <span id="doneCountBadge" class="pro-badge" style="background:rgba(16,185,129,0.12); color:#059669; border-color:rgba(16,185,129,0.25);">✅</span>
+      </div>
       <button id="editDoneTasksBtn" class="btn small secondary" type="button">Edit</button>
     </div>
-    <div id="doneTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
+    <div id="doneTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; padding:8px 12px; background:var(--bg-soft); border-radius:10px;">
       <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
-        <input type="checkbox" id="selectAllDoneTasks" style="width:16px; height:16px; cursor:pointer;"> Select all
+        <input type="checkbox" id="selectAllDoneTasks"> Select all
       </label>
       <button id="deleteSelectedDoneBtn" class="btn small danger" type="button">Delete selected (<span id="doneSelCount">0</span>)</button>
     </div>
-    <div id="assignmentsListDone" class="subject-stats-list" style="max-height:none; overflow:visible;"></div>
+    <div id="assignmentsListDone" style="max-height:none; overflow:visible;"></div>
+    <div id="noDoneMsg" class="hint" style="text-align:center; padding:14px; font-size:0.85rem; display:none;">No completed tasks yet.</div>
   </div>
 
   <div class="ads-banner-placeholder">
@@ -2418,12 +2716,16 @@ When you add or load lectures, they’re marked attended by default.
 
 <div id="studyView" class="view">
   <div class="study-grid">
-    <div class="card">
+    <div class="card view-hero-card">
       <div class="setup-inline" style="align-items:flex-start;">
         <div>
-          <h3>Daily study targets</h3>
-          <div class="hint">For my users who figured they cannot use Attrack because they don't have college!</div>
-          <div class="pill" id="studyStreakPill" style="display:none; margin-top:6px;">🔥 <span id="studyStreakCount">0</span>-day streak</div>
+          <div class="gemini-modal-kicker">
+            <span class="ai-spark" aria-hidden="true">✦</span>
+            Study Focus Hub
+          </div>
+          <h3 style="margin:2px 0 4px;">Daily Study Targets</h3>
+          <div class="quiet-note">Set focused study goals &amp; stay on track</div>
+          <div class="pill" id="studyStreakPill" style="display:none; margin-top:6px; font-weight:700;">🔥 <span id="studyStreakCount">0</span>-day streak</div>
         </div>
         <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
           <span class="ai-spark" aria-hidden="true">✦</span>
@@ -2431,62 +2733,80 @@ When you add or load lectures, they’re marked attended by default.
         </button>
       </div>
 
-      <div class="field" style="margin-top:12px;">
-        <label for="studyTargetTitle">Target</label>
-        <input id="studyTargetTitle" type="text" placeholder="e.g. Finish 20 derivatives" />
+      <div class="field" style="margin-top:14px;">
+        <label for="studyTargetTitle" style="font-weight:600;">Goal / Target</label>
+        <input id="studyTargetTitle" type="text" placeholder="e.g. Finish 20 Calculus problems" />
       </div>
 
-      <div class="grid" style="grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
         <div class="field">
-          <label for="studyTargetDate">Date</label>
+          <label for="studyTargetDate" style="font-weight:600;">Target Date</label>
           <input id="studyTargetDate" type="date" />
         </div>
         <div class="field">
-          <label for="studyTargetMinutes">Minutes</label>
+          <label for="studyTargetMinutes" style="font-weight:600;">Duration (min)</label>
           <input id="studyTargetMinutes" type="number" min="5" max="600" step="5" value="45" />
         </div>
       </div>
 
+      <div class="quick-pill-row" style="margin-top:-2px; margin-bottom:8px;">
+        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(25)">25m (Pomodoro)</button>
+        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(45)">45m</button>
+        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(60)">1 hour</button>
+        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(90)">1.5 hr</button>
+      </div>
+
       <div class="field">
-        <label for="studyTargetCategory">Type</label>
+        <label for="studyTargetCategory" style="font-weight:600;">Activity Type</label>
         <select id="studyTargetCategory">
-          <option value="Study">Study</option>
-          <option value="Revision">Revision</option>
-          <option value="Practice">Practice</option>
-          <option value="Reading">Reading</option>
-          <option value="Project">Project</option>
+          <option value="Study">📖 Study</option>
+          <option value="Revision">🔄 Revision</option>
+          <option value="Practice">✍️ Practice</option>
+          <option value="Reading">📚 Reading</option>
+          <option value="Project">💡 Project</option>
         </select>
       </div>
 
-      <div class="field" style="margin-top:8px;">
-        <label for="studyTargetReminderTime" style="display:flex; justify-content:space-between; align-items:center;">
-          <span>Reminder Time</span>
-          <span style="font-size:0.7rem; background:rgba(245,158,11,0.2); color:#f59e0b; padding:1px 6px; border-radius:4px; font-weight:600;">Beta</span>
-        </label>
+      <div class="pro-option-box">
+        <div class="pro-option-header">
+          <span class="pro-option-title">🔔 Target Reminder</span>
+          <span class="pro-badge">Daily Alert</span>
+        </div>
         <div style="display:flex; gap:8px;">
-          <input id="studyTargetReminderTime" type="time" value="21:00" style="flex:1; padding:8px; border-radius:8px; background:var(--bg); color:var(--text); border:1px solid var(--border);" />
-          <select id="studyTargetReminderOption" style="width:120px; padding:8px; border-radius:8px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+          <input id="studyTargetReminderTime" type="time" value="21:00" style="flex:1;" />
+          <select id="studyTargetReminderOption" style="width:130px;">
             <option value="enabled" selected>Remind me</option>
             <option value="none">No reminder</option>
           </select>
         </div>
-        <div class="hint" style="color:#f59e0b; font-size:0.75rem; margin-top:4px;">⚠️ Beta: Study reminders are experimental and work in progress on APK (Default: 9:00 PM).</div>
+        <div class="quick-pill-row">
+          <button type="button" class="quick-preset-pill" onclick="setStudyReminderQuick('20:00')">8:00 PM</button>
+          <button type="button" class="quick-preset-pill" onclick="setStudyReminderQuick('21:00')">9:00 PM (Default)</button>
+          <button type="button" class="quick-preset-pill" onclick="setStudyReminderQuick('22:00')">10:00 PM</button>
+        </div>
       </div>
 
-      <button id="addStudyTargetBtn" class="btn small" type="button" style="width:100%; justify-content:center; margin-top:8px;">+ Add target</button>
+      <button id="addStudyTargetBtn" class="btn" type="button" style="width:100%; justify-content:center; margin-top:14px; padding:10px 16px;">
+        + Add Target
+      </button>
     </div>
 
-    <div class="card">
-      <div class="setup-inline" style="margin-bottom:10px;">
+    <div class="card" style="border-radius:16px;">
+      <div class="setup-inline" style="margin-bottom:12px; align-items:center;">
         <div>
-          <h3>Today's targets</h3>
-          <div class="quiet-note" id="studyProgressText">0 of 0 complete</div>
+          <h3 style="margin:0 0 2px;">Today's targets</h3>
+          <div class="quiet-note" id="studyProgressText" style="font-weight:600; color:var(--accent);">0 of 0 complete</div>
         </div>
-        <button id="showAllStudyTargetsBtn" class="btn small secondary" type="button">All</button>
+        <div style="display:flex; gap:6px;">
+          <button id="viewDailyMemeBtn" class="btn small secondary" type="button" title="View today's daily meme">🎁 Daily meme</button>
+          <button id="showAllStudyTargetsBtn" class="btn small secondary" type="button">All</button>
+        </div>
       </div>
-      <div class="study-progress" aria-hidden="true"><div class="study-progress-fill" id="studyProgressFill"></div></div>
-      <div id="studyTargetsList" style="margin-top:12px;"></div>
-      <div id="studyTargetsEmpty" class="hint" style="text-align:center; padding:18px;">No study targets for today yet.</div>
+      <div class="study-progress" aria-hidden="true" style="height:10px; border-radius:999px; background:var(--bg-soft); border:1px solid var(--border);">
+        <div class="study-progress-fill" id="studyProgressFill" style="border-radius:999px; background:linear-gradient(90deg, #10b981, #059669);"></div>
+      </div>
+      <div id="studyTargetsList" style="margin-top:14px;"></div>
+      <div id="studyTargetsEmpty" class="hint" style="text-align:center; padding:24px 18px; border:1px dashed var(--border); border-radius:12px; margin-top:12px;">No study targets for today yet. Add one to start your focus! 🎯</div>
     </div>
   </div>
   <div class="ads-banner-placeholder">
@@ -4126,6 +4446,7 @@ const studyTargetsEmpty = document.getElementById("studyTargetsEmpty");
 const studyProgressText = document.getElementById("studyProgressText");
 const studyProgressFill = document.getElementById("studyProgressFill");
 const showAllStudyTargetsBtn = document.getElementById("showAllStudyTargetsBtn");
+const viewDailyMemeBtn = document.getElementById("viewDailyMemeBtn");
 const studyMemeBackdrop = document.getElementById("studyMemeBackdrop");
 const studyMemeText = document.getElementById("studyMemeText");
 const closeStudyMemeBtn = document.getElementById("closeStudyMemeBtn");
@@ -4444,19 +4765,18 @@ async function fetchDailyMeme() {
     "2.jpg",
     "3.jpg",
     "4.jpg",
-"5.jpg",
-"6.jpg",
-"7.jpg",
-"8.jpg",
-"9.jpg",
+    "5.jpg",
+    "6.jpg",
+    "7.jpg",
+    "8.jpg",
+    "9.jpg",
   ];
 
   // 1. Calculate how many days have passed since the "Epoch" (Jan 1, 1970)
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
 
-  // 2. Use the modulo (%) operator to safely loop through your array
-  // If you have 4 memes, day 1 = meme 1, day 2 = meme 2... day 5 = meme 1 again.
-  const memeIndex = daysSinceEpoch % localMemes.length;
+  // 2. Use modulo to safely select meme for today
+  const memeIndex = Math.abs(daysSinceEpoch) % localMemes.length;
   
   // 3. Select the meme locked to today's date
   const selectedFile = localMemes[memeIndex];
@@ -4465,12 +4785,16 @@ async function fetchDailyMeme() {
   return { 
     id: "daily-" + selectedFile,
     title: "Well done. Here's your reward: ", 
-    url: imageUrl 
+    url: imageUrl,
+    filename: selectedFile
   };
 }
 async function showStudyMeme() {
   if (!studyMemeBackdrop || !studyMemeText) return;
   
+  const studyMemeTitle = document.getElementById("studyMemeTitle");
+  if (studyMemeTitle) studyMemeTitle.textContent = "Daily Meme Blessing 🎉";
+
   // Show a quick loading state
   studyMemeText.innerHTML = "<em>Fetching today's blessing... ⏳</em>";
   studyMemeBackdrop.style.display = "flex";
@@ -4478,12 +4802,19 @@ async function showStudyMeme() {
 
   // Fetch the meme
   const meme = await fetchDailyMeme();
-  
-  // Display Image or Fallback Text
+  const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+  const blessing = (typeof STUDY_MEMES !== "undefined" && STUDY_MEMES.length)
+    ? STUDY_MEMES[Math.abs(daysSinceEpoch) % STUDY_MEMES.length]
+    : "";
+  const blessingHtml = blessing
+    ? `<div style="margin-top:12px; padding:10px 14px; background:rgba(99,102,241,0.12); border-radius:8px; border:1px solid rgba(99,102,241,0.25); font-style:italic; font-size:0.9rem; line-height:1.45; text-align:center;">"${blessing}"</div>`
+    : "";
+
+  // Display Image and Fallback Text
   if (meme.url) {
-    studyMemeText.innerHTML = `<strong>${meme.title}</strong><br><img src="${meme.url}" style="max-width:100%; border-radius:8px; margin-top:10px; max-height: 400px; object-fit: contain;" alt="Math Meme">`;
+    studyMemeText.innerHTML = `<strong>${meme.title}</strong><br><img src="${meme.url}" style="max-width:100%; border-radius:8px; margin-top:10px; max-height: 400px; object-fit: contain; display:block; margin-left:auto; margin-right:auto;" alt="Daily Meme" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='../memes/${meme.filename||''}';}else{this.style.display='none';}">${blessingHtml}`;
   } else {
-    studyMemeText.textContent = meme.text;
+    studyMemeText.innerHTML = `<strong>Today's Blessing</strong>${blessingHtml}`;
   }
   if (window.loadMemeRating) window.loadMemeRating(meme.id || "daily-text");
 }
@@ -4557,39 +4888,42 @@ function renderStudyTargets() {
     if (target.completedAt) completedCount++;
 
     const row = document.createElement("div");
-    row.className = "study-target-row" + (target.completedAt ? " is-done" : "") + (recentlyCompletedStudyIds.has(target.id) ? " just-completed" : "");
+    row.className = "study-target-card" + (target.completedAt ? " is-done" : "") + (recentlyCompletedStudyIds.has(target.id) ? " just-completed" : "");
+    row.style.display = "grid";
+    row.style.gridTemplateColumns = "24px 1fr auto";
+    row.style.gap = "12px";
+    row.style.alignItems = "center";
 
     // Title and Meta Info
     const info = document.createElement("div");
     const isPast = target.date < todayIso && !target.completedAt;
-    const dateWarn = isPast 
-        ? `<span style="color:var(--danger); font-weight:bold;">⚠️ Overdue (${formatDisplayDate(target.date)})</span>` 
-        : `📅 ${formatDisplayDate(target.date)}`;
+    const isToday = target.date === todayIso;
+    const dateBadge = isPast 
+        ? `<span class="task-badge overdue">⚠️ Overdue (${formatDisplayDate(target.date)})</span>` 
+        : `<span class="task-badge ${isToday ? 'due-today' : ''}">📅 ${isToday ? 'Today' : formatDisplayDate(target.date)}</span>`;
+    const catBadge = target.category
+        ? `<span class="task-badge subject">🏷️ ${target.category}</span>`
+        : "";
+    const timeBadge = target.minutes
+        ? `<span class="task-badge">⏱️ ${target.minutes}m</span>`
+        : "";
     const remDisp = (target.reminderTime && target.reminderTime !== "none")
-        ? ` • 🔔 ${target.reminderTime}`
+        ? `<span class="task-badge reminder">🔔 ${target.reminderTime}</span>`
         : "";
 
     info.innerHTML = `
-      <div class="study-target-title" style="${target.completedAt ? 'text-decoration:line-through;' : ''}">${escapeHtml(target.title)}</div>
-      <div class="study-target-meta">
-         ${dateWarn} • ⏱️ ${target.minutes} mins • 🏷️ ${target.category}${remDisp}
+      <div class="study-target-card-title" style="${target.completedAt ? 'text-decoration:line-through; opacity:0.75;' : ''}">${escapeHtml(target.title)}</div>
+      <div class="study-target-card-meta">
+        ${dateBadge}${timeBadge}${catBadge}${remDisp}
       </div>
     `;
-
-    // Actions (Checkbox & Delete)
-    const actions = document.createElement("div");
-    actions.style.display = "flex";
-    actions.style.alignItems = "center";
-    actions.style.gap = "10px";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
     cb.checked = !!target.completedAt;
-    cb.style.width = "20px";
-    cb.style.height = "20px";
     cb.style.cursor = "pointer";
 
- cb.addEventListener("change", () => {
+    cb.addEventListener("change", () => {
       let wasIncomplete = false;
       if (cb.checked) {
         wasIncomplete = !target.completedAt;
@@ -4614,10 +4948,11 @@ function renderStudyTargets() {
       renderStudyTargets();
       if (wasIncomplete) setTimeout(() => { recentlyCompletedStudyIds.delete(target.id); renderStudyTargets(); }, 720);
     });
+
     const delBtn = document.createElement("button");
-    delBtn.className = "btn small danger";
+    delBtn.className = "task-btn-action danger";
     delBtn.textContent = "✕";
-    delBtn.style.padding = "4px 8px";
+    delBtn.title = "Delete target";
     delBtn.addEventListener("click", () => {
        if(confirm("Delete this target?")) {
            state.studyTargets = state.studyTargets.filter(t => t.id !== target.id);
@@ -4626,10 +4961,9 @@ function renderStudyTargets() {
        }
     });
 
-    actions.appendChild(cb);
-    actions.appendChild(delBtn);
+    row.appendChild(cb);
     row.appendChild(info);
-    row.appendChild(actions);
+    row.appendChild(delBtn);
     studyTargetsList.appendChild(row);
   });
 
@@ -5615,6 +5949,11 @@ if (showAllStudyTargetsBtn) {
     renderStudyTargets();
   });
 }
+if (viewDailyMemeBtn) {
+  viewDailyMemeBtn.addEventListener("click", () => {
+    showStudyMeme();
+  });
+}
 if (closeStudyMemeBtn) {
   closeStudyMemeBtn.addEventListener("click", () => {
     studyMemeBackdrop.style.display = "none";
@@ -6414,15 +6753,17 @@ function renderAssignments() {
   
   const sorted = (state.assignments || []).slice().sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
   let pendingCount = 0;
+  let doneCount = 0;
   let pendingSelectableCount = 0, pendingSelectedCount = 0;
   let doneSelectableCount = 0, doneSelectedCount = 0;
+  const todayIso = toISODate(new Date());
 
   sorted.forEach(ass => {
     const subj = state.subjects.find(s => s.id === ass.subjectId);
     const inEditMode = ass.completed ? editModeDone : editModePending;
 
     const row = document.createElement("div");
-    row.className = "subject-stat-row";
+    row.className = "task-item-card" + (ass.completed ? " is-completed" : "");
     
     // CSS Grid: (Select?) | Checkbox | Text | Action Buttons
     row.style.display = "grid"; 
@@ -6466,19 +6807,40 @@ function renderAssignments() {
     // Info Text
     const info = document.createElement("div");
     const dateDisp = ass.dueDate ? formatDisplayDate(ass.dueDate) : "No date";
-    const subjName = subj ? escapeHtml(subj.name) : "Unknown Subject";
+    const subjName = subj ? escapeHtml(subj.name) : "General";
     const titleText = escapeHtml(ass.title) || "Assignment";
+    const isPast = ass.dueDate && ass.dueDate < todayIso && !ass.completed;
+    const isToday = ass.dueDate && ass.dueDate === todayIso;
 
-    const remTag = (ass.reminder && ass.reminder !== "none")
-      ? ` • <span style="font-size:0.75rem; color:#f59e0b;">🔔 ${ass.reminder === "1day" ? "1d before" : (ass.reminder === "sameDay" ? "Due date" : ass.reminder)}</span>`
-      : "";
+    let dateBadge = "";
+    if (ass.dueDate) {
+      if (isPast) {
+        dateBadge = `<span class="task-badge overdue">⚠️ Overdue (${dateDisp})</span>`;
+      } else if (isToday) {
+        dateBadge = `<span class="task-badge due-today">📅 Due Today</span>`;
+      } else {
+        dateBadge = `<span class="task-badge">📅 ${dateDisp}</span>`;
+      }
+    } else {
+      dateBadge = `<span class="task-badge">📅 No date</span>`;
+    }
+
+    const subjBadge = `<span class="task-badge subject">📚 ${subjName}</span>`;
+
+    let remBadge = "";
+    if (ass.reminder && ass.reminder !== "none") {
+      const remLabel = ass.reminder === "1day" ? "1d before" : (ass.reminder === "sameDay" ? "Due date" : (ass.reminder === "2days" ? "2d before" : ass.reminder));
+      remBadge = `<span class="task-badge reminder">🔔 ${escapeHtml(remLabel)}</span>`;
+    }
 
     info.innerHTML = `
-      <div style="font-weight:700; font-size:0.95rem; color:var(--text); text-decoration:${ass.completed ? 'line-through' : 'none'}">
-        ${subjName}
+      <div style="font-weight:700; font-size:0.95rem; color:var(--text); line-height:1.35; text-decoration:${ass.completed ? 'line-through' : 'none'}; opacity:${ass.completed ? '0.75' : '1'};">
+        ${titleText}
       </div>
-      <div style="font-size:0.85rem; color:var(--text-soft); margin-top:2px;">
-        ${titleText} • <span style="font-size:0.8rem; color:var(--muted)">${dateDisp}</span>${remTag}
+      <div class="task-badge-row">
+        ${subjBadge}
+        ${dateBadge}
+        ${remBadge}
       </div>
     `;
 
@@ -6486,28 +6848,34 @@ function renderAssignments() {
     const actionsDiv = document.createElement("div");
     actionsDiv.style.display = "flex";
     actionsDiv.style.gap = "6px";
+    actionsDiv.style.alignItems = "center";
 
     // Google Calendar Button (only if not completed & has date)
     if (!ass.completed && ass.dueDate) {
       const calBtn = document.createElement("button");
-      calBtn.className = "btn small secondary";
+      calBtn.className = "task-btn-action";
       calBtn.innerHTML = "📅";
       calBtn.title = "Add to Google Calendar";
+      calBtn.type = "button";
       calBtn.onclick = () => addToGCal(ass, subjName);
       actionsDiv.appendChild(calBtn);
     }
 
     // Edit Button
     const editBtn = document.createElement("button");
-    editBtn.className = "btn small secondary";
+    editBtn.className = "task-btn-action";
     editBtn.innerHTML = "✏️";
+    editBtn.title = "Edit Task";
+    editBtn.type = "button";
     editBtn.onclick = () => openEditAssignmentModal(ass);
     actionsDiv.appendChild(editBtn);
 
     // Delete Button
     const delBtn = document.createElement("button");
-    delBtn.className = "btn small danger"; 
+    delBtn.className = "task-btn-action danger"; 
     delBtn.innerHTML = "✕"; 
+    delBtn.title = "Delete Task";
+    delBtn.type = "button";
     delBtn.onclick = () => {
       if(confirm("Delete task?")) {
         state.assignments = state.assignments.filter(x => x.id !== ass.id);
@@ -6519,11 +6887,23 @@ function renderAssignments() {
 
     row.appendChild(cb); row.appendChild(info); row.appendChild(actionsDiv);
 
-    if (ass.completed) assignmentsListDone.appendChild(row);
-    else { assignmentsListPending.appendChild(row); pendingCount++; }
+    if (ass.completed) {
+      assignmentsListDone.appendChild(row);
+      doneCount++;
+    } else {
+      assignmentsListPending.appendChild(row);
+      pendingCount++;
+    }
   });
 
   if(noPendingMsg) noPendingMsg.style.display = pendingCount === 0 ? "block" : "none";
+  const noDoneMsg = document.getElementById("noDoneMsg");
+  if(noDoneMsg) noDoneMsg.style.display = doneCount === 0 ? "block" : "none";
+
+  const pendingCountBadge = document.getElementById("pendingCountBadge");
+  const doneCountBadge = document.getElementById("doneCountBadge");
+  if (pendingCountBadge) pendingCountBadge.textContent = pendingCount;
+  if (doneCountBadge) doneCountBadge.textContent = doneCount;
 
   const selectAllPending = document.getElementById("selectAllPendingTasks");
   const selectAllDone = document.getElementById("selectAllDoneTasks");
@@ -6534,6 +6914,31 @@ function renderAssignments() {
   if (pendingSelCountEl) pendingSelCountEl.textContent = pendingSelectedCount;
   if (doneSelCountEl) doneSelCountEl.textContent = doneSelectedCount;
 }
+
+// Quick Presets Helper Functions
+window.setStudyMinutesQuick = function(mins) {
+  const el = document.getElementById("studyTargetMinutes");
+  if (el) el.value = mins;
+};
+window.setStudyReminderQuick = function(time) {
+  const t = document.getElementById("studyTargetReminderTime");
+  const o = document.getElementById("studyTargetReminderOption");
+  if (t) t.value = time;
+  if (o) o.value = "enabled";
+};
+window.setAssReminderQuick = function(val) {
+  const r = document.getElementById("newAssReminder");
+  if (r) r.value = val;
+};
+window.setLectureReminderQuick = function(time) {
+  const el = document.getElementById("lectureReminderTime");
+  if (el) {
+    el.value = time;
+    if (typeof window.handleLectureReminderTimeChange === "function") {
+      window.handleLectureReminderTimeChange(time);
+    }
+  }
+};
 
 // Refreshes just the selection counts/checkboxes without a full re-render
 // (called on every individual checkbox toggle, so it stays cheap).
@@ -7480,29 +7885,41 @@ function showNewFeaturePopupIfNeeded() {
   }
 })();
 </script>
-<div id="editAssBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
-  <div class="card" style="width:min(360px,90%); padding:20px; animation: slideUp 0.2s ease-out; background: var(--card-bg); border: 1px solid var(--border);">
-    <h3 style="margin-top:0;">Edit Task ✏️</h3>
+<div id="editAssBackdrop" class="gemini-modal-backdrop" style="display:none;">
+  <div class="gemini-modal" style="width:min(420px,94%);">
+    <div class="gemini-modal-head">
+      <div>
+        <div class="gemini-modal-kicker">
+          <span class="ai-spark" aria-hidden="true">✦</span>
+          Task Details
+        </div>
+        <h3 style="margin:2px 0 4px;">Edit Task</h3>
+      </div>
+      <button class="btn small secondary" type="button" onclick="document.getElementById('editAssBackdrop').style.display='none'">✕</button>
+    </div>
     
-    <div class="field" style="margin-top:12px;">
-      <label>Subject</label>
-      <select id="editAssSubject" style="width:100%; padding: 8px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border);"></select>
+    <div class="field" style="margin-top:10px;">
+      <label for="editAssSubject" style="font-weight:600;">Subject</label>
+      <select id="editAssSubject" style="width:100%;"></select>
     </div>
 
-    <div class="field" style="margin-top:12px;">
-      <label>Title</label>
-      <input type="text" id="editAssTitle" style="width:100%; box-sizing:border-box;">
+    <div class="field" style="margin-top:10px;">
+      <label for="editAssTitle" style="font-weight:600;">Title</label>
+      <input type="text" id="editAssTitle" style="width:100%;">
     </div>
 
-    <div class="field" style="margin-top:12px;">
-      <label>Due Date</label>
-      <input type="date" id="editAssDate" style="width:100%; box-sizing:border-box;">
+    <div class="field" style="margin-top:10px;">
+      <label for="editAssDate" style="font-weight:600;">Due Date</label>
+      <input type="date" id="editAssDate" style="width:100%;">
     </div>
 
-    <div class="field" style="margin-top:12px;">
-      <label>Reminder <span style="font-size:0.7rem; color:#f59e0b; font-weight:600;">(Beta)</span></label>
-      <select id="editAssReminder" style="width:100%; padding: 8px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border);">
-        <option value="1day">1 day before (Default)</option>
+    <div class="pro-option-box" style="margin-top:10px;">
+      <div class="pro-option-header">
+        <span class="pro-option-title">🔔 Reminder Alert</span>
+        <span class="pro-badge">Smart Alert</span>
+      </div>
+      <select id="editAssReminder" style="width:100%;">
+        <option value="1day">1 day before (Default, 7:00 PM)</option>
         <option value="sameDay">On due date (Morning 9:00 AM)</option>
         <option value="2days">2 days before</option>
         <option value="3days">3 days before</option>
@@ -7511,8 +7928,8 @@ function showNewFeaturePopupIfNeeded() {
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-      <button id="cancelEditAssBtn" class="btn small secondary">Cancel</button>
-      <button id="saveEditAssBtn" class="btn small">Save Changes</button>
+      <button id="cancelEditAssBtn" class="btn small secondary" type="button">Cancel</button>
+      <button id="saveEditAssBtn" class="btn small" type="button">Save Changes</button>
     </div>
   </div>
 </div>
