@@ -70,7 +70,7 @@
       "Google account sync",
       "Offline support (PWA)",
       "Class rep schedule sharing",
-      "Semester wrapped summary"
+      "End semester & new term reset"
     ],
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "author": {
@@ -1961,6 +1961,9 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
                 <input id="semEndDateInputProfile" type="date" />
               </div>
               <div class="hint">Change these only when your semester setup changes.</div>
+              <div class="field" style="margin-top:10px;">
+                <button id="endSemesterProfileBtn" class="btn small secondary" type="button" style="width:100%; justify-content:center;">🎓 End Semester &amp; Start from 0%</button>
+              </div>
             </div>
           </details>
         </div>
@@ -2010,55 +2013,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
   
   <div id="importPreview" style="display:none; margin-top:10px; padding:10px; background:var(--bg-soft); border-radius:8px; max-height:150px; overflow-y:auto; font-size:0.75rem;"></div>
 </div>
-<div id="wrappedView" class="view">
-  <div class="wrapped-card">
-    <h2 style="font-size: 2rem; margin-bottom: 5px;">Semester Wrapped 🎁</h2>
-    <p style="color: var(--text-soft); margin-top: 0;">Here is how you did this semester.</p>
-
-    <div class="wrapped-stats-grid">
-      <div class="wrapped-stat">
-        <div class="wrapped-value" id="wrapTotalLectures">0</div>
-        <div class="wrapped-label">Total Lectures Survived</div>
-      </div>
-      <div class="wrapped-stat">
-        <div class="wrapped-value" id="wrapTotalBunks" style="color: var(--danger);">0</div>
-        <div class="wrapped-label">Lectures Missed</div>
-      </div>
-      <div class="wrapped-stat">
-        <div class="wrapped-value" id="wrapFinalPct" style="color: var(--accent);">0%</div>
-        <div class="wrapped-label">Final Attendance</div>
-      </div>
-      <div class="wrapped-stat">
-        <div class="wrapped-value" id="wrapTasksDone">0</div>
-        <div class="wrapped-label">Tasks Completed</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top: 16px; text-align: left; background: var(--bg-soft);">
-      <h3 style="margin-bottom: 8px;">Hall of Fame 🏆</h3>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-        <span><strong>Most Attended:</strong></span>
-        <span id="wrapMostAttended">---</span>
-      </div>
-      <div style="display: flex; justify-content: space-between;">
-        <span><strong>Most Bunked:</strong></span>
-        <span id="wrapMostBunked">---</span>
-      </div>
-    </div>
-
-    <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
-      <button id="wrapExportBtn" class="btn" style="justify-content: center; font-size: 1rem; padding: 10px;">
-        📊 1. Download Final Backup
-      </button>
-      <button id="wrapResetBtn" class="btn danger" style="justify-content: center; font-size: 1rem; padding: 10px;" disabled>
-        🧹 2. Erase Data & Reset App
-      </button>
-    </div>
-    <div class="hint" style="margin-top: 12px; text-align: center;">
-      You must download your backup before erasing the data.
-    </div>
-  </div>
-</div>
 <div id="setupView" class="view">
   <div class="setup-stack">
     <div class="card">
@@ -2067,7 +2021,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <h3>Setup hub</h3>
           <div class="quiet-note">Everything is still here, grouped for phone use.</div>
         </div>
-        <button id="generateWrappedBtn" class="btn small secondary" type="button">Wrap</button>
+        <button id="openEndSemesterModalBtn" class="btn small secondary" type="button">🎓 End Semester</button>
       </div>
     </div>
 
@@ -2106,6 +2060,13 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
             <label for="semEndDateInput">Semester end date (optional)</label>
             <input id="semEndDateInput" type="date" />
             <div class="hint" style="margin-top:2px;">Used to flag if a subject's "total lectures this term" target is still reachable by term's end.</div>
+          </div>
+          <div class="setup-inline" style="margin-bottom:12px; padding:10px 12px; border-radius:10px; background:var(--bg-soft); border:1px solid var(--border);">
+            <div>
+              <div style="font-size:0.85rem; font-weight:700;">Semester cycle</div>
+              <div class="quiet-note">End semester &amp; start new one from 0% attendance.</div>
+            </div>
+            <button id="endSemesterGoalBtn" class="btn small secondary" type="button">End semester</button>
           </div>
 <div class="setup-app-actions" style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
             <button id="darkToggle" class="btn small secondary" type="button">
@@ -2181,6 +2142,72 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <div class="hint">Class reps can share schedules. Students can import them, or scan the QR code. Reminders create an 8:00 PM daily calendar event.</div>
         </div>
       </details>
+<!-- END SEMESTER MODAL -->
+<div id="endSemesterModalBackdrop" class="gemini-modal-backdrop" aria-hidden="true">
+  <div class="gemini-modal" role="dialog" aria-modal="true" aria-labelledby="endSemesterModalTitle" style="max-width:480px;">
+    <div class="gemini-modal-head">
+      <div>
+        <div class="gemini-modal-kicker">
+          <span>🎓</span>
+          Academic Transition
+        </div>
+        <h3 id="endSemesterModalTitle" style="margin-bottom:4px;">End Semester &amp; Start Fresh</h3>
+        <div class="quiet-note">Complete your current term and start a new semester from 0% attendance.</div>
+      </div>
+      <button id="closeEndSemesterModalBtn" class="btn small secondary" type="button" aria-label="Close modal">✕</button>
+    </div>
+
+    <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:12px; margin:10px 0 14px;">
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:700; margin-bottom:6px;">Current Term Summary</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:0.88rem; color:var(--text-soft);">Overall Attendance:</span>
+        <strong id="endSemStatsAttendance" style="font-size:1.05rem; color:var(--accent);">0.0%</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:0.88rem; color:var(--text-soft);">Lectures Tracked:</span>
+        <span id="endSemStatsLectures" style="font-size:0.88rem; font-weight:600;">0 / 0</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:0.88rem; color:var(--text-soft);">Tracking Since:</span>
+        <span id="endSemStatsStartDate" style="font-size:0.88rem; font-weight:600;">--</span>
+      </div>
+      <button id="endSemDownloadBackupBtn" class="btn small secondary" type="button" style="width:100%; justify-content:center; gap:6px;">
+        📥 Download Semester Backup (JSON)
+      </button>
+      <div class="hint" style="text-align:center; margin-top:6px; font-size:0.75rem;">Download a backup before resetting so your records are always safe.</div>
+    </div>
+
+    <div class="field" style="margin-bottom:12px;">
+      <label for="newSemesterStartDateInput" style="font-weight:600; font-size:0.85rem;">New semester starts on</label>
+      <input id="newSemesterStartDateInput" type="date" style="margin-top:4px;" />
+      <div class="hint" style="margin-top:2px;">Attendance percentage starts fresh (0%) from this date.</div>
+    </div>
+
+    <div style="font-size:0.85rem; font-weight:700; margin-bottom:8px;">Choose how to begin your new term:</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:left;">
+        <div style="font-weight:700; font-size:0.92rem; color:var(--text); margin-bottom:2px;">Option 1: Keep Subjects &amp; Timetable</div>
+        <div class="hint" style="margin-bottom:8px; line-height:1.35;">Keeps your current subjects and weekly schedule, while resetting attendance tracking to 0% for the new term.</div>
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px; font-size:0.8rem; color:var(--text-soft);">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="endSemClearOldLecs" checked> Clear old semester lecture history
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="endSemClearTasks" checked> Clear past assignments &amp; study goals
+          </label>
+        </div>
+        <button id="endSemResetAttendanceBtn" class="btn small" type="button" style="width:100%; justify-content:center;">
+          🔄 Reset Attendance to 0% (Keep Schedule)
+        </button>
+      </div>
+
+      <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:left;">
+        <div style="font-weight:700; font-size:0.92rem; color:var(--text); margin-bottom:2px;">Option 2: Brand New Subjects &amp; Timetable</div>
+        <div class="hint" style="margin-bottom:10px; line-height:1.35;">Clears old courses so you can set up your new semester subjects and timetable from scratch via the setup wizard.</div>
+        <button id="endSemFreshStartBtn" class="btn small secondary danger-hover" type="button" style="width:100%; justify-content:center; color:var(--danger); border-color:var(--danger);">
+          ✨ Fresh Start (New Subjects)
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -3197,16 +3224,22 @@ function openGoogleCalendar() {
         return;
       }
 
-      // Create a clean copy to share
+      // Create a clean copy to share (tt and lecs only, no notes)
       const shareState = {
         studentName: "", // Don't share name
         startDate: state.startDate,
         subjects: state.subjects,
-        // Share lectures but RESET attendance to 'true' (Present)
-        // This lets the Rep share the *Schedule* without sharing their *Bunks*
-        lectures: state.lectures.map(l => ({
-          ...l,
-          attended: true 
+        holidays: state.holidays || [],
+        // Share lectures but RESET attendance to 'true' (Present) and strip notes
+        lectures: (state.lectures || []).map(l => ({
+          id: l.id,
+          date: l.date,
+          subjectId: l.subjectId,
+          title: "", // Do not export notes in schedule file
+          attended: true,
+          isSpecial: Boolean(l.isSpecial),
+          autoGenerated: Boolean(l.autoGenerated),
+          isCancelled: Boolean(l.isCancelled)
         }))
       };
 
@@ -3225,7 +3258,7 @@ function openGoogleCalendar() {
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         try {
           const json = JSON.parse(e.target.result);
 
@@ -3236,22 +3269,50 @@ function openGoogleCalendar() {
           }
 
           if (confirm("⚠️ Warning: Importing this file will REPLACE your current subjects, timetable, and attendance history.\n\nAre you sure?")) {
+            window.__justImportedSchedule = true;
+            localStorage.setItem("attrack_just_imported", String(Date.now()));
+            window.suppressNextCloudEcho = true;
+
             // Apply the new state
             state.subjects = json.subjects;
-            state.lectures = json.lectures || [];
+            // Notes are NOT imported (only tt and lecs)
+            state.lectures = (json.lectures || []).map(l => ({
+              id: l.id,
+              date: l.date,
+              subjectId: l.subjectId,
+              title: "", // Do not import notes
+              attended: true,
+              isSpecial: Boolean(l.isSpecial || l.special),
+              autoGenerated: false,
+              isCancelled: Boolean(l.isCancelled)
+            }));
             if (json.startDate) state.startDate = json.startDate;
+            if (json.holidays) state.holidays = json.holidays;
             
             // Keep the user's existing name if they have one
             if (!state.studentName && json.studentName) state.studentName = json.studentName;
 
             state.isInitialized = true;
-            saveState();
+            const currentRev = Number(state.__sync?.revision || 0);
+            state.__sync = {
+              deviceId: getDeviceId(),
+              revision: currentRev + 100,
+              updatedAt: Date.now()
+            };
+            saveState({ skipRevision: true, label: "Imported schedule file" });
+
+            if (window.syncToFirebase) {
+              try { await window.syncToFirebase(state); } catch (err) {}
+            }
             
             // Refresh UI
             renderStudent();
             renderSubjectsList();
+            renderSubjectStats();
+            renderAssignmentChips();
             renderTimetable();
             renderLectures();
+            renderCalendar();
             renderSummary();
             renderSetupSummaries();
             
@@ -3269,7 +3330,7 @@ function openGoogleCalendar() {
     }
 
     // ---------------------------------------------------------
-    // MAGIC LINK SHARING (JSONBlob.com)
+    // MAGIC LINK SHARING (Cloudflare Worker)
     // ---------------------------------------------------------
  async function shareScheduleViaLink() {
   if (!state.subjects.length) {
@@ -3282,8 +3343,17 @@ function openGoogleCalendar() {
   const shareState = {
     startDate: state.startDate,
     subjects: state.subjects,
-    lectures: state.lectures,
-    // --- 🔴 FIX: SEND HOLIDAYS ---
+    // tt and lecs ONLY, NO NOTES:
+    lectures: (state.lectures || []).map(l => ({
+      id: l.id,
+      date: l.date,
+      subjectId: l.subjectId,
+      title: "", // Exclude personal notes from shared schedule
+      attended: true,
+      isSpecial: Boolean(l.isSpecial),
+      autoGenerated: Boolean(l.autoGenerated),
+      isCancelled: Boolean(l.isCancelled)
+    })),
     holidays: state.holidays || [], 
     target: localStorage.getItem("attrack_target_attendance")
   };
@@ -3296,6 +3366,10 @@ function openGoogleCalendar() {
       method: "POST",
       body: JSON.stringify(shareState)
     });
+
+    if (!response.ok) throw new Error("Cloud save failed: " + response.status);
+    const id = (await response.text()).trim();
+    if (!id) throw new Error("No ID returned from server");
 
     const isInternalApp = window.location.origin.includes("appassets.androidplatform.net") || window.location.protocol === "file:";
     const base = isInternalApp ? "https://jenishestmoizavut.github.io/attrack/" : (window.location.origin + window.location.pathname.replace(/index\.html$/, ""));
@@ -3377,7 +3451,7 @@ async function checkUrlForImport() {
   const importId = params.get("import");
   if (!importId) return;
 
-  if (!confirm("Load the shared schedule?\n\nThis will load the Subjects, Holidays, and ALL Lectures from the link.\n\n(Note: This replaces your current data with the shared data.)")) {
+  if (!confirm("Load the shared schedule?\n\nThis will load the Subjects, Holidays, and Timetable Lectures from the link.\n\n(Note: This replaces your current timetable and lectures with the shared schedule.)")) {
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
     return;
   }
@@ -3388,46 +3462,99 @@ async function checkUrlForImport() {
 
     const data = await res.json();
 
+    // Set import protection flags BEFORE saving state
+    window.__justImportedSchedule = true;
+    localStorage.setItem("attrack_just_imported", String(Date.now()));
+    window.suppressNextCloudEcho = true;
+
     // 1. Import Basic Settings
     if (data.startDate) state.startDate = data.startDate;
-    if (data.target) localStorage.setItem("attrack_target_attendance", data.target);
+    if (data.target) {
+      localStorage.setItem("attrack_target_attendance", data.target);
+      const rawTarget = parseFloat(data.target);
+      if (!isNaN(rawTarget)) state.target = rawTarget * 100;
+    }
 
-    // 2. Import Subjects & Holidays (Full Overwrite as requested)
+    // 2. Import Subjects & Holidays (TT)
     state.subjects = data.subjects || [];
     state.holidays = data.holidays || [];
     
- // Inside checkUrlForImport, replace step 3 with this:
-
-    // 3. Import Lectures & Rehydrate Deletions
+    // 3. Import Lectures & Rehydrate Deletions (Strip notes: TT and lecs only)
     let rawLectures = (data.lectures || []).map(l => ({
-      ...l,
+      id: l.id,
+      date: l.date,
+      subjectId: l.subjectId,
+      title: "", // Never import notes — only timetable and lectures
       attended: true,
       special: l.special || false,
-      autoGenerated: false     // Mark imported as manual
+      isSpecial: Boolean(l.isSpecial || l.special),
+      autoGenerated: false,
+      isCancelled: Boolean(l.isCancelled)
     }));
 
     // FILL THE GAPS before saving
     state.lectures = rehydrateMissingLectures(rawLectures, state.subjects, state.startDate);
 
     state.isInitialized = true;
-    saveState();
+
+    // Bump revision high so this import is strictly newer than any old cloud state
+    const currentRev = Number(state.__sync?.revision || 0);
+    state.__sync = {
+      deviceId: getDeviceId(),
+      revision: currentRev + 100,
+      updatedAt: Date.now()
+    };
+
+    saveState({ skipRevision: true, label: "Imported shared schedule" });
+
+    // Explicitly sync new imported schedule to cloud if logged in
+    if (window.syncToFirebase) {
+      try {
+        await window.syncToFirebase(state);
+      } catch (err) {
+        console.warn("Could not sync imported schedule to Firebase:", err);
+      }
+    }
 
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
     
-    // 4. Force a clean reload to apply the "Locked" state
-    document.getElementById("shareInfoPopup").querySelector("h2").textContent = "Schedule Imported ✅";
-    document.getElementById("shareInfoPopup").querySelector("p").textContent = "Your schedule and all lectures have been loaded.";
-    document.getElementById("popupLinkBox").style.display = "none";
-    document.getElementById("shareInfoPopup").style.display = "flex";
+    // Refresh UI immediately
+    renderStudent();
+    renderSubjectsList();
+    renderSubjectStats();
+    renderAssignmentChips();
+    renderTimetable();
+    renderCalendar();
+    renderLectures();
+    renderSummary();
+    renderSetupTarget();
+    renderSetupSummaries();
+    switchView("homeView");
 
-    document.getElementById("popupCloseBtn").onclick = () => {
-      document.getElementById("shareInfoPopup").style.display = "none";
-      location.reload();
-    };
+    // 4. Show success popup
+    const popup = document.getElementById("shareInfoPopup");
+    if (popup) {
+      const h2 = popup.querySelector("h2");
+      const p = popup.querySelector("p");
+      if (h2) h2.textContent = "Schedule Imported ✅";
+      if (p) p.textContent = "Your timetable and lectures have been loaded.";
+      const linkBox = document.getElementById("popupLinkBox");
+      if (linkBox) linkBox.style.display = "none";
+      popup.style.display = "flex";
+
+      const closeBtn = document.getElementById("popupCloseBtn");
+      if (closeBtn) {
+        closeBtn.onclick = () => {
+          popup.style.display = "none";
+        };
+      }
+    } else {
+      alert("Schedule imported successfully! 🎉");
+    }
 
   } catch (e) {
     console.error(e);
-    alert("Could not import schedule.");
+    alert("Could not import schedule: " + (e.message || "Invalid link"));
     history.replaceState({}, "", window.location.pathname.replace(/index\.html$/, ""));
   }
 }
@@ -3926,10 +4053,9 @@ let editingSubjectId = null; // 👈 Add this to track if we are editing or addi
     const homeView = document.getElementById("homeView");
     const dayView = document.getElementById("dayView");
     const timetableView = document.getElementById("timetableView");
-   const setupView = document.getElementById("setupView");
+    const setupView = document.getElementById("setupView");
     const assignmentsView = document.getElementById("assignmentsView");
     const studyView = document.getElementById("studyView");
-    const wrappedView = document.getElementById("wrappedView"); // <-- ADD THIS
     const navButtons = Array.from(document.querySelectorAll(".nav-btn"));
     const studentNameInput = document.getElementById("studentName");
     const startDateInput = document.getElementById("startDate");
@@ -4061,11 +4187,15 @@ let isEditingTt = false;
 
       // Only update if it's actually different (prevents infinite loops)
       if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
-        if (!localHasData || cloudState.__sync?.deviceId === getDeviceId() || isIncomingCloudNewer(state, cloudState)) {
+        if (!localHasData || isIncomingCloudNewer(state, cloudState)) {
           applyAcceptedCloudState(cloudState);
           const onboarding = document.getElementById("onboardingWizardBackdrop");
           if (onboarding && cloudHasData) onboarding.style.display = "none";
           if (cloudHasData && typeof switchView === "function") switchView("homeView");
+          return;
+        } else if (localHasData && !isIncomingCloudNewer(state, cloudState)) {
+          // Local state is newer than incoming cloudState! Sync local UP to cloud
+          if (window.syncToFirebase) window.syncToFirebase(state);
           return;
         }
         const revisionKey = cloudRevisionKey(cloudState);
@@ -4965,7 +5095,7 @@ function loadadsAd(slotId, key) {
 }
 function switchView(viewId) {
   playUiSound("soft");
-	[homeView, dayView, timetableView, setupView, assignmentsView, studyView, wrappedView].forEach(v =>
+	[homeView, dayView, timetableView, setupView, assignmentsView, studyView].forEach(v =>
     v.classList.toggle("active", v.id === viewId)
   );
 
@@ -5646,31 +5776,149 @@ if (openGeminiBtn) {
       if (e.target === qrModalBackdrop) qrModalBackdrop.style.display = "none";
     });
 
-    // --- SEMESTER WRAPPED LOGIC (MOVED HERE!) ---
-    const generateWrappedBtn = document.getElementById("generateWrappedBtn");
-    const wrapExportBtn = document.getElementById("wrapExportBtn");
-    const wrapResetBtn = document.getElementById("wrapResetBtn");
+    // --- END SEMESTER & NEW SEMESTER CYCLE LOGIC ---
+    const endSemesterModalBackdrop = document.getElementById("endSemesterModalBackdrop");
+    const closeEndSemesterModalBtn = document.getElementById("closeEndSemesterModalBtn");
+    const openEndSemesterModalBtn = document.getElementById("openEndSemesterModalBtn");
+    const endSemesterGoalBtn = document.getElementById("endSemesterGoalBtn");
+    const endSemesterProfileBtn = document.getElementById("endSemesterProfileBtn");
+    const endSemDownloadBackupBtn = document.getElementById("endSemDownloadBackupBtn");
+    const endSemResetAttendanceBtn = document.getElementById("endSemResetAttendanceBtn");
+    const endSemFreshStartBtn = document.getElementById("endSemFreshStartBtn");
+    const newSemesterStartDateInput = document.getElementById("newSemesterStartDateInput");
+    const endSemClearOldLecs = document.getElementById("endSemClearOldLecs");
+    const endSemClearTasks = document.getElementById("endSemClearTasks");
 
+    function exportSemesterBackup() {
+      const backup = JSON.parse(JSON.stringify(state));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+      const dlNode = document.createElement("a");
+      const nameSlug = (state.studentName || "Student").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+      dlNode.setAttribute("href", dataStr);
+      dlNode.setAttribute("download", `Attrack_Backup_${nameSlug}_${toISODate(new Date())}.json`);
+      document.body.appendChild(dlNode);
+      dlNode.click();
+      dlNode.remove();
+      if (endSemDownloadBackupBtn) {
+        endSemDownloadBackupBtn.textContent = "✅ Backup Downloaded!";
+        setTimeout(() => {
+          if (endSemDownloadBackupBtn) endSemDownloadBackupBtn.textContent = "📥 Download Semester Backup (JSON)";
+        }, 3000);
+      }
+    }
 
-    // Ensure they export before wiping data
-    if (wrapExportBtn) {
-      wrapExportBtn.addEventListener("click", () => {
-        exportScheduleFile(); 
-        wrapResetBtn.disabled = false;
-        wrapResetBtn.textContent = "🧹 2. Erase Data & Reset App (Unlock)";
+    function showEndSemesterModal() {
+      if (!endSemesterModalBackdrop) return;
+      const start = state.startDate || toISODate(new Date());
+      const all = (state.lectures || []).filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
+      const attended = all.filter(lec => lec.attended).length;
+      const total = all.length;
+      const pct = total > 0 ? ((attended / total) * 100).toFixed(1) + "%" : "0.0%";
+
+      const statsAtt = document.getElementById("endSemStatsAttendance");
+      const statsLec = document.getElementById("endSemStatsLectures");
+      const statsDate = document.getElementById("endSemStatsStartDate");
+
+      if (statsAtt) statsAtt.textContent = pct;
+      if (statsLec) statsLec.textContent = `${attended} / ${total} attended`;
+      if (statsDate) statsDate.textContent = formatDisplayDate(start) || start;
+      if (newSemesterStartDateInput) newSemesterStartDateInput.value = toISODate(new Date());
+
+      endSemesterModalBackdrop.style.display = "flex";
+    }
+
+    function hideEndSemesterModal() {
+      if (endSemesterModalBackdrop) endSemesterModalBackdrop.style.display = "none";
+    }
+
+    if (openEndSemesterModalBtn) openEndSemesterModalBtn.addEventListener("click", showEndSemesterModal);
+    if (endSemesterGoalBtn) endSemesterGoalBtn.addEventListener("click", showEndSemesterModal);
+    if (endSemesterProfileBtn) endSemesterProfileBtn.addEventListener("click", showEndSemesterModal);
+    if (closeEndSemesterModalBtn) closeEndSemesterModalBtn.addEventListener("click", hideEndSemesterModal);
+    if (endSemesterModalBackdrop) {
+      endSemesterModalBackdrop.addEventListener("click", (e) => {
+        if (e.target === endSemesterModalBackdrop) hideEndSemesterModal();
       });
     }
 
-    // The Nuke Button
-    if (wrapResetBtn) {
-      wrapResetBtn.addEventListener("click", () => {
-        if (confirm("🚨 WARNING: This will permanently delete all subjects, timetable, and attendance history on this device. Make sure your backup JSON downloaded successfully.\n\nAre you absolutely sure?")) {
-          localStorage.removeItem("attrack_v1");
-          localStorage.removeItem("attrack_target_attendance");
-          localStorage.removeItem("attrack_lastView");
-          alert("System wiped clean. Enjoy your break! 🏖️");
-          window.location.reload();
+    if (endSemDownloadBackupBtn) {
+      endSemDownloadBackupBtn.addEventListener("click", exportSemesterBackup);
+    }
+
+    // Option 1: Keep Subjects & Timetable, reset attendance to 0% starting from new start date
+    if (endSemResetAttendanceBtn) {
+      endSemResetAttendanceBtn.addEventListener("click", () => {
+        const newStart = (newSemesterStartDateInput && newSemesterStartDateInput.value) || toISODate(new Date());
+        const displayDate = formatDisplayDate(newStart);
+        if (!confirm(`Are you sure you want to end this semester?\n\n• New semester start date: ${displayDate}\n• Attendance will reset to 0%\n• Your subjects and weekly schedule will be kept.\n\nProceed?`)) {
+          return;
         }
+
+        captureUndoSnapshot("Ended semester (kept subjects)");
+        state.startDate = newStart;
+        state.semEndDate = null;
+
+        const shouldClearOldLecs = endSemClearOldLecs ? endSemClearOldLecs.checked : true;
+        if (shouldClearOldLecs) {
+          state.lectures = [];
+        } else {
+          // Keep past lectures for calendar history, but remove any on or after the new start date
+          state.lectures = (state.lectures || []).filter(l => l.date && l.date < newStart);
+        }
+
+        const shouldClearTasks = endSemClearTasks ? endSemClearTasks.checked : true;
+        if (shouldClearTasks) {
+          state.assignments = (state.assignments || []).filter(a => !a.completed);
+          state.studyTargets = [];
+        }
+
+        state.isInitialized = true;
+        saveState({ label: "New semester started" });
+
+        // Update UI inputs
+        const startDateInput = document.getElementById("startDate");
+        if (startDateInput) startDateInput.value = state.startDate;
+        const semInput = document.getElementById("semEndDateInput");
+        if (semInput) semInput.value = "";
+        const semInputProfile = document.getElementById("semEndDateInputProfile");
+        if (semInputProfile) semInputProfile.value = "";
+
+        hideEndSemesterModal();
+        renderSummary();
+        renderSubjectStats();
+        renderSubjectsList();
+        renderTimetable();
+        renderCalendar();
+        renderLectures();
+        renderAssignments();
+        if (typeof renderStudyTargets === "function") renderStudyTargets();
+        renderSetupSummaries();
+        switchView("homeView");
+
+        alert(`🎉 New semester started! Attendance tracking has reset to 0% starting from ${displayDate}.`);
+      });
+    }
+
+    // Option 2: Brand new subjects & timetable
+    if (endSemFreshStartBtn) {
+      endSemFreshStartBtn.addEventListener("click", () => {
+        const newStart = (newSemesterStartDateInput && newSemesterStartDateInput.value) || toISODate(new Date());
+        if (!confirm(`⚠️ Starting a fresh semester with new subjects will clear your current timetable and attendance.\n\nPlease make sure you downloaded your backup first!\n\nNew start date: ${formatDisplayDate(newStart)}\n\nProceed?`)) {
+          return;
+        }
+
+        captureUndoSnapshot("Ended semester (fresh start)");
+        state.subjects = [];
+        state.lectures = [];
+        state.assignments = [];
+        state.studyTargets = [];
+        state.startDate = newStart;
+        state.semEndDate = null;
+        state.isInitialized = false;
+
+        saveState({ label: "Ended semester (fresh start)" });
+        hideEndSemesterModal();
+        window.location.reload();
       });
     }
     // ---------------- FRONT-DOOR ONBOARDING WIZARD ----------------
@@ -6615,85 +6863,6 @@ if (feedbackForm) {
     // PDF IMPORTER INTEGRATION
     // ---------------------------------------------------------
 
-
-function getPersonalizedMessage(pct, target) {
-  const diff = pct - target;
-  if (diff >= 10) return "You didn't just meet your goal; you crushed it. Absolute academic weapon!";
-  if (diff >= 0) return `Mission accomplished! You stayed above your ${target}% goal with room to spare.`;
-  if (diff >= -5) return `You fought hard. Just a few classes away from the ${target}% mark. You'll get it next term!`;
-  return "This semester had its hurdles, but every end is a new beginning. Rest up for the next one.";
-}
-
-// 2. The Vibrant View function
-function showVibrantWrapped() {
-  const start = state.startDate || toISODate(new Date());
-
-const validLectures = state.lectures.filter(
-  lec => lec.date && lec.date >= start && !lec.isCancelled
-);
-
-const total = validLectures.length;
-const present = validLectures.filter(l => l.attended).length;
-const absent = total - present;
-const overall = total ? ((present / total) * 100).toFixed(1) : "0.0";
-
-const stats = {
-  overall,
-  totalPresent: present,
-  totalAbsent: absent
-};
-const raw = parseFloat(localStorage.getItem("attrack_target_attendance"));
-const target = (!isNaN(raw) ? raw : 0.75) * 100;
-  const wrappedView = document.getElementById('wrappedView');
-  
-  // Hide all other views
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  wrappedView.classList.add('active');
-
-  let statusColor = "var(--accent)";
-  let achievementText = "";
-  
-  if (stats.overall >= target) {
-    statusColor = "#10b981"; 
-    achievementText = `You beat your ${target}% goal!`;
-  } else if (stats.overall >= target - 5) {
-    statusColor = "#f59e0b"; 
-    achievementText = `So close to your ${target}% goal!`;
-  } else {
-    statusColor = "#ef4444"; 
-    achievementText = `Target was ${target}%`;
-  }
-
-  wrappedView.innerHTML = `
-    <div style="min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; animation: fadeIn 0.8s ease-out;">
-      <div class="card" style="background: linear-gradient(145deg, var(--card-bg), var(--accent-soft)); border: 3px solid ${statusColor}; box-shadow: var(--shadow); padding: 40px 20px; width: 100%; max-width: 400px; border-radius: 24px; position: relative; overflow: hidden;">
-        <h1 style="font-size: 1.6rem; margin-bottom: 5px; color: var(--accent);">Semester Wrapped ✨</h1>
-        <p style="opacity: 0.7; font-size: 0.85rem; margin-bottom: 25px;">${achievementText}</p>
-        <div style="margin: 25px 0;">
-          <div style="font-size: 5rem; font-weight: 800; line-height: 1; color: ${statusColor};">${stats.overall}%</div>
-          <p style="font-weight: 700; letter-spacing: 1px; margin-top: 10px; opacity: 0.8;">FINAL ATTENDANCE</p>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0; text-align: left;">
-          <div style="background: var(--bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
-            <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Classes Met</div>
-            <div style="font-size: 1.1rem; font-weight: 700;">${stats.totalPresent}</div>
-          </div>
-          <div style="background: var(--bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
-            <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Safety Used</div>
-            <div style="font-size: 1.1rem; font-weight: 700;">${stats.totalAbsent}</div>
-          </div>
-        </div>
-        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-style: italic; font-size: 0.95rem; line-height: 1.4;">
-           "${getPersonalizedMessage(stats.overall, target)}"
-        </div>
-        <button class="btn" onclick="location.reload()" style="width: 100%; justify-content: center; padding: 12px; background: ${statusColor}; color: white; border: none;">Back to Dashboard</button>
-      </div>
-    </div>
-  `;
-}
-
-// 3. The actual trigger
-document.getElementById('generateWrappedBtn').onclick = showVibrantWrapped;
     // 1. Your Helper Functions (Adapted from pdfImporter.js)
     async function extractTextFromPDF(file) {
       const buffer = await file.arrayBuffer();
@@ -7365,15 +7534,16 @@ const firebaseConfig = {
         };
 
 // Called by your saveState() function to push data UP
-        window.syncToFirebase = (currentState) => {
+        window.syncToFirebase = async (currentState) => {
             if (auth.currentUser) {
                 // Save the entire state object to a single document for this user
                 window.suppressNextCloudEcho = true;
-                setDoc(doc(db, "users", auth.currentUser.uid), { appData: currentState }, { merge: true })
-                  .catch((error) => {
+                try {
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { appData: currentState }, { merge: true });
+                } catch (error) {
                     window.suppressNextCloudEcho = false;
                     console.error("Cloud sync failed:", error);
-                  });
+                }
             }
         };
 
@@ -7602,13 +7772,33 @@ authBar.onclick = async () => {
                     };
                 }
                 
-                // THE MAGIC: Real-time listener
+                // Real-time Firestore listener
                 onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                     if (docSnap.exists()) {
                         const raw = docSnap.data();
                         const cloudState = raw?.appData || (raw?.subjects ? raw : null);
-                        if (cloudState && window.applyCloudUpdate) {
-                            window.applyCloudUpdate(cloudState, true);
+                        if (cloudState) {
+                            const justImportedAt = parseInt(localStorage.getItem("attrack_just_imported") || "0", 10);
+                            const isFreshImport = window.__justImportedSchedule || (justImportedAt && (Date.now() - justImportedAt < 120000));
+                            if (isFreshImport) {
+                                // User just imported a schedule on this device!
+                                // Push newly imported schedule to cloud instead of letting old cloud data overwrite it.
+                                const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || "{}"));
+                                if (localData.subjects && localData.subjects.length > 0) {
+                                    window.suppressNextCloudEcho = true;
+                                    setDoc(doc(db, "users", user.uid), { appData: localData }, { merge: true })
+                                        .then(() => {
+                                            localStorage.removeItem("attrack_just_imported");
+                                            window.__justImportedSchedule = false;
+                                        })
+                                        .catch(err => console.error("Cloud sync of imported schedule failed:", err));
+                                }
+                                return; // DO NOT apply the older cloud state!
+                            }
+
+                            if (window.applyCloudUpdate) {
+                                window.applyCloudUpdate(cloudState, false);
+                            }
                         } else if (!cloudState) {
                             // Document exists but no appData in it yet -> push local data up if we have it
                             const localData = normalizeStateShape(JSON.parse(localStorage.getItem("attrack_v1") || localStorage.getItem("attrack_state") || "{}"));

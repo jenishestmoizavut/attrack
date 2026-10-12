@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.2.2"; // Dashboard agenda + working PWA shortcut deep links
+const CACHE_VERSION = "v2.2.4"; // Fix cloud sync link import overwrite & strip notes from schedule import
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
