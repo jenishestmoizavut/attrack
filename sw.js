@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.2.4"; // Fix cloud sync link import overwrite & strip notes from schedule import
+const CACHE_VERSION = "v2.2.5"; // Fix view hierarchy tag nesting and page navigation
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
