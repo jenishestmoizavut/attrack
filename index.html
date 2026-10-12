@@ -4299,7 +4299,7 @@ function regenerateFromSchedules(fromIsoDate) {
       const semInputProfile = document.getElementById("semEndDateInputProfile");
       if (semInputProfile) semInputProfile.value = state.semEndDate || "";
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, I have introduced a subjectwise buffer view thanks to community feedback <3`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, if your semester has ended, you can reset Attrack for a fresh start in "Setup":)`
         : "Welcome! Tell me your name below (Profile) and you can stay updated with Attrack! 😊";
     }
 
