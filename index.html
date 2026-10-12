@@ -2081,14 +2081,27 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       </details>
 
       <details class="card setup-section">
-        <summary>Notifications</summary>
+        <summary>Notifications <span style="font-size:0.72rem; background:rgba(245,158,11,0.2); color:#f59e0b; padding:2px 6px; border-radius:4px; font-weight:600; margin-left:6px;">Beta</span></summary>
         <div class="setup-section-body">
           <div style="display:flex; align-items:center; gap:10px; padding:4px 0;">
             <input type="checkbox" id="dailyReminderToggle" onchange="handleDailyReminderToggle(this.checked)" style="width:20px; height:20px; cursor:pointer;">
-            <label for="dailyReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Daily attendance &amp; task reminders</label>
+            <label for="dailyReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Daily attendance reminders</label>
           </div>
-          <div class="hint" style="margin-top:6px;">Sends an evening notification (7:00 PM) if you have unmarked lectures today or assignments due soon.</div>
-          <script>document.getElementById("dailyReminderToggle").checked = localStorage.getItem("attrack_daily_reminder") === "1";</script>
+          <div class="hint" style="margin-top:4px;">Notifies you everyday if you have unmarked lectures for the day.</div>
+          
+          <div style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <label for="lectureReminderTime" style="font-size:0.85rem; font-weight:600;">Reminder time (everyday):</label>
+            <input type="time" id="lectureReminderTime" value="19:00" onchange="handleLectureReminderTimeChange(this.value)" style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-weight:600;">
+          </div>
+          <div class="hint" style="margin-top:4px;">Default is 7:00 PM (19:00). Fires daily at this time.</div>
+
+          <div style="margin-top:14px; padding:10px 12px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.35); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.4;">
+            <strong style="color:#f59e0b;">⚠️ Beta Notice:</strong> Reminders &amp; notifications are in experimental beta and will not work reliably on web browsers. Currently being implemented on the APK.
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button type="button" id="testNotifBtn" class="btn small secondary" onclick="testNotificationClick()" style="flex:1; justify-content:center;">🔔 Send test notification</button>
+          </div>
         </div>
       </details>
       <details class="card setup-section">
@@ -2347,6 +2360,21 @@ When you add or load lectures, they’re marked attended by default.
       <input type="text" id="newAssTitle" placeholder="e.g. Lab Report">
     </div>
   </div>
+
+  <div class="field" style="margin-top:12px;">
+    <label for="newAssReminder" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Reminder Option</span>
+      <span style="font-size:0.7rem; background:rgba(245,158,11,0.2); color:#f59e0b; padding:1px 6px; border-radius:4px; font-weight:600;">Beta</span>
+    </label>
+    <select id="newAssReminder" style="width:100%; padding:8px; border-radius:8px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+      <option value="1day" selected>1 day before (Default)</option>
+      <option value="sameDay">On due date (Morning 9:00 AM)</option>
+      <option value="2days">2 days before</option>
+      <option value="3days">3 days before</option>
+      <option value="none">No reminder</option>
+    </select>
+    <div class="hint" style="color:#f59e0b; font-size:0.75rem; margin-top:4px;">⚠️ Beta: Task reminders are experimental and work in progress on APK (may not work).</div>
+  </div>
   
   <button id="addAssignmentBtn" class="btn small" style="margin-top:14px; width:100%; justify-content:center;">
     + Add Task(s)
@@ -2428,6 +2456,21 @@ When you add or load lectures, they’re marked attended by default.
           <option value="Reading">Reading</option>
           <option value="Project">Project</option>
         </select>
+      </div>
+
+      <div class="field" style="margin-top:8px;">
+        <label for="studyTargetReminderTime" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Reminder Time</span>
+          <span style="font-size:0.7rem; background:rgba(245,158,11,0.2); color:#f59e0b; padding:1px 6px; border-radius:4px; font-weight:600;">Beta</span>
+        </label>
+        <div style="display:flex; gap:8px;">
+          <input id="studyTargetReminderTime" type="time" value="21:00" style="flex:1; padding:8px; border-radius:8px; background:var(--bg); color:var(--text); border:1px solid var(--border);" />
+          <select id="studyTargetReminderOption" style="width:120px; padding:8px; border-radius:8px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+            <option value="enabled" selected>Remind me</option>
+            <option value="none">No reminder</option>
+          </select>
+        </div>
+        <div class="hint" style="color:#f59e0b; font-size:0.75rem; margin-top:4px;">⚠️ Beta: Study reminders are experimental and work in progress on APK (Default: 9:00 PM).</div>
       </div>
 
       <button id="addStudyTargetBtn" class="btn small" type="button" style="width:100%; justify-content:center; margin-top:8px;">+ Add target</button>
@@ -2751,6 +2794,8 @@ function normalizeStateShape(value) {
   if (!normalized.startDate) normalized.startDate = defaults.startDate;
   if (normalized.semEndDate === undefined) normalized.semEndDate = null;
   if (typeof normalized.isInitialized !== "boolean") normalized.isInitialized = false;
+  if (typeof normalized.reminders !== "boolean") normalized.reminders = (localStorage.getItem("attrack_daily_reminder") === "1");
+  if (!normalized.lectureReminderTime) normalized.lectureReminderTime = "19:00";
   if (!normalized.__sync || typeof normalized.__sync !== "object") normalized.__sync = {};
   if (!normalized.__sync.deviceId) normalized.__sync.deviceId = getDeviceId();
   if (!Number.isFinite(normalized.__sync.revision)) normalized.__sync.revision = 0;
@@ -4009,6 +4054,8 @@ const isoStart = toISODate(new Date());
         isInitialized: false,
         studentName: "",
         startDate: isoStart,
+        reminders: false,
+        lectureReminderTime: "19:00",
 	subjects:[],
             lectures: [],
 		  assignments:[],
@@ -4452,12 +4499,15 @@ function addStudyTarget() {
   const date = studyTargetDate.value || toISODate(new Date());
 if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
   const categoryVal = studyTargetCategory.value || "Study";
+  const studyRemOpt = document.getElementById("studyTargetReminderOption")?.value || "enabled";
+  const studyRemTime = (studyRemOpt === "none") ? "none" : (document.getElementById("studyTargetReminderTime")?.value || "21:00");
   state.studyTargets.push({
     id: genId("study"),
     title,
     date,
     minutes,
     category: categoryVal,
+    reminderTime: studyRemTime,
     completedAt: ""
   });
   if (window.trackAttrackEvent) {
@@ -4473,6 +4523,7 @@ if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
   renderStudyTargets();
   playUiSound("success");
 }
+
 function renderStudyTargets() {
   if (!studyTargetsList) return;
   updateStudyStreakDisplay();
@@ -4514,11 +4565,14 @@ function renderStudyTargets() {
     const dateWarn = isPast 
         ? `<span style="color:var(--danger); font-weight:bold;">⚠️ Overdue (${formatDisplayDate(target.date)})</span>` 
         : `📅 ${formatDisplayDate(target.date)}`;
+    const remDisp = (target.reminderTime && target.reminderTime !== "none")
+        ? ` • 🔔 ${target.reminderTime}`
+        : "";
 
     info.innerHTML = `
       <div class="study-target-title" style="${target.completedAt ? 'text-decoration:line-through;' : ''}">${escapeHtml(target.title)}</div>
       <div class="study-target-meta">
-         ${dateWarn} • ⏱️ ${target.minutes} mins • 🏷️ ${target.category}
+         ${dateWarn} • ⏱️ ${target.minutes} mins • 🏷️ ${target.category}${remDisp}
       </div>
     `;
 
@@ -4773,6 +4827,12 @@ function renderSetupSummaries() {
       ? "Weekly timetable configured."
       : "Timetable not configured yet.";
   }
+
+  // ---------- Notifications setup ----------
+  const notifToggleEl = document.getElementById("dailyReminderToggle");
+  if (notifToggleEl) notifToggleEl.checked = !!state.reminders;
+  const lectureTimeEl = document.getElementById("lectureReminderTime");
+  if (lectureTimeEl) lectureTimeEl.value = state.lectureReminderTime || "19:00";
 }
 
     function formatPct(pct) { return pct.toFixed(2).replace(/\.00$/, "") + "%"; }
@@ -6254,6 +6314,7 @@ function getEditElements() {
     subject: document.getElementById("editAssSubject"),
     title: document.getElementById("editAssTitle"),
     date: document.getElementById("editAssDate"),
+    reminder: document.getElementById("editAssReminder"),
   };
 }
 
@@ -6276,6 +6337,7 @@ function openEditAssignmentModal(ass) {
   // Populate Fields
   els.title.value = ass.title || "";
   els.date.value = ass.dueDate || "";
+  if (els.reminder) els.reminder.value = ass.reminder || "1day";
 
   // Show Modal
   els.backdrop.style.display = "flex";
@@ -6301,6 +6363,7 @@ document.addEventListener("click", (e) => {
       ass.subjectId = els.subject.value;
       ass.title = els.title.value || "Assignment";
       ass.dueDate = els.date.value;
+      ass.reminder = (els.reminder ? els.reminder.value : "1day") || "1day";
       
       saveState();
       renderAssignments();
@@ -6406,12 +6469,16 @@ function renderAssignments() {
     const subjName = subj ? escapeHtml(subj.name) : "Unknown Subject";
     const titleText = escapeHtml(ass.title) || "Assignment";
 
+    const remTag = (ass.reminder && ass.reminder !== "none")
+      ? ` • <span style="font-size:0.75rem; color:#f59e0b;">🔔 ${ass.reminder === "1day" ? "1d before" : (ass.reminder === "sameDay" ? "Due date" : ass.reminder)}</span>`
+      : "";
+
     info.innerHTML = `
       <div style="font-weight:700; font-size:0.95rem; color:var(--text); text-decoration:${ass.completed ? 'line-through' : 'none'}">
         ${subjName}
       </div>
       <div style="font-size:0.85rem; color:var(--text-soft); margin-top:2px;">
-        ${titleText} • <span style="font-size:0.8rem; color:var(--muted)">${dateDisp}</span>
+        ${titleText} • <span style="font-size:0.8rem; color:var(--muted)">${dateDisp}</span>${remTag}
       </div>
     `;
 
@@ -6541,6 +6608,7 @@ if (addAssignmentBtn) {
     if (!titleText) titleText = "Assignment"; 
 
     const dueDateVal = newAssDate.value || toISODate(new Date());
+    const reminderVal = document.getElementById("newAssReminder")?.value || "1day";
 
     selectedAssSubjects.forEach(subjectId => {
       state.assignments.push({
@@ -6548,6 +6616,7 @@ if (addAssignmentBtn) {
         subjectId: subjectId,
         title: titleText,
         dueDate: dueDateVal,
+        reminder: reminderVal,
         completed: false
       });
     });
@@ -7430,6 +7499,17 @@ function showNewFeaturePopupIfNeeded() {
       <input type="date" id="editAssDate" style="width:100%; box-sizing:border-box;">
     </div>
 
+    <div class="field" style="margin-top:12px;">
+      <label>Reminder <span style="font-size:0.7rem; color:#f59e0b; font-weight:600;">(Beta)</span></label>
+      <select id="editAssReminder" style="width:100%; padding: 8px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border);">
+        <option value="1day">1 day before (Default)</option>
+        <option value="sameDay">On due date (Morning 9:00 AM)</option>
+        <option value="2days">2 days before</option>
+        <option value="3days">3 days before</option>
+        <option value="none">No reminder</option>
+      </select>
+    </div>
+
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
       <button id="cancelEditAssBtn" class="btn small secondary">Cancel</button>
       <button id="saveEditAssBtn" class="btn small">Save Changes</button>
@@ -7566,19 +7646,65 @@ const firebaseConfig = {
             }, { merge: true }).catch(err => console.warn("Notif prefs sync skipped:", err));
         };
 		
-// Daily 7pm "mark today's attendance" reminder — piggybacks on the
-        // same fcmToken from enableNotifications() below, just a second flag.
+        // Daily lecture attendance reminder & beta reminders
         window.handleDailyReminderToggle = (enabled) => {
-            if (enabled && Notification.permission !== "granted") {
-                alert('Tap "Enable notifications" above first, then turn this on.');
-                document.getElementById("dailyReminderToggle").checked = false;
+            state.reminders = enabled;
+            const timeEl = document.getElementById("lectureReminderTime");
+            if (timeEl && !state.lectureReminderTime) state.lectureReminderTime = timeEl.value || "19:00";
+            localStorage.setItem("attrack_daily_reminder", enabled ? "1" : "0");
+            saveState();
+
+            if (window.AndroidBridge) {
+                if (enabled && typeof window.AndroidBridge.requestNotificationPermission === 'function') {
+                    window.AndroidBridge.requestNotificationPermission();
+                }
+            } else if (enabled && typeof Notification !== "undefined" && Notification.permission !== "granted") {
+                Notification.requestPermission().catch(() => {});
+            }
+
+            if (typeof auth !== "undefined" && auth.currentUser) {
+                setDoc(doc(db, "users", auth.currentUser.uid), {
+                    notifPrefs: { dailyReminder: enabled, lectureTime: state.lectureReminderTime || "19:00" }
+                }, { merge: true }).catch(err => console.warn("Daily reminder sync skipped:", err));
+            }
+        };
+
+        window.handleLectureReminderTimeChange = (timeVal) => {
+            state.lectureReminderTime = timeVal || "19:00";
+            saveState();
+            if (typeof auth !== "undefined" && auth.currentUser) {
+                setDoc(doc(db, "users", auth.currentUser.uid), {
+                    notifPrefs: { lectureTime: state.lectureReminderTime }
+                }, { merge: true }).catch(err => console.warn("Lecture time sync skipped:", err));
+            }
+        };
+
+        window.testNotificationClick = () => {
+            if (window.AndroidBridge && typeof window.AndroidBridge.sendTestNotification === 'function') {
+                window.AndroidBridge.sendTestNotification();
                 return;
             }
-            localStorage.setItem("attrack_daily_reminder", enabled ? "1" : "0");
-            if (!auth.currentUser) return;
-            setDoc(doc(db, "users", auth.currentUser.uid), {
-                notifPrefs: { dailyReminder: enabled }
-            }, { merge: true }).catch(err => console.warn("Daily reminder sync skipped:", err));
+            if (typeof Notification !== "undefined") {
+                if (Notification.permission === "granted") {
+                    new Notification("Attrack Notifications Active! 🔔", {
+                        body: "Test notification successful (Web Beta). Your reminders are configured.",
+                        icon: "./icon-192.png"
+                    });
+                } else {
+                    Notification.requestPermission().then(perm => {
+                        if (perm === "granted") {
+                            new Notification("Attrack Notifications Active! 🔔", {
+                                body: "Test notification successful (Web Beta).",
+                                icon: "./icon-192.png"
+                            });
+                        } else {
+                            alert("Please grant notification permissions in your browser to receive reminders.");
+                        }
+                    });
+                }
+            } else {
+                alert("Notification API is not supported in this browser.");
+            }
         };	 
         window.enableNotifications = async () => {
             const statusEl = document.getElementById("notifStatus");
