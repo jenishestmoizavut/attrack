@@ -1585,6 +1585,74 @@ body.dark .study-target-card:hover {
   border-color: var(--danger);
 }
 
+/* --- Sleek Option Selector Modal (Replaces native Android select dialog) --- */
+.sleek-select-modal {
+  width: min(440px, 94%) !important;
+  max-height: 82vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 18px !important;
+}
+
+.sleek-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg-soft);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.sleek-select-option:hover,
+.sleek-select-option:active {
+  background: var(--card-bg);
+  border-color: rgba(99, 102, 241, 0.45);
+  transform: translateY(-1px);
+}
+
+.sleek-select-option.is-selected {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.sleek-select-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.8px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  color: transparent;
+}
+
+.sleek-select-option.is-selected .sleek-select-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.sleek-select-option.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .study-progress      { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 10px; }
 .study-progress-fill { height: 100%; width: 0; border-radius: 999px; background: #16a34a; transition: width 0.35s cubic-bezier(.2,.8,.2,1); }
 .study-progress-fill.just-completed { animation: progressCelebrate 0.7s ease-out; }
@@ -3764,15 +3832,23 @@ function openGoogleCalendar() {
     setTimeout(() => btn.textContent = "🔗 Share Schedule Link", 2500);
   }
 }
-// --- NEW HELPER: Fill gaps in imported data with "Cancelled" records ---
+// --- NEW HELPER: Fill gaps in imported data with "Cancelled" records (Past dates only) ---
 function rehydrateMissingLectures(importedLectures, subjects, startDateStr) {
   const start = parseISO(startDateStr);
-  const end = new Date(); // Today
+  const todayIso = toISODate(new Date());
+  
+  // We only backfill missing gaps strictly BEFORE today!
+  // Today's lectures are active / upcoming and must NEVER be pre-cancelled!
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(23, 59, 59, 999);
+
   const filledLectures = [...importedLectures];
 
   let cur = new Date(start);
-  while (cur <= end) {
+  while (cur <= yesterday) {
     const iso = toISODate(cur);
+    if (iso >= todayIso) break;
     const dow = cur.getDay();
 
     // Skip if date is a holiday
@@ -3793,7 +3869,7 @@ function rehydrateMissingLectures(importedLectures, subjects, startDateStr) {
         // Count how many we actually HAVE (Manual or Auto)
         const actualCount = filledLectures.filter(l => l.date === iso && l.subjectId === subj.id).length;
 
-        // If missing, fill with CANCELLED placeholders
+        // If missing in the past, fill with CANCELLED placeholders
         if (actualCount < expectedCount) {
           for (let i = 0; i < (expectedCount - actualCount); i++) {
             filledLectures.push({
@@ -3861,8 +3937,16 @@ async function checkUrlForImport() {
       isCancelled: Boolean(l.isCancelled)
     }));
 
-    // FILL THE GAPS before saving
+    // FILL THE GAPS before saving (strictly for past dates)
     state.lectures = rehydrateMissingLectures(rawLectures, state.subjects, state.startDate);
+
+    // Clean up any corrupt dummy void records on or after today
+    const todayIso = toISODate(new Date());
+    state.lectures = state.lectures.filter(l => !(l.isCancelled && String(l.id).startsWith("lec-void") && l.date >= todayIso));
+
+    // Automatically generate today's scheduled lectures from the newly imported timetable!
+    generateLecturesForDate(todayIso);
+    selectedDate = new Date();
 
     state.isInitialized = true;
 
@@ -4518,6 +4602,11 @@ let isEditingTt = false;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       lastSavedStateJson = JSON.stringify(state);
       
+      // Directly sync to Android Native storage & Home Screen Widgets
+      if (window.AndroidBridge && typeof window.AndroidBridge.postState === "function") {
+        try { window.AndroidBridge.postState(lastSavedStateJson); } catch (e) { console.warn("AndroidBridge postState error:", e); }
+      }
+
       // NEW: Tell Firebase to sync this new data
       if (!applyingRemoteState && window.syncToFirebase) window.syncToFirebase(state);
       
@@ -6716,6 +6805,160 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// ============================================================================
+// SLEEK CUSTOM SELECT PICKER (Replaces ugly native Android select dialog)
+// ============================================================================
+let activeSleekSelectEl = null;
+
+function openSleekSelect(selectEl) {
+  if (!selectEl) return;
+  activeSleekSelectEl = selectEl;
+
+  const backdrop = document.getElementById("sleekSelectModalBackdrop");
+  const kickerEl = document.getElementById("sleekSelectKicker");
+  const titleEl = document.getElementById("sleekSelectTitle");
+  const searchWrap = document.getElementById("sleekSelectSearchWrap");
+  const searchInput = document.getElementById("sleekSelectSearchInput");
+  const listEl = document.getElementById("sleekSelectOptionsList");
+
+  if (!backdrop || !listEl) return;
+
+  // Contextual Title & Kicker
+  let kicker = "Option Selection";
+  let title = "Choose an option";
+
+  if (selectEl.closest("#lecturesTableBody") || selectEl.closest("#dayView")) {
+    kicker = "Lecture Details";
+    title = "Select Subject";
+  } else if (selectEl.id === "subjectFilter") {
+    kicker = "Filter View";
+    title = "Filter by Subject";
+  } else if (selectEl.id === "editAssSubject" || selectEl.id === "newAssSubject") {
+    kicker = "Task Subject";
+    title = "Select Subject";
+  } else if (selectEl.id === "editAssReminder" || selectEl.id === "newAssReminder") {
+    kicker = "Reminder Setting";
+    title = "Select Reminder Alert";
+  } else if (selectEl.id === "studyTargetCategory") {
+    kicker = "Study Focus";
+    title = "Select Target Category";
+  } else if (selectEl.id === "studyTargetReminderOption") {
+    kicker = "Target Alert";
+    title = "Study Reminder";
+  } else if (selectEl.id === "geminiPlanRange") {
+    kicker = "Planner Range";
+    title = "Select Schedule Scope";
+  } else {
+    const label = selectEl.id ? document.querySelector(`label[for="${selectEl.id}"]`) : null;
+    if (label && label.textContent.trim()) {
+      title = label.textContent.trim();
+    }
+  }
+
+  if (kickerEl) kickerEl.textContent = kicker;
+  if (titleEl) titleEl.textContent = title;
+
+  // Build Options List
+  listEl.innerHTML = "";
+  const options = Array.from(selectEl.options);
+  const showSearch = options.length > 5;
+  if (searchWrap) searchWrap.style.display = showSearch ? "block" : "none";
+  if (searchInput) {
+    searchInput.value = "";
+    searchInput.oninput = () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const optionRows = listEl.querySelectorAll(".sleek-select-option");
+      optionRows.forEach(row => {
+        const text = (row.dataset.text || "").toLowerCase();
+        row.style.display = text.includes(q) ? "flex" : "none";
+      });
+    };
+  }
+
+  options.forEach(opt => {
+    const optVal = opt.value;
+    const optText = opt.textContent || "";
+    const isSelected = opt.selected || selectEl.value === optVal;
+    const isDisabled = opt.disabled;
+
+    const row = document.createElement("div");
+    row.className = "sleek-select-option" + (isSelected ? " is-selected" : "") + (isDisabled ? " is-disabled" : "");
+    row.dataset.value = optVal;
+    row.dataset.text = optText;
+
+    row.innerHTML = `
+      <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">${escapeHtml(optText)}</span>
+      <span class="sleek-select-check">${isSelected ? "✓" : ""}</span>
+    `;
+
+    if (!isDisabled) {
+      row.addEventListener("click", () => {
+        selectEl.value = optVal;
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        selectEl.dispatchEvent(new Event("input", { bubbles: true }));
+        closeSleekSelect();
+      });
+    }
+
+    listEl.appendChild(row);
+  });
+
+  backdrop.style.display = "flex";
+  backdrop.setAttribute("aria-hidden", "false");
+  if (showSearch && searchInput) {
+    setTimeout(() => searchInput.focus(), 80);
+  }
+}
+
+function closeSleekSelect() {
+  const backdrop = document.getElementById("sleekSelectModalBackdrop");
+  if (backdrop) {
+    backdrop.style.display = "none";
+    backdrop.setAttribute("aria-hidden", "true");
+  }
+  activeSleekSelectEl = null;
+}
+
+function interceptSelectClicks() {
+  const handleSelectOpen = (e) => {
+    const sel = e.target.closest("select");
+    if (!sel || sel.classList.contains("no-sleek-picker")) return;
+
+    // Suppress native OS dialog
+    e.preventDefault();
+    e.stopPropagation();
+    sel.blur();
+    openSleekSelect(sel);
+  };
+
+  // Intercept pointerdown & mousedown & click with capture
+  document.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("select")) handleSelectOpen(e);
+  }, true);
+
+  document.addEventListener("mousedown", (e) => {
+    if (e.target.closest("select")) handleSelectOpen(e);
+  }, true);
+
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("select")) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  const backdrop = document.getElementById("sleekSelectModalBackdrop");
+  if (backdrop) {
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) closeSleekSelect();
+    });
+  }
+  const closeBtn = document.getElementById("sleekSelectCloseBtn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeSleekSelect);
+  }
+}
+
 // 3. Render Function (Updated)
 // Multi-select "Edit" mode for the Tasks lists — one flag per list (Pending,
 // Completed) plus a shared set of selected assignment ids, since ids are
@@ -7057,12 +7300,32 @@ if (addAssignmentBtn) {
          }
          saveState({ skipUndo: true });
       }
+
+      // 1. Clean up any corrupt dummy void records on or after today from previous imports
+      const todayIso = toISODate(new Date());
+      if (Array.isArray(state.lectures)) {
+        const prevCount = state.lectures.length;
+        state.lectures = state.lectures.filter(l => !(l.isCancelled && String(l.id).startsWith("lec-void") && l.date >= todayIso));
+        if (state.lectures.length !== prevCount) {
+          saveState({ skipUndo: true });
+        }
+      }
+
+      // 2. Always ensure today's lectures are auto-generated from schedule
+      if (state.subjects && state.subjects.length > 0) {
+        generateLecturesForDate(todayIso);
+      }
+
+      // 3. Initialize custom sleek select modal interceptor
+      interceptSelectClicks();
       
       renderStudent();
       renderSubjectsList();
       renderSubjectStats();
 		renderAssignmentChips();
       renderTimetable();
+      renderCalendar();
+      renderLectures();
       renderSummary();
 renderSetupTarget();
 refreshSoundToggle();
@@ -7933,6 +8196,32 @@ function showNewFeaturePopupIfNeeded() {
     </div>
   </div>
 </div>
+
+<!-- SLEEK OPTION SELECTOR MODAL (Replaces ugly native Android select dialog) -->
+<div id="sleekSelectModalBackdrop" class="gemini-modal-backdrop" style="display:none;" aria-hidden="true">
+  <div class="gemini-modal sleek-select-modal">
+    <div class="gemini-modal-head" style="margin-bottom:8px; flex-shrink:0;">
+      <div>
+        <div class="gemini-modal-kicker">
+          <span class="ai-spark" aria-hidden="true">✦</span>
+          <span id="sleekSelectKicker">Select Option</span>
+        </div>
+        <h3 id="sleekSelectTitle" style="margin:2px 0 0; font-size:1.15rem;">Choose</h3>
+      </div>
+      <button class="btn small secondary" type="button" id="sleekSelectCloseBtn">✕</button>
+    </div>
+
+    <!-- Search filter if many options -->
+    <div id="sleekSelectSearchWrap" style="margin-top:8px; margin-bottom:4px; flex-shrink:0; display:none;">
+      <input type="text" id="sleekSelectSearchInput" placeholder="Filter options..." style="width:100%; border-radius:10px; padding:8px 12px; font-size:0.86rem; box-sizing:border-box;">
+    </div>
+
+    <!-- Options List -->
+    <div id="sleekSelectOptionsList" style="margin-top:8px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px; padding-right:2px; max-height:55vh;">
+    </div>
+  </div>
+</div>
+
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
