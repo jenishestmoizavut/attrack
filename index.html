@@ -823,37 +823,92 @@ td .center { text-align: center; }
 td .btn.small { opacity: 0.85; }
 td .btn.small:hover { opacity: 1; }
 
+.timetable-scroll-wrap {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
 .timetable-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.78rem;
-  margin-top: 4px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8rem;
 }
 
 .timetable-table th,
 .timetable-table td {
-  border: 1px solid var(--border);
-  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 8px 6px;
   text-align: center;
   background: transparent;
 }
 
-.timetable-table th { background: var(--accent-soft); }
+.timetable-table th {
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+}
+
+.timetable-table th:last-child,
+.timetable-table td:last-child {
+  border-right: none;
+}
+
+.timetable-table tr:last-child td {
+  border-bottom: none;
+}
+
+.timetable-table td:first-child {
+  font-weight: 600;
+  color: var(--text);
+  padding-left: 10px;
+  white-space: nowrap;
+}
+
+.tt-count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.14);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.tt-empty-dash {
+  color: var(--muted);
+  font-size: 0.82rem;
+  opacity: 0.35;
+}
 
 .timetable-table input[type="number"] {
-  width: 42px;
-  height: 26px;
+  width: 40px;
+  height: 28px;
   text-align: center;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg-soft);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text);
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   appearance: textfield;
   -moz-appearance: textfield;
+}
+
+.timetable-table input[type="number"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .timetable-table input[type="number"]:hover { border-color: var(--text-soft); }
@@ -2467,7 +2522,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <div class="setup-section-body">
           <div class="hint" style="margin-bottom: 12px;">Set how many lectures you have per day. Click Edit to unlock the grid.</div>
           
-          <div style="overflow-x:auto; margin-bottom: 12px;">
+          <div id="timetableScrollWrap" class="timetable-scroll-wrap" style="overflow-x:auto; margin-bottom: 12px; -webkit-overflow-scrolling: touch;">
             <table class="timetable-table">
               <thead>
                 <tr>
@@ -2833,25 +2888,6 @@ When you add or load lectures, they’re marked attended by default.
           <option value="Reading">📚 Reading</option>
           <option value="Project">💡 Project</option>
         </select>
-      </div>
-
-      <div class="pro-option-box">
-        <div class="pro-option-header">
-          <span class="pro-option-title">🔔 Target Reminder</span>
-          <span class="pro-badge">Daily Alert</span>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <input id="studyTargetReminderTime" type="time" value="21:00" style="flex:1;" />
-          <select id="studyTargetReminderOption" style="width:130px;">
-            <option value="enabled" selected>Remind me</option>
-            <option value="none">No reminder</option>
-          </select>
-        </div>
-        <div class="quick-pill-row">
-          <button type="button" class="quick-preset-pill" onclick="setStudyReminderQuick('20:00')">8:00 PM</button>
-          <button type="button" class="quick-preset-pill" onclick="setStudyReminderQuick('21:00')">9:00 PM (Default)</button>
-          <button type="button" class="quick-preset-pill" onclick="setStudyReminderQuick('22:00')">10:00 PM</button>
-        </div>
       </div>
 
       <button id="addStudyTargetBtn" class="btn" type="button" style="width:100%; justify-content:center; margin-top:14px; padding:10px 16px;">
@@ -4919,8 +4955,8 @@ function addStudyTarget() {
   const date = studyTargetDate.value || toISODate(new Date());
 if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
   const categoryVal = studyTargetCategory.value || "Study";
-  const studyRemOpt = document.getElementById("studyTargetReminderOption")?.value || "enabled";
-  const studyRemTime = (studyRemOpt === "none") ? "none" : (document.getElementById("studyTargetReminderTime")?.value || "21:00");
+  const studyRemOpt = document.getElementById("studyTargetReminderOption")?.value || "none";
+  const studyRemTime = (studyRemOpt === "none") ? "none" : (document.getElementById("studyTargetReminderTime")?.value || "none");
   state.studyTargets.push({
     id: genId("study"),
     title,
@@ -4996,14 +5032,12 @@ function renderStudyTargets() {
     const timeBadge = target.minutes
         ? `<span class="task-badge">⏱️ ${target.minutes}m</span>`
         : "";
-    const remDisp = (target.reminderTime && target.reminderTime !== "none")
-        ? `<span class="task-badge reminder">🔔 ${target.reminderTime}</span>`
-        : "";
+    const remDisp = "";
 
     info.innerHTML = `
       <div class="study-target-card-title" style="${target.completedAt ? 'text-decoration:line-through; opacity:0.75;' : ''}">${escapeHtml(target.title)}</div>
       <div class="study-target-card-meta">
-        ${dateBadge}${timeBadge}${catBadge}${remDisp}
+        ${dateBadge}${timeBadge}${catBadge}
       </div>
     `;
 
@@ -5516,7 +5550,11 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
       timetableBodyEl.innerHTML = "";
       state.subjects.forEach(subj => {
         const tr = document.createElement("tr");
-        const nameTd = document.createElement("td"); nameTd.textContent = subj.name; nameTd.style.textAlign="left"; tr.appendChild(nameTd);
+        const nameTd = document.createElement("td");
+        nameTd.textContent = subj.name;
+        nameTd.style.textAlign = "left";
+        nameTd.style.fontWeight = "600";
+        tr.appendChild(nameTd);
         
         if (!subj.schedule) subj.schedule = { weeklyPattern: [] };
         
@@ -5524,24 +5562,43 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
           const td = document.createElement("td");
           const existing = subj.schedule.weeklyPattern.find(p => p.day === d);
           const count = existing ? existing.count : 0;
-         const inp = document.createElement("input");
-          inp.type="number"; inp.min=0; inp.max=6; inp.value=count;
-          inp.disabled = !isEditingTt; 
 
-          inp.addEventListener("change", () => {
-            let val = parseInt(inp.value,10); if (isNaN(val) || val<0) val=0; if (val>6) val=6; inp.value=val;
-            
-            const idx = subj.schedule.weeklyPattern.findIndex(p => p.day === d);
-            if (val === 0) {
-               if (idx !== -1) subj.schedule.weeklyPattern.splice(idx, 1);
+          if (!isEditingTt) {
+            // Unlocked view: clean, modern pills and subtle dashes (no disabled input clutter)
+            if (count > 0) {
+              const pill = document.createElement("span");
+              pill.className = "tt-count-pill";
+              pill.textContent = count;
+              td.appendChild(pill);
             } else {
-               if (idx === -1) subj.schedule.weeklyPattern.push({ day: d, count: val });
-               else subj.schedule.weeklyPattern[idx].count = val;
+              const dash = document.createElement("span");
+              dash.className = "tt-empty-dash";
+              dash.textContent = "—";
+              td.appendChild(dash);
             }
-            saveState(); 
-          });
-          td.appendChild(inp); tr.appendChild(td); 
-                 }
+          } else {
+            // Edit mode: active number input
+            const inp = document.createElement("input");
+            inp.type = "number"; inp.min = 0; inp.max = 6; inp.value = count;
+            inp.addEventListener("change", () => {
+              let val = parseInt(inp.value, 10);
+              if (isNaN(val) || val < 0) val = 0;
+              if (val > 6) val = 6;
+              inp.value = val;
+              
+              const idx = subj.schedule.weeklyPattern.findIndex(p => p.day === d);
+              if (val === 0) {
+                if (idx !== -1) subj.schedule.weeklyPattern.splice(idx, 1);
+              } else {
+                if (idx === -1) subj.schedule.weeklyPattern.push({ day: d, count: val });
+                else subj.schedule.weeklyPattern[idx].count = val;
+              }
+              saveState();
+            });
+            td.appendChild(inp);
+          }
+          tr.appendChild(td);
+        }
         timetableBodyEl.appendChild(tr);
       });
     }
@@ -6910,53 +6967,105 @@ function openSleekSelect(selectEl) {
   }
 }
 
-function closeSleekSelect() {
+window.closeSleekSelect = function() {
   const backdrop = document.getElementById("sleekSelectModalBackdrop");
   if (backdrop) {
     backdrop.style.display = "none";
     backdrop.setAttribute("aria-hidden", "true");
   }
   activeSleekSelectEl = null;
+};
+function closeSleekSelect() {
+  window.closeSleekSelect();
 }
 
+// Global click & touch delegation for closing modal — works 100% reliably
+function handleSleekCloseEvent(e) {
+  if (
+    e.target &&
+    (e.target.id === "sleekSelectCloseBtn" ||
+      e.target.closest("#sleekSelectCloseBtn") ||
+      e.target.id === "sleekSelectModalBackdrop" ||
+      e.target.id === "sleekSelectCancelBtn" ||
+      e.target.closest("#sleekSelectCancelBtn"))
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    window.closeSleekSelect();
+  }
+}
+document.addEventListener("click", handleSleekCloseEvent, true);
+document.addEventListener("touchend", handleSleekCloseEvent, true);
+
+let selectTouchStartX = 0;
+let selectTouchStartY = 0;
+let selectTouchStartTime = 0;
+let selectTouchMoved = false;
+let isGlobalScrolling = false;
+let scrollTimeoutId = null;
+
+window.addEventListener("scroll", () => {
+  isGlobalScrolling = true;
+  clearTimeout(scrollTimeoutId);
+  scrollTimeoutId = setTimeout(() => { isGlobalScrolling = false; }, 120);
+}, { passive: true });
+
 function interceptSelectClicks() {
-  const handleSelectOpen = (e) => {
+  // Track touch start
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches && e.touches[0]) {
+      selectTouchStartX = e.touches[0].clientX;
+      selectTouchStartY = e.touches[0].clientY;
+      selectTouchStartTime = Date.now();
+      selectTouchMoved = false;
+    }
+  }, { passive: true });
+
+  // Track touch movement — if moving/scrolling, lock out opening
+  document.addEventListener("touchmove", (e) => {
+    if (e.touches && e.touches[0]) {
+      const dx = Math.abs(e.touches[0].clientX - selectTouchStartX);
+      const dy = Math.abs(e.touches[0].clientY - selectTouchStartY);
+      if (dx > 7 || dy > 7) {
+        selectTouchMoved = true;
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchend", () => {
+    if (selectTouchMoved) {
+      setTimeout(() => { selectTouchMoved = false; }, 200);
+    }
+  }, { passive: true });
+
+  // ONLY open modal on a confirmed, intentional click tap
+  document.addEventListener("click", (e) => {
     const sel = e.target.closest("select");
     if (!sel || sel.classList.contains("no-sleek-picker")) return;
 
-    // Suppress native OS dialog
+    // If user was scrolling, swiping, or finger moved, DO NOT open
+    if (selectTouchMoved || isGlobalScrolling) {
+      e.preventDefault();
+      e.stopPropagation();
+      sel.blur();
+      selectTouchMoved = false;
+      return;
+    }
+
+    // Require an actual intentional tap duration (avoid ghost/hair-trigger touches)
+    const duration = Date.now() - selectTouchStartTime;
+    if (selectTouchStartTime > 0 && (duration < 35 || duration > 650)) {
+      e.preventDefault();
+      e.stopPropagation();
+      sel.blur();
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     sel.blur();
     openSleekSelect(sel);
-  };
-
-  // Intercept pointerdown & mousedown & click with capture
-  document.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("select")) handleSelectOpen(e);
   }, true);
-
-  document.addEventListener("mousedown", (e) => {
-    if (e.target.closest("select")) handleSelectOpen(e);
-  }, true);
-
-  document.addEventListener("click", (e) => {
-    if (e.target.closest("select")) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
-  const backdrop = document.getElementById("sleekSelectModalBackdrop");
-  if (backdrop) {
-    backdrop.addEventListener("click", (e) => {
-      if (e.target === backdrop) closeSleekSelect();
-    });
-  }
-  const closeBtn = document.getElementById("sleekSelectCloseBtn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closeSleekSelect);
-  }
 }
 
 // 3. Render Function (Updated)
@@ -8198,7 +8307,7 @@ function showNewFeaturePopupIfNeeded() {
 </div>
 
 <!-- SLEEK OPTION SELECTOR MODAL (Replaces ugly native Android select dialog) -->
-<div id="sleekSelectModalBackdrop" class="gemini-modal-backdrop" style="display:none;" aria-hidden="true">
+<div id="sleekSelectModalBackdrop" class="gemini-modal-backdrop" style="display:none;" aria-hidden="true" onclick="if(event.target===this) window.closeSleekSelect()">
   <div class="gemini-modal sleek-select-modal">
     <div class="gemini-modal-head" style="margin-bottom:8px; flex-shrink:0;">
       <div>
@@ -8208,7 +8317,7 @@ function showNewFeaturePopupIfNeeded() {
         </div>
         <h3 id="sleekSelectTitle" style="margin:2px 0 0; font-size:1.15rem;">Choose</h3>
       </div>
-      <button class="btn small secondary" type="button" id="sleekSelectCloseBtn">✕</button>
+      <button class="btn small secondary" type="button" id="sleekSelectCloseBtn" onclick="window.closeSleekSelect()">✕</button>
     </div>
 
     <!-- Search filter if many options -->
@@ -8218,6 +8327,11 @@ function showNewFeaturePopupIfNeeded() {
 
     <!-- Options List -->
     <div id="sleekSelectOptionsList" style="margin-top:8px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px; padding-right:2px; max-height:55vh;">
+    </div>
+
+    <!-- Explicit bottom cancel button -->
+    <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--border); flex-shrink:0;">
+      <button type="button" id="sleekSelectCancelBtn" class="btn secondary" style="width:100%; justify-content:center; padding:9px 16px;" onclick="window.closeSleekSelect()">Cancel</button>
     </div>
   </div>
 </div>
@@ -8757,7 +8871,7 @@ window.addEventListener('load', () => {
         </button>
     </div>
 </div>
-<!-- ATTRACK SWIPE PATCH v2 -->
+<!-- ATTRACK SWIPE CONTROLLER -->
 <script>
 (function () {
   const MIN_SWIPE_PX  = 45;
@@ -8766,25 +8880,41 @@ window.addEventListener('load', () => {
   let x0 = 0, y0 = 0;
 
   document.addEventListener("touchstart", function (e) {
+    if (!e.changedTouches || !e.changedTouches[0]) return;
     x0 = e.changedTouches[0].clientX;
     y0 = e.changedTouches[0].clientY;
   }, { passive: true });
 
   document.addEventListener("touchend", function (e) {
+    if (!e.changedTouches || !e.changedTouches[0]) return;
+    const target = e.target;
+
+    // Do NOT swipe past pages if interacting with Timetable table or horizontal scroll containers
+    if (target.closest("#timetableScrollWrap, .timetable-table, .timetable-scroll-wrap, .chips-container, input, select, textarea, button")) {
+      return;
+    }
+
+    // Do NOT swipe past pages if touching inside an open accordion menu (like open Timetable) or open modal
+    if (target.closest("details[open], .gemini-modal, .subject-modal")) {
+      return;
+    }
+
     const dx = e.changedTouches[0].clientX - x0;
     const dy = e.changedTouches[0].clientY - y0;
 
-    if (Math.abs(dx) < MIN_SWIPE_PX)  return;
-    if (Math.abs(dy) > MAX_DRIFT_PX)  return;
+    if (Math.abs(dx) < MIN_SWIPE_PX) return;
+    if (Math.abs(dy) > MAX_DRIFT_PX) return;
     if (x0 < EDGE_GUARD_PX || x0 > window.innerWidth - EDGE_GUARD_PX) return;
 
-    // Get all nav buttons that have a data-view (skip installAppBtn which has none)
+    // Get all nav buttons that have a data-view
     const tabs = Array.from(document.querySelectorAll(".nav-btn[data-view]"));
     const idx  = tabs.findIndex(b => b.classList.contains("active"));
     if (idx === -1) return;
 
-    const target = dx < 0 ? tabs[idx + 1] : tabs[idx - 1];
-    if (target) target.click(); // reuses the existing click → switchView wiring
+    const navTarget = dx < 0 ? tabs[idx + 1] : tabs[idx - 1];
+    if (navTarget) {
+      navTarget.click();
+    }
   }, { passive: true });
 })();
 </script>
