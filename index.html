@@ -1346,8 +1346,9 @@ div.popup-dot { display: none !important; }
   border-radius: 16px;
   box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.72), 0 0 0 3px var(--accent), 0 12px 36px rgba(0, 0, 0, 0.45);
   pointer-events: none;
-  transition: all 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: top 0.22s ease-out, left 0.22s ease-out, width 0.22s ease-out, height 0.22s ease-out;
   z-index: 3001;
+  will-change: top, left, width, height;
 }
 
 .tour-tooltip {
@@ -1939,7 +1940,14 @@ body.dark .study-target-card:hover {
   #tutorialModal  { padding: 12px; font-size: 0.9rem; }
 
   /* Tour */
-  .tour-tooltip { left: 12px !important; right: 12px !important; top: auto !important; bottom: 14px !important; width: auto; max-width: none; box-shadow: 0 -10px 30px rgba(0,0,0,0.35); }
+  .tour-tooltip {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+    transition: top 0.22s ease-out, bottom 0.22s ease-out;
+  }
   .tour-actions           { align-items: stretch; }
   .tour-actions .btn      { flex: 1; justify-content: center; }
 
@@ -3375,54 +3383,69 @@ function openSetupSection(labelText) {
 }
 
 function buildTourSteps() {
-  return [
+  const hasSubjects = Array.isArray(state.subjects) && state.subjects.length > 0;
+  const steps = [
     {
       target: ".dashboard-card",
       title: "Dashboard first",
-      body: "This is the phone home base: attendance status, quick actions, and profile edits without extra scrolling.",
+      body: "Your phone home base: attendance status, quick actions, and profile edits at a glance.",
       before: () => switchView("homeView")
     },
     {
       target: "#quickLogTodayBtn",
       title: "Log today",
-      body: "Use this as the daily muscle-memory button. It jumps straight into lecture logging.",
+      body: "The daily muscle-memory button: jump straight into marking today's lectures.",
       before: () => switchView("homeView")
     },
     {
-      target: ".subject-stats-list",
+      target: "#subjectOverviewCard",
+      fallback: ".dashboard-card",
       title: "Subject overview",
-      body: "Subject health stays visible, but compact, so you can spot trouble subjects quickly.",
+      body: hasSubjects
+        ? "Subject health stays visible here, showing attendance percentages and safe-to-skip counts."
+        : "Once you add subjects in Setup, your attendance health and safe-to-skip counts will show up right here.",
       before: () => switchView("homeView")
-    },
-    {
-      target: ".subject-stats-list",
+    }
+  ];
+
+  if (hasSubjects) {
+    steps.push({
+      target: "#subjectStatsList .subject-stat-item",
+      fallback: "#subjectOverviewCard",
       title: "Tap for subject-wise skip count",
-      body: "Tap any subject here to see exactly how many of that subject's lectures you can still skip, using its own target if you've set one.",
+      body: "Tap any subject here to expand it and see exactly how many lectures you can still skip, using its own target if you've set one.",
       before: () => {
         switchView("homeView");
-        setTimeout(() => {
-          const firstRow = document.querySelector("#subjectStatsList .subject-stat-row");
-          const firstItem = document.querySelector("#subjectStatsList .subject-stat-item");
-          if (firstRow && firstItem && !firstItem.classList.contains("expanded")) firstRow.click();
-        }, 30);
+        const firstRow = document.querySelector("#subjectStatsList .subject-stat-row");
+        const firstItem = document.querySelector("#subjectStatsList .subject-stat-item");
+        if (firstRow && firstItem && !firstItem.classList.contains("expanded")) firstRow.click();
+      }
+    });
+  }
+
+  steps.push(
+    {
+      target: "#dayView .daily-actions",
+      fallback: "#dayView .day-lectures .card",
+      title: "Daily logging actions",
+      body: "Load your day's timetable schedule, add extra classes on the fly, or mark attendance in one tap.",
+      before: () => { closeActionsMenu(); switchView("dayView"); }
+    },
+    {
+      target: ".actions-menu",
+      fallback: "#dayView .daily-actions",
+      title: "Quick day tools",
+      body: "Tap 'More actions' to mark no-lecture days, check class notes, or view your absent history.",
+      before: () => {
+        switchView("dayView");
+        const menu = document.querySelector(".actions-menu");
+        if (menu) menu.open = true;
       }
     },
     {
-      target: "#dayView .day-lectures .card",
-      title: "Daily logging",
-      body: "The common actions are up front: load a day, add a lecture, and mark the whole day present or absent.",
-      before: () => switchView("dayView")
-    },
-    {
-      target: ".actions-menu-panel",
-      title: "Key tools stay visible",
-      body: "No-lecture day, notes, and absent log are visible chips on phone, so they are not buried while logging.",
-      before: () => { switchView("dayView"); setTimeout(() => { const menu = document.querySelector(".actions-menu"); if (menu) menu.open = true; }, 40); }
-    },
-    {
       target: "#assignmentsView .card",
-      title: "Tasks",
-      body: "Assignments live separately so attendance logging stays clean. Add by subject and save due dates to Calendar.",
+      title: "Tasks & assignments",
+      body: "Keep assignments and study targets organized by subject, with deadline reminders so you never miss a submission.",
       before: () => { closeActionsMenu(); switchView("assignmentsView"); }
     },
     {
@@ -3430,15 +3453,20 @@ function buildTourSteps() {
       title: "Setup hub",
       body: "Target, subjects, timetable, sharing, imports, reminders, dark mode, sound, and this tour are grouped here.",
       before: () => { closeActionsMenu(); switchView("setupView"); openSetupSection("Goal"); }
-    },
-    {
+    }
+  );
+
+  if (!window.AndroidBridge) {
+    steps.push({
       target: "#installAppBtn",
       fallback: ".nav",
-      title: "Install as a PWA",
-      body: "When your browser supports install, the Install button appears here. On iPhone, it shows Add to Home Screen steps.",
-      before: () => switchView("homeView")
-    }
-  ];
+      title: "Install as an App",
+      body: "When your browser supports install, tap Install to add Attrack to your home screen for quick offline access.",
+      before: () => { closeActionsMenu(); switchView("homeView"); }
+    });
+  }
+
+  return steps;
 }
 
 function getTourTarget(step) {
@@ -3447,34 +3475,67 @@ function getTourTarget(step) {
   return el;
 }
 
+function updateTourTooltip(step, index, total) {
+  if (!activeTour || !activeTour.tooltip) return;
+  activeTour.tooltip.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <span class="tour-progress">Step ${index + 1} of ${total}</span>
+      <button class="btn small secondary" type="button" data-tour="skip" style="padding:3px 9px; font-size:0.74rem;">Skip</button>
+    </div>
+    <h4>${escapeHtml(step.title)}</h4>
+    <p>${escapeHtml(step.body)}</p>
+    <div class="tour-actions" style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn small secondary" type="button" data-tour="back" ${index === 0 ? "disabled" : ""} style="padding:6px 14px;">← Back</button>
+      <button class="btn small" type="button" data-tour="next" style="padding:6px 18px; font-weight:700;">${index === total - 1 ? "Finish Tour ✨" : "Next →"}</button>
+    </div>
+  `;
+}
+
 function positionTour(step, index, total) {
+  if (!activeTour) return;
   const target = getTourTarget(step);
-  if (!target || !activeTour) return;
+  if (!target) return;
 
-  target.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
+  const isMobile = window.innerWidth <= 768;
 
-  setTimeout(() => {
-    if (!activeTour) return;
-    const rect = target.getBoundingClientRect();
-    const pad = 8;
-    activeTour.spotlight.style.left = Math.max(8, rect.left - pad) + "px";
-    activeTour.spotlight.style.top = Math.max(8, rect.top - pad) + "px";
-    activeTour.spotlight.style.width = Math.min(window.innerWidth - 16, rect.width + pad * 2) + "px";
-    activeTour.spotlight.style.height = Math.min(window.innerHeight - 16, rect.height + pad * 2) + "px";
+  // Scroll into view if not comfortably visible
+  const initRect = target.getBoundingClientRect();
+  const alreadyVisible = initRect.top >= 70 && initRect.bottom <= (window.innerHeight - 70);
 
-    activeTour.tooltip.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span class="tour-progress">Step ${index + 1} of ${total}</span>
-        <button class="btn small secondary" type="button" data-tour="skip" style="padding:3px 9px; font-size:0.74rem;">Skip</button>
-      </div>
-      <h4>${step.title}</h4>
-      <p>${step.body}</p>
-      <div class="tour-actions" style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn small secondary" type="button" data-tour="back" ${index === 0 ? "disabled" : ""} style="padding:6px 14px;">← Back</button>
-        <button class="btn small" type="button" data-tour="next" style="padding:6px 18px; font-weight:700;">${index === total - 1 ? "Finish Tour ✨" : "Next →"}</button>
-      </div>
-    `;
+  if (!alreadyVisible) {
+    const targetInLowerScreen = initRect.top > window.innerHeight / 2;
+    target.scrollIntoView({
+      behavior: "auto",
+      block: isMobile ? (targetInLowerScreen ? "end" : "start") : "center",
+      inline: "nearest"
+    });
+  }
 
+  const rect = target.getBoundingClientRect();
+  const pad = 6;
+  activeTour.spotlight.style.left = Math.max(4, rect.left - pad) + "px";
+  activeTour.spotlight.style.top = Math.max(4, rect.top - pad) + "px";
+  activeTour.spotlight.style.width = Math.min(window.innerWidth - 8, rect.width + pad * 2) + "px";
+  activeTour.spotlight.style.height = Math.min(window.innerHeight - 8, rect.height + pad * 2) + "px";
+
+  if (isMobile) {
+    activeTour.tooltip.style.left = "12px";
+    activeTour.tooltip.style.right = "12px";
+    activeTour.tooltip.style.width = "auto";
+
+    // Place tooltip opposite to the spotlight so they NEVER overlap
+    const targetCenterY = rect.top + rect.height / 2;
+    if (targetCenterY > window.innerHeight / 2) {
+      // Spotlight is in bottom half -> place tooltip at top
+      activeTour.tooltip.style.top = "16px";
+      activeTour.tooltip.style.bottom = "auto";
+    } else {
+      // Spotlight is in top half -> place tooltip at bottom
+      activeTour.tooltip.style.top = "auto";
+      activeTour.tooltip.style.bottom = "16px";
+    }
+  } else {
+    // Desktop layout
     const tipRect = activeTour.tooltip.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     let top = rect.bottom + 12;
@@ -3485,7 +3546,9 @@ function positionTour(step, index, total) {
     left = Math.max(12, Math.min(left, window.innerWidth - tipRect.width - 12));
     activeTour.tooltip.style.left = left + "px";
     activeTour.tooltip.style.top = top + "px";
-  }, 320);
+    activeTour.tooltip.style.bottom = "auto";
+    activeTour.tooltip.style.right = "auto";
+  }
 }
 
 function endGuidedTour(markSeen = true) {
@@ -3521,27 +3584,47 @@ function startGuidedTour(force = false) {
     backdrop,
     spotlight,
     tooltip,
-    onResize: () => positionTour(steps[activeTour.index], activeTour.index, steps.length)
+    onResize: () => {
+      if (!activeTour) return;
+      positionTour(steps[activeTour.index], activeTour.index, steps.length);
+    }
   };
   window.addEventListener("resize", activeTour.onResize);
 
+  let isNavigating = false;
   tooltip.addEventListener("click", (event) => {
     const action = event.target && event.target.dataset ? event.target.dataset.tour : "";
     if (!action) return;
     if (action === "skip") return endGuidedTour(true);
+    if (isNavigating) return;
+    isNavigating = true;
+
     if (action === "back") activeTour.index = Math.max(0, activeTour.index - 1);
     if (action === "next") {
       if (activeTour.index >= steps.length - 1) return endGuidedTour(true);
       activeTour.index += 1;
     }
     showTourStep();
+    setTimeout(() => { isNavigating = false; }, 120);
   });
   backdrop.addEventListener("click", () => endGuidedTour(true));
 
   function showTourStep() {
+    if (!activeTour) return;
     const step = steps[activeTour.index];
-    if (step.before) step.before();
-    setTimeout(() => positionTour(step, activeTour.index, steps.length), 260);
+    if (!step) return;
+
+    if (step.before) {
+      try { step.before(); } catch (e) { console.warn("Tour before() error:", e); }
+    }
+
+    // Immediate UI feedback with zero lag
+    updateTourTooltip(step, activeTour.index, steps.length);
+
+    // Immediate layout positioning
+    requestAnimationFrame(() => {
+      positionTour(step, activeTour.index, steps.length);
+    });
   }
 
   showTourStep();
@@ -5510,6 +5593,10 @@ if (total === 0) {
     // In renderSubjectStats:
 const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.isCancelled);
       subjectStatsList.innerHTML = "";
+      if (!state.subjects || state.subjects.length === 0) {
+        subjectStatsList.innerHTML = `<div style="padding:14px 10px; text-align:center; color:var(--text-soft); font-size:0.84rem; line-height:1.45;">No subjects added yet.<br><span style="font-size:0.78rem; opacity:0.85;">Go to <strong>Setup → Subjects & Timetable</strong> to add your classes.</span></div>`;
+        return;
+      }
       state.subjects.forEach(subj => {
         const subLecs = all.filter(l => l.subjectId === subj.id);
         const att = subLecs.filter(l => l.attended).length;
