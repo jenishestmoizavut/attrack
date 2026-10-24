@@ -7,7 +7,6 @@
   <!-- Indexing & Crawl -->
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://jenishestmoizavut.github.io/attrack/" />
-  <meta name="google-adsense-account" content="ca-pub-1804833893263319">
   <!-- App Identity -->
   <meta name="application-name" content="Attrack" />
   <meta name="author" content="Jenish Chaplot" />
@@ -889,6 +888,8 @@ td .btn.small:hover { opacity: 1; }
   font-size: 0.82rem;
   opacity: 0.35;
 }
+
+.mobile-timetable { display: none; }
 
 .timetable-table input[type="number"] {
   width: 40px;
@@ -1903,13 +1904,24 @@ body.dark .study-target-card:hover {
   .daily-actions .btn { flex: 1 1 calc(50% - 3px); justify-content: center; }
 
   /* Onboarding */
-  #onboardingWizardBackdrop { align-items: flex-end !important; padding: 10px !important; }
+  #onboardingWizardBackdrop {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px 12px max(24px, env(safe-area-inset-bottom)) 12px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
   #onboardingWizardBackdrop > .card {
-    width: 100% !important;
-    max-height: 92vh;
-    overflow: auto;
-    padding: 16px !important;
-    border-radius: 16px 16px 12px 12px !important;
+    width: min(440px, 94%) !important;
+    max-height: 86vh !important;
+    max-height: 86dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+    margin: auto !important;
   }
 
   /* Footer becomes sticky bar */
@@ -2141,29 +2153,59 @@ body.dark .study-target-card:hover {
   .subject-modal          { border-radius: 18px 18px 12px 12px; }
   .subject-modal-days     { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
-/* --- ads Local Testing Container --- */
-.ads-banner-placeholder {
-  min-height: 50px; /* Matches 320x50 mobile leaderboard */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 15px 0 5px 0;
-}
-.ad-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-soft, #8a8a8a);
-  opacity: 0.7;
-  margin-bottom: 4px;
-}
-.ad-slot {
-  min-height: 50px;
-  width: 320px;
-  max-width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
+/* Less cramped study/task forms and a day-at-a-time timetable on phones. */
+@media (max-width: 768px) {
+  #studyView .study-grid { gap: 14px; }
+  #studyView .view-hero-card,
+  #studyView .study-grid > .card { padding: 17px 16px; }
+  #studyView .view-hero-card .setup-inline,
+  #assignmentsView .view-hero-card .setup-inline { gap: 12px; }
+  #studyView .gemini-plan-btn,
+  #assignmentsView .gemini-plan-btn { flex: 0 0 auto; }
+  #studyView #studyTargetsList,
+  #assignmentsView #assignmentsListPending,
+  #assignmentsView #assignmentsListDone { display: grid; gap: 9px; }
+  #studyView .study-target-card,
+  #assignmentsView .task-item-card {
+    padding: 14px !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    border-radius: 14px;
+  }
+  #studyView .study-target-card { grid-template-columns: 24px minmax(0, 1fr) 34px !important; }
+  #studyView .study-target-card-meta,
+  #assignmentsView .task-badge-row { row-gap: 7px; }
+  #assignmentsView .task-item-card:not(.is-bulk-editing) { grid-template-columns: 24px minmax(0, 1fr) !important; }
+  #assignmentsView .task-item-card.is-bulk-editing { grid-template-columns: 20px 22px minmax(0, 1fr) !important; }
+  #assignmentsView .task-item-card > div:last-child { grid-column: 2; grid-row: 2; justify-content: flex-end; margin-top: 2px; }
+  #assignmentsView .task-item-card.is-bulk-editing > div:last-child { grid-column: 3; }
+  #assignmentsView > .card { margin-top: 14px !important; padding: 16px; }
+  #assignmentsView .view-hero-card { padding: 18px 16px; }
+  #assignmentsView .pro-option-box { padding: 15px; margin-top: 14px; }
+  #assignmentsView .quick-pill-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  #assignmentsView .quick-preset-pill { justify-content: center; min-height: 36px; }
+
+  #timetableScrollWrap { display: none; }
+  .mobile-timetable { display: block; margin: 4px 0 14px; }
+  .mobile-timetable-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+  .mobile-timetable-day {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 0; min-height: 48px; padding: 5px 1px; border: 1px solid var(--border);
+    border-radius: 11px; background: var(--bg-soft); color: var(--text-soft); font: inherit; cursor: pointer;
+  }
+  .mobile-timetable-day strong { font-size: 0.7rem; line-height: 1.15; }
+  .mobile-timetable-day span { font-size: 0.68rem; margin-top: 3px; opacity: 0.8; }
+  .mobile-timetable-day.active { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+  .mobile-timetable-rows { display: grid; gap: 8px; margin-top: 12px; }
+  .mobile-timetable-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 48px; padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 12px; background: var(--card-bg); color: var(--text);
+  }
+  .mobile-timetable-row-name { min-width: 0; font-size: 0.88rem; font-weight: 650; overflow-wrap: anywhere; }
+  .mobile-timetable-row input[type="number"] { width: 64px; text-align: center; padding: 7px 6px; }
+  .mobile-timetable-empty { padding: 16px 12px; text-align: center; border: 1px dashed var(--border); border-radius: 12px; color: var(--text-soft); font-size: 0.84rem; }
 }
 </style>
 <script src="./pdf.min.js"></script>
@@ -2230,11 +2272,11 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
   </div>
 </div>
 
-<div id="onboardingWizardBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-  <div class="card" style="width:min(440px, 92%); padding:22px; text-align:center; position:relative; overflow:hidden; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,0.35);">
+<div id="onboardingWizardBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(4px); overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 12px;">
+  <div class="card" style="width:min(440px, 94%); max-height:min(88vh, 600px); padding:20px 18px; text-align:center; position:relative; overflow-y:auto; -webkit-overflow-scrolling:touch; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,0.35); margin:auto;">
     
     <!-- Step Progress Indicator -->
-    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:18px;">
+    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:12px;">
       <div id="wizStepDot1" style="height:6px; width:28px; border-radius:999px; background:var(--accent); transition:all 0.25s;"></div>
       <div id="wizStepDot2" style="height:6px; width:12px; border-radius:999px; background:var(--border); transition:all 0.25s;"></div>
       <div id="wizStepDot3" style="height:6px; width:12px; border-radius:999px; background:var(--border); transition:all 0.25s;"></div>
@@ -2242,32 +2284,32 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 
     <!-- Step 1: Welcome & Profile -->
     <div id="wizardStep1">
-      <div style="font-size:2.2rem; margin-bottom:6px;">👋</div>
-      <h2 style="font-size: 1.35rem; margin-bottom: 6px; font-weight:700;">Welcome to Attrack</h2>
-      <p style="font-size: 0.88rem; color: var(--text-soft); line-height: 1.45; margin-bottom: 18px;">
-        Track lectures, know exactly how many classes you can safely skip, and never fall below your target.
+      <div style="font-size:1.9rem; margin-bottom:4px;">👋</div>
+      <h2 style="font-size: 1.28rem; margin-bottom: 4px; font-weight:700;">Welcome to Attrack</h2>
+      <p style="font-size: 0.85rem; color: var(--text-soft); line-height: 1.4; margin-bottom: 14px;">
+        Track lectures, know your safe attendance margins, and stay ahead of your goals.
       </p>
       
-      <div class="field" style="text-align: left; margin-bottom: 12px;">
-        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Your name (optional)</label>
+      <div class="field" style="text-align: left; margin-bottom: 10px;">
+        <label style="font-weight:600; font-size:0.8rem; margin-bottom:3px; display:block;">Your name (optional)</label>
         <input type="text" id="wizName" placeholder="e.g. Alex" style="width:100%; border-radius:8px;">
       </div>
-      <div class="field" style="text-align: left; margin-bottom: 16px;">
-        <label style="font-weight:600; font-size:0.82rem; margin-bottom:4px; display:block;">Tracking starts from</label>
+      <div class="field" style="text-align: left; margin-bottom: 14px;">
+        <label style="font-weight:600; font-size:0.8rem; margin-bottom:3px; display:block;">Tracking starts from</label>
         <input type="date" id="wizDate" style="width:100%; border-radius:8px;">
       </div>
       
-      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 13px; font-size: 0.95rem; font-weight:700; border-radius:12px;">Continue: Set Goal →</button>
+      <button class="btn" id="wizBtn1" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem; font-weight:700; border-radius:12px;">Continue: Set Goal →</button>
       
-      <div style="margin-top: 14px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
+      <div style="margin-top: 10px; font-size: 0.8rem; color: var(--accent); cursor: pointer; text-decoration: underline;" id="wizImportLink">
         🔗 Have a shared schedule link? Import it here
       </div>
 
-      <div style="margin-top: 10px; font-size: 0.82rem; color: var(--accent); cursor: pointer; text-decoration: underline;" onclick="document.getElementById('onboardingWizardBackdrop').style.display='none'; switchView('setupView'); window.loginToFirebase();">
+      <div style="margin-top: 8px; font-size: 0.8rem; color: var(--accent); cursor: pointer; text-decoration: underline;" onclick="document.getElementById('onboardingWizardBackdrop').style.display='none'; switchView('setupView'); window.loginToFirebase();">
         ☁️ Returning user? Sign in with Google to restore your data
       </div>
 
-      <div class="privacy-agreement" style="font-size: 0.75rem; color: var(--muted); margin-top: 14px; text-align: center;">
+      <div class="privacy-agreement" style="font-size: 0.72rem; color: var(--muted); margin-top: 10px; text-align: center;">
         By continuing, you agree to our <a href="privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline;">Privacy Policy</a>.
       </div>
     </div>
@@ -2378,25 +2420,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <h3>Subject overview</h3>
           <div class="subject-stats-list" id="subjectStatsList"></div>
           <div class="hint" style="margin-top:8px;">Based on generated and manual lectures since your start date.</div>
-<div class="ads-banner-placeholder">
-<span class="ad-label">Ad</span>
-<script>
-  if (typeof atAsyncOptions !== 'object') var atAsyncOptions = [];
-  atAsyncOptions.push({
-    key: '00244a2b0b21b7020f7519a5319093fa',
-    format: 'js',
-    async: true,
-    container: 'atContainer-home-banner',
-    params: {},
-  });
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-  script.src = 'https://www.highperformanceformat.com/00244a2b0b21b7020f7519a5319093fa/invoke.js';
-  document.getElementsByTagName('head')[0].appendChild(script);
-</script>
-<div id="atContainer-home-banner"></div>
-          </div>          
         </div>
       </div>
       <section style="position:absolute; left:-9999px; height:0; overflow:hidden;">
@@ -2494,6 +2517,24 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
             <label for="dailyReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Daily attendance reminders</label>
           </div>
           <div class="hint" style="margin-top:4px;">Notifies you everyday if you have unmarked lectures for the day.</div>
+
+          <div style="display:flex; align-items:center; gap:10px; padding:10px 0 4px; border-top:1px solid var(--border);">
+            <input type="checkbox" id="studyReminderToggle" onchange="handleReminderPreference('studyRemindersEnabled', this.checked)" style="width:20px; height:20px; cursor:pointer;">
+            <label for="studyReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Study target reminders</label>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:4px 0 10px;">
+            <span style="font-size:0.85rem; font-weight:600;">Default study reminder time</span>
+            <input type="time" id="studyReminderTime" value="21:00" onchange="handleReminderPreference('studyReminderTime', this.value)">
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:10px 0 4px; border-top:1px solid var(--border);">
+            <input type="checkbox" id="assignmentReminderToggle" onchange="handleReminderPreference('assignmentRemindersEnabled', this.checked)" style="width:20px; height:20px; cursor:pointer;">
+            <label for="assignmentReminderToggle" style="cursor:pointer; flex:1; font-weight:600; font-size:0.88rem;">Assignment reminders</label>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:4px 0 10px;">
+            <span style="font-size:0.85rem; font-weight:600;">Default assignment reminder time</span>
+            <input type="time" id="assignmentReminderTime" value="19:00" onchange="handleReminderPreference('assignmentReminderTime', this.value)">
+          </div>
+          <div class="hint">Set defaults here; each assignment can still choose its own lead time and notification time when added or edited.</div>
           
           <div class="pro-option-box" style="margin-top:12px;">
             <div class="pro-option-header">
@@ -2540,6 +2581,10 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
               </thead>
               <tbody id="timetableBody"></tbody>
             </table>
+          </div>
+          <div id="mobileTimetable" class="mobile-timetable" aria-label="Weekly timetable by day">
+            <div id="mobileTimetableDays" class="mobile-timetable-days" role="tablist" aria-label="Choose a day"></div>
+            <div id="mobileTimetableRows" class="mobile-timetable-rows"></div>
           </div>
           
           <!-- Side-by-side action buttons -->
@@ -2735,10 +2780,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
 When you add or load lectures, they’re marked attended by default.
             “All attended” / “All absent” flips the whole day in one click.
           </div>
-          <div class="ads-banner-placeholder">
-            <span class="ad-label">Ad</span>
-            <div class="ad-slot" id="dayViewAdSlot"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -2785,11 +2826,13 @@ When you add or load lectures, they’re marked attended by default.
       </div>
       <select id="newAssReminder" style="width:100%;">
         <option value="1day" selected>1 day before (Default, 7:00 PM)</option>
-        <option value="sameDay">On due date (Morning 9:00 AM)</option>
+        <option value="sameDay">On due date</option>
         <option value="2days">2 days before</option>
         <option value="3days">3 days before</option>
         <option value="none">No reminder</option>
       </select>
+      <label for="newAssReminderTime" style="display:block; margin-top:10px; font-size:0.85rem; font-weight:600;">Notify me at</label>
+      <input type="time" id="newAssReminderTime" value="19:00" style="width:100%; margin-top:4px;" onchange="window.AndroidBridge?.requestExactAlarmPermission?.()">
       <div class="quick-pill-row">
         <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('1day')">1d before</button>
         <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('sameDay')">Due date</button>
@@ -2837,11 +2880,6 @@ When you add or load lectures, they’re marked attended by default.
     </div>
     <div id="assignmentsListDone" style="max-height:none; overflow:visible;"></div>
     <div id="noDoneMsg" class="hint" style="text-align:center; padding:14px; font-size:0.85rem; display:none;">No completed tasks yet.</div>
-  </div>
-
-  <div class="ads-banner-placeholder">
-    <span class="ad-label">Ad</span>
-    <div class="ad-slot" id="assignmentsViewAdSlot"></div>
   </div>
 </div>
 
@@ -2920,10 +2958,6 @@ When you add or load lectures, they’re marked attended by default.
       <div id="studyTargetsList" style="margin-top:14px;"></div>
       <div id="studyTargetsEmpty" class="hint" style="text-align:center; padding:24px 18px; border:1px dashed var(--border); border-radius:12px; margin-top:12px;">No study targets for today yet. Add one to start your focus! 🎯</div>
     </div>
-  </div>
-  <div class="ads-banner-placeholder">
-    <span class="ad-label">Ad</span>
-    <div class="ad-slot" id="studyViewAdSlot"></div>
   </div>
 </div>
 <div id="studyMemeBackdrop" class="study-meme-backdrop">
@@ -3226,8 +3260,17 @@ function normalizeStateShape(value) {
   if (!normalized.startDate) normalized.startDate = defaults.startDate;
   if (normalized.semEndDate === undefined) normalized.semEndDate = null;
   if (typeof normalized.isInitialized !== "boolean") normalized.isInitialized = false;
-  if (typeof normalized.reminders !== "boolean") normalized.reminders = (localStorage.getItem("attrack_daily_reminder") === "1");
+  const localReminderPref = localStorage.getItem("attrack_daily_reminder");
+  if (localReminderPref !== null) {
+    normalized.reminders = (localReminderPref === "1");
+  } else if (typeof normalized.reminders !== "boolean") {
+    normalized.reminders = false;
+  }
   if (!normalized.lectureReminderTime) normalized.lectureReminderTime = "19:00";
+  if (typeof normalized.studyRemindersEnabled !== "boolean") normalized.studyRemindersEnabled = true;
+  if (typeof normalized.assignmentRemindersEnabled !== "boolean") normalized.assignmentRemindersEnabled = true;
+  if (!normalized.studyReminderTime) normalized.studyReminderTime = "21:00";
+  if (!normalized.assignmentReminderTime) normalized.assignmentReminderTime = "19:00";
   if (!normalized.__sync || typeof normalized.__sync !== "object") normalized.__sync = {};
   if (!normalized.__sync.deviceId) normalized.__sync.deviceId = getDeviceId();
   if (!Number.isFinite(normalized.__sync.revision)) normalized.__sync.revision = 0;
@@ -3331,12 +3374,17 @@ function applyAcceptedCloudState(cloudState) {
   showUndoToast("Cloud update applied");
   applyingRemoteState = true;
   state = normalizeStateShape(cloudState);
+  const localRemPref = localStorage.getItem("attrack_daily_reminder");
+  if (localRemPref !== null) {
+    state.reminders = (localRemPref === "1");
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   lastSavedStateJson = JSON.stringify(state);
   applyingRemoteState = false;
   pendingCloudState = null;
   hideSyncChoice();
   refreshAllViewsAfterStateChange();
+  renderSetupSummaries();
   playUiSound("success");
 }
 
@@ -4579,6 +4627,10 @@ const isoStart = toISODate(new Date());
         startDate: isoStart,
         reminders: false,
         lectureReminderTime: "19:00",
+		studyRemindersEnabled: true,
+		studyReminderTime: "21:00",
+		assignmentRemindersEnabled: true,
+		assignmentReminderTime: "19:00",
 	subjects:[],
             lectures: [],
 		  assignments:[],
@@ -4875,7 +4927,7 @@ function regenerateFromSchedules(fromIsoDate) {
       const semInputProfile = document.getElementById("semEndDateInputProfile");
       if (semInputProfile) semInputProfile.value = state.semEndDate || "";
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>,Attrack is going to be on Play Store! Fill the feedback form to get beta access!`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, if your semester has ended, you can reset Attrack for a fresh start in "Setup":)`
         : "Welcome! Tell me your name below (Profile) and you can stay updated with Attrack! 😊";
     }
 
@@ -5038,8 +5090,9 @@ function addStudyTarget() {
   const date = studyTargetDate.value || toISODate(new Date());
 if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
   const categoryVal = studyTargetCategory.value || "Study";
-  const studyRemOpt = document.getElementById("studyTargetReminderOption")?.value || "none";
-  const studyRemTime = (studyRemOpt === "none") ? "none" : (document.getElementById("studyTargetReminderTime")?.value || "none");
+  const studyRemTime = state.studyRemindersEnabled === false
+    ? "none"
+    : (state.studyReminderTime || "21:00");
   state.studyTargets.push({
     id: genId("study"),
     title,
@@ -5370,9 +5423,20 @@ function renderSetupSummaries() {
 
   // ---------- Notifications setup ----------
   const notifToggleEl = document.getElementById("dailyReminderToggle");
-  if (notifToggleEl) notifToggleEl.checked = !!state.reminders;
+  if (notifToggleEl) {
+    const localRemPref = localStorage.getItem("attrack_daily_reminder");
+    notifToggleEl.checked = localRemPref !== null ? (localRemPref === "1") : !!state.reminders;
+  }
   const lectureTimeEl = document.getElementById("lectureReminderTime");
   if (lectureTimeEl) lectureTimeEl.value = state.lectureReminderTime || "19:00";
+  const studyToggle = document.getElementById("studyReminderToggle");
+  if (studyToggle) studyToggle.checked = state.studyRemindersEnabled !== false;
+  const taskToggle = document.getElementById("assignmentReminderToggle");
+  if (taskToggle) taskToggle.checked = state.assignmentRemindersEnabled !== false;
+  const studyTime = document.getElementById("studyReminderTime");
+  if (studyTime) studyTime.value = state.studyReminderTime || "21:00";
+  const taskTime = document.getElementById("assignmentReminderTime");
+  if (taskTime) taskTime.value = state.assignmentReminderTime || "19:00";
 }
 
     function formatPct(pct) { return pct.toFixed(2).replace(/\.00$/, "") + "%"; }
@@ -5633,6 +5697,81 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
       });
     }
 
+    let selectedMobileTimetableDay = new Date().getDay();
+
+    function renderMobileTimetable() {
+      const dayTabs = document.getElementById("mobileTimetableDays");
+      const rows = document.getElementById("mobileTimetableRows");
+      if (!dayTabs || !rows) return;
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      dayTabs.innerHTML = "";
+      rows.innerHTML = "";
+
+      days.forEach((day, dayIndex) => {
+        const total = (state.subjects || []).reduce((sum, subject) => {
+          const item = subject.schedule?.weeklyPattern?.find(p => p.day === dayIndex);
+          return sum + (Number(item?.count) || 0);
+        }, 0);
+        const tab = document.createElement("button");
+        tab.type = "button";
+        tab.className = "mobile-timetable-day" + (selectedMobileTimetableDay === dayIndex ? " active" : "");
+        tab.setAttribute("role", "tab");
+        tab.setAttribute("aria-selected", selectedMobileTimetableDay === dayIndex ? "true" : "false");
+        tab.innerHTML = `<strong>${day}</strong><span>${total}</span>`;
+        tab.addEventListener("click", () => {
+          selectedMobileTimetableDay = dayIndex;
+          renderMobileTimetable();
+        });
+        dayTabs.appendChild(tab);
+      });
+
+      const scheduled = (state.subjects || []).map(subject => {
+        const item = subject.schedule?.weeklyPattern?.find(p => p.day === selectedMobileTimetableDay);
+        return { subject, count: Number(item?.count) || 0 };
+      }).filter(item => isEditingTt || item.count > 0);
+
+      if (!scheduled.length) {
+        const empty = document.createElement("div");
+        empty.className = "mobile-timetable-empty";
+        empty.textContent = isEditingTt ? "No subjects yet. Add a subject to build your timetable." : `No lectures scheduled for ${days[selectedMobileTimetableDay]}.`;
+        rows.appendChild(empty);
+        return;
+      }
+
+      scheduled.forEach(({ subject, count }) => {
+        const row = document.createElement("div");
+        row.className = "mobile-timetable-row";
+        const name = document.createElement("span");
+        name.className = "mobile-timetable-row-name";
+        name.textContent = subject.name;
+        row.appendChild(name);
+        if (isEditingTt) {
+          const input = document.createElement("input");
+          input.type = "number"; input.min = "0"; input.max = "6"; input.value = String(count);
+          input.setAttribute("aria-label", `${subject.name} lectures on ${days[selectedMobileTimetableDay]}`);
+          input.addEventListener("change", () => {
+            const value = Math.max(0, Math.min(6, parseInt(input.value, 10) || 0));
+            input.value = String(value);
+            if (!subject.schedule) subject.schedule = { weeklyPattern: [] };
+            const pattern = subject.schedule.weeklyPattern || (subject.schedule.weeklyPattern = []);
+            const index = pattern.findIndex(p => p.day === selectedMobileTimetableDay);
+            if (value === 0 && index !== -1) pattern.splice(index, 1);
+            else if (value > 0 && index === -1) pattern.push({ day: selectedMobileTimetableDay, count: value });
+            else if (value > 0) pattern[index].count = value;
+            saveState();
+            renderTimetable();
+          });
+          row.appendChild(input);
+        } else {
+          const countLabel = document.createElement("span");
+          countLabel.className = "tt-count-pill";
+          countLabel.textContent = `${count} ${count === 1 ? "lecture" : "lectures"}`;
+          row.appendChild(countLabel);
+        }
+        rows.appendChild(row);
+      });
+    }
+
     function renderTimetable() {
       timetableBodyEl.innerHTML = "";
       state.subjects.forEach(subj => {
@@ -5688,42 +5827,9 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
         }
         timetableBodyEl.appendChild(tr);
       });
+      renderMobileTimetable();
     }
 
-// Loads an ads banner into a container the first time it's needed.
-// Each ad runs inside its own isolated iframe (own atOptions, own document.write),
-// so multiple hidden tabs never clash or re-fire the same ad script simultaneously.
-function loadadsAd(slotId, key) {
-  const slot = document.getElementById(slotId);
-  if (!slot || slot.dataset.loaded === "1") return;
-  slot.dataset.loaded = "1";
-
-  const iframe = document.createElement("iframe");
-  iframe.style.border = "none";
-  iframe.style.width = "320px";
-  iframe.style.maxWidth = "100%";
-  iframe.style.height = "50px";
-  iframe.scrolling = "no";
-  slot.appendChild(iframe);
-
-  const doc = iframe.contentWindow.document;
-  const containerId = "atContainer-" + slotId;
-  doc.open();
-  doc.write(
-    '<body style="margin:0;padding:0;overflow:hidden;">' +
-    '<div id="' + containerId + '"></div>' +
-    '<script>' +
-    'var atAsyncOptions = [];' +
-    'atAsyncOptions.push({"key":"' + key + '","format":"js","async":true,"container":"' + containerId + '","params":{}});' +
-    'var s = document.createElement("script");' +
-    's.type = "text/javascript"; s.async = true;' +
-    's.src = "https://www.highperformanceformat.com/' + key + '/invoke.js";' +
-    'document.getElementsByTagName("head")[0].appendChild(s);' +
-    '<' + '/script>' +
-    '</body>'
-  );
-  doc.close();
-}
 function switchView(viewId) {
   playUiSound("soft");
 	[homeView, dayView, timetableView, setupView, assignmentsView, studyView].forEach(v =>
@@ -5750,14 +5856,17 @@ if (didGenerate) {
   renderSummary();
   renderSubjectStats();
 }
-
-    loadadsAd("dayViewAdSlot", "00244a2b0b21b7020f7519a5319093fa");
   }
-if (viewId === "assignmentsView") { renderAssignments();
-renderAssignmentChips();
-loadadsAd("assignmentsViewAdSlot", "00244a2b0b21b7020f7519a5319093fa");
-								  }
-if (viewId === "studyView") { renderStudyTargets(); loadadsAd("studyViewAdSlot", "00244a2b0b21b7020f7519a5319093fa"); }
+  if (viewId === "assignmentsView") {
+    renderAssignments();
+    renderAssignmentChips();
+  }
+  if (viewId === "studyView") {
+    renderStudyTargets();
+  }
+  if (viewId === "setupView") {
+    renderSetupSummaries();
+  }
   localStorage.setItem(VIEW_KEY, viewId);
 }
 
@@ -6887,6 +6996,7 @@ function getEditElements() {
     title: document.getElementById("editAssTitle"),
     date: document.getElementById("editAssDate"),
     reminder: document.getElementById("editAssReminder"),
+    reminderTime: document.getElementById("editAssReminderTime"),
   };
 }
 
@@ -6910,6 +7020,7 @@ function openEditAssignmentModal(ass) {
   els.title.value = ass.title || "";
   els.date.value = ass.dueDate || "";
   if (els.reminder) els.reminder.value = ass.reminder || "1day";
+  if (els.reminderTime) els.reminderTime.value = ass.reminderTime || state.assignmentReminderTime || "19:00";
 
   // Show Modal
   els.backdrop.style.display = "flex";
@@ -6936,6 +7047,7 @@ document.addEventListener("click", (e) => {
       ass.title = els.title.value || "Assignment";
       ass.dueDate = els.date.value;
       ass.reminder = (els.reminder ? els.reminder.value : "1day") || "1day";
+      ass.reminderTime = els.reminderTime?.value || state.assignmentReminderTime || "19:00";
       
       saveState();
       renderAssignments();
@@ -7203,6 +7315,7 @@ function renderAssignments() {
 
     const row = document.createElement("div");
     row.className = "task-item-card" + (ass.completed ? " is-completed" : "");
+    if (inEditMode) row.classList.add("is-bulk-editing");
     
     // CSS Grid: (Select?) | Checkbox | Text | Action Buttons
     row.style.display = "grid"; 
@@ -7453,6 +7566,7 @@ if (addAssignmentBtn) {
 
     const dueDateVal = newAssDate.value || toISODate(new Date());
     const reminderVal = document.getElementById("newAssReminder")?.value || "1day";
+    const reminderTimeVal = document.getElementById("newAssReminderTime")?.value || state.assignmentReminderTime || "19:00";
 
     selectedAssSubjects.forEach(subjectId => {
       state.assignments.push({
@@ -7461,6 +7575,7 @@ if (addAssignmentBtn) {
         title: titleText,
         dueDate: dueDateVal,
         reminder: reminderVal,
+        reminderTime: reminderTimeVal,
         completed: false
       });
     });
@@ -8379,11 +8494,13 @@ function showNewFeaturePopupIfNeeded() {
       </div>
       <select id="editAssReminder" style="width:100%;">
         <option value="1day">1 day before (Default, 7:00 PM)</option>
-        <option value="sameDay">On due date (Morning 9:00 AM)</option>
+        <option value="sameDay">On due date</option>
         <option value="2days">2 days before</option>
         <option value="3days">3 days before</option>
         <option value="none">No reminder</option>
       </select>
+      <label for="editAssReminderTime" style="display:block; margin-top:10px; font-size:0.85rem; font-weight:600;">Notify me at</label>
+      <input type="time" id="editAssReminderTime" style="width:100%; margin-top:4px;" onchange="window.AndroidBridge?.requestExactAlarmPermission?.()">
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
@@ -8565,13 +8682,16 @@ const firebaseConfig = {
                 if (enabled && typeof window.AndroidBridge.requestNotificationPermission === 'function') {
                     window.AndroidBridge.requestNotificationPermission();
                 }
+                if (enabled) window.AndroidBridge.requestExactAlarmPermission?.();
             } else if (enabled && typeof Notification !== "undefined" && Notification.permission !== "granted") {
                 Notification.requestPermission().catch(() => {});
             }
 
             if (typeof auth !== "undefined" && auth.currentUser) {
                 setDoc(doc(db, "users", auth.currentUser.uid), {
-                    notifPrefs: { dailyReminder: enabled, lectureTime: state.lectureReminderTime || "19:00" }
+                    notifPrefs: { dailyReminder: enabled, lectureTime: state.lectureReminderTime || "19:00" },
+                    "appData.reminders": enabled,
+                    "appData.lectureReminderTime": state.lectureReminderTime || "19:00"
                 }, { merge: true }).catch(err => console.warn("Daily reminder sync skipped:", err));
             }
         };
@@ -8579,11 +8699,26 @@ const firebaseConfig = {
         window.handleLectureReminderTimeChange = (timeVal) => {
             state.lectureReminderTime = timeVal || "19:00";
             saveState();
+            if (state.reminders) window.AndroidBridge?.requestExactAlarmPermission?.();
             if (typeof auth !== "undefined" && auth.currentUser) {
                 setDoc(doc(db, "users", auth.currentUser.uid), {
                     notifPrefs: { lectureTime: state.lectureReminderTime }
                 }, { merge: true }).catch(err => console.warn("Lecture time sync skipped:", err));
             }
+        };
+
+        window.handleReminderPreference = (key, value) => {
+            if (!["studyRemindersEnabled", "studyReminderTime", "assignmentRemindersEnabled", "assignmentReminderTime"].includes(key)) return;
+            state[key] = value;
+            if ((key === "studyRemindersEnabled" || key === "assignmentRemindersEnabled") && value && window.AndroidBridge) {
+                window.AndroidBridge.requestNotificationPermission?.();
+            }
+            if (window.AndroidBridge && ((key === "studyReminderTime" && state.studyRemindersEnabled !== false) || (key === "assignmentReminderTime" && state.assignmentRemindersEnabled !== false) || ((key === "studyRemindersEnabled" || key === "assignmentRemindersEnabled") && value))) window.AndroidBridge.requestExactAlarmPermission?.();
+            if (key === "assignmentReminderTime") {
+                const taskTime = document.getElementById("newAssReminderTime");
+                if (taskTime) taskTime.value = value || "19:00";
+            }
+            saveState();
         };
 
         window.testNotificationClick = () => {
@@ -8961,37 +9096,51 @@ window.addEventListener('load', () => {
 <!-- ATTRACK SWIPE CONTROLLER -->
 <script>
 (function () {
-  const MIN_SWIPE_PX  = 45;
-  const MAX_DRIFT_PX  = 70;
+  const MIN_SWIPE_PX = 45;
   const EDGE_GUARD_PX = 22;
-  let x0 = 0, y0 = 0;
+  let startX = 0, startY = 0, startTarget = null, touchId = null;
 
   document.addEventListener("touchstart", function (e) {
-    if (!e.changedTouches || !e.changedTouches[0]) return;
-    x0 = e.changedTouches[0].clientX;
-    y0 = e.changedTouches[0].clientY;
+    if (!e.changedTouches || e.changedTouches.length !== 1 || e.touches.length !== 1) { touchId = null; return; }
+    const touch = e.changedTouches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    touchId = touch.identifier;
+    startTarget = e.target instanceof Element ? e.target : null;
+  }, { passive: true });
+
+  document.addEventListener("touchcancel", function () {
+    touchId = null;
+    startTarget = null;
   }, { passive: true });
 
   document.addEventListener("touchend", function (e) {
-    if (!e.changedTouches || !e.changedTouches[0]) return;
-    const target = e.target;
+    if (touchId === null || !e.changedTouches || !e.changedTouches.length) return;
+    const touch = Array.from(e.changedTouches).find(item => item.identifier === touchId);
+    if (!touch) return;
+    const target = startTarget;
+    const startAt = startX;
+    const down = startY;
+    touchId = null;
+    startTarget = null;
+    if (!target) return;
 
-    // Do NOT swipe past pages if interacting with Timetable table or horizontal scroll containers
-    if (target.closest("#timetableScrollWrap, .timetable-table, .timetable-scroll-wrap, .chips-container, input, select, textarea, button")) {
+    // Keep horizontal scrollers and intentional controls in charge of their own gestures.
+    if (target.closest("#timetableScrollWrap, .timetable-table, .timetable-scroll-wrap, .mobile-timetable, .chips-container, input, select, textarea, button, a, [contenteditable='true']")) {
       return;
     }
 
-    // Do NOT swipe past pages if touching inside an open accordion menu (like open Timetable) or open modal
-    if (target.closest("details[open], .gemini-modal, .subject-modal")) {
+    // Do NOT swipe past pages if touching inside an open accordion menu or open modal / popup
+    if (target.closest(".gemini-modal, .subject-modal, #onboardingWizardBackdrop, .popup-overlay, [id*='Backdrop'], [id*='Modal']")) {
       return;
     }
 
-    const dx = e.changedTouches[0].clientX - x0;
-    const dy = e.changedTouches[0].clientY - y0;
+    // Preserve Android system back gesture at extreme edges
+    if (startAt < EDGE_GUARD_PX || startAt > window.innerWidth - EDGE_GUARD_PX) return;
 
-    if (Math.abs(dx) < MIN_SWIPE_PX) return;
-    if (Math.abs(dy) > MAX_DRIFT_PX) return;
-    if (x0 < EDGE_GUARD_PX || x0 > window.innerWidth - EDGE_GUARD_PX) return;
+    const dx = touch.clientX - startAt;
+    const dy = touch.clientY - down;
+    if (Math.abs(dx) < MIN_SWIPE_PX || Math.abs(dx) < Math.abs(dy) * 1.25) return;
 
     // Get all nav buttons that have a data-view
     const tabs = Array.from(document.querySelectorAll(".nav-btn[data-view]"));
