@@ -1788,6 +1788,21 @@ body.dark .study-target-card:hover {
 .footer-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .footer-credit  { text-align: right; opacity: 0.9; }
 
+.widget-guide-modal { width: min(520px, 96%); max-height: 90dvh; }
+.widget-guide-preview { display: grid; grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1fr); align-items: center; gap: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-soft); }
+.widget-guide-preview img { display: block; width: 100%; max-height: 260px; object-fit: contain; border-radius: 10px; }
+.widget-guide-step { color: var(--accent); font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.widget-guide-preview h4 { margin: 5px 0; font-size: 1rem; }
+.widget-guide-preview p { margin: 0; color: var(--text-soft); font-size: .86rem; line-height: 1.45; }
+.widget-guide-controls { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-top: 12px; }
+.widget-guide-controls #widgetGuideNextBtn { justify-self: end; }
+.widget-guide-controls #widgetGuideBackBtn { justify-self: start; }
+@media (max-width: 540px) {
+  .widget-guide-modal { padding: 14px; }
+  .widget-guide-preview { grid-template-columns: 1fr; gap: 8px; }
+  .widget-guide-preview img { max-height: 230px; }
+}
+
 
 /* --- 12. ANIMATIONS & MOTION ---------------------------------------------- */
 @keyframes attrackFadeUp {
@@ -1850,7 +1865,7 @@ body.dark .study-target-card:hover {
 @media (max-width: 768px) {
   body { padding: 8px; font-size: 15.5px; line-height: 1.55; }
   h1, h2, h3 { line-height: 1.25; font-weight: 700; }
-  .app { border-radius: 12px; padding: 16px 14px 90px; }
+  .app { border-radius: 12px; padding: 16px 14px 18px; }
 
   .header  { margin: -16px -14px 6px; padding: 12px 14px; gap: 8px; }
   .title   { font-size: 1rem; }
@@ -2290,13 +2305,6 @@ body.dark .study-target-card:hover {
     border-color: var(--accent);
     background: var(--accent);
   }
-  #dayView #lecturesTableBody td[data-label="Present"] input[type="checkbox"]:checked::after {
-    content: "✓";
-    color: #fff;
-    font-size: 17px;
-    font-weight: 800;
-    line-height: 1;
-  }
   #dayView #lecturesTableBody td[data-label="Action"] {
     grid-column: 4;
     grid-row: 1;
@@ -2608,6 +2616,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
               Sound: <span id="soundState" class="sound-state">Off</span>
             </button>
             <button id="startTourBtn" class="btn small secondary" type="button">Tour</button>
+            <button id="widgetGuideBtn" class="btn small secondary" type="button" style="display:none; grid-column:1 / -1;">Home screen widgets</button>
           </div>
         </div>
       </details>
@@ -2838,12 +2847,12 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
         <div class="toolbar daily-actions">
   <button class="btn small secondary" id="loadDayBtn" type="button">Load day</button>
   <button class="btn small" id="addLectureBtn" type="button">+ Add lecture</button>
-  <button class="btn small secondary" id="undoLastChangeBtn" type="button" style="display:none;">Undo</button>
-  
+  <button class="btn small" id="markAllAttendedBtn" type="button">✅ Present all</button>
+
   <details class="actions-menu">
     <summary>More actions ▼</summary>
     <div class="actions-menu-panel">
-      <button class="btn small" id="markAllAttendedBtn" type="button">✅ Present all</button>
+      <button class="btn small secondary" id="undoLastChangeBtn" type="button" style="display:none;">↶ Undo last change</button>
       <button class="btn small secondary" id="markAllAbsentBtn" type="button">❌ Absent all</button>
       <button class="btn small danger" id="markHolidayBtn" type="button">🏖️ No lectures</button>
       <button class="btn small secondary" id="findNotesBtn" type="button">🔍 Notes</button>
@@ -2851,10 +2860,6 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
     </div>
   </details>
 </div>
-          <div id="undoToast" class="undo-toast" role="status" aria-live="polite">
-            <span id="undoToastText">Change saved</span>
-            <button class="btn small secondary" id="undoToastBtn" type="button">Undo</button>
-          </div>
           <div id="syncChoiceBackdrop" class="sync-choice-backdrop" aria-hidden="true">
             <div class="sync-choice-card" role="dialog" aria-modal="true" aria-labelledby="syncChoiceTitle">
               <h3 id="syncChoiceTitle">Changes found on another device</h3>
@@ -3142,6 +3147,33 @@ When you add or load lectures, they’re marked attended by default.
       <button id="openGeminiBtn" class="btn secondary" type="button" style="justify-content:center;">Select prompt</button>
     </div>
     <div id="geminiPromptStatus" class="hint" style="text-align:center; margin-top:8px;"></div>
+  </div>
+</div>
+
+<div id="widgetGuideBackdrop" class="gemini-modal-backdrop" aria-hidden="true">
+  <div class="gemini-modal widget-guide-modal" role="dialog" aria-modal="true" aria-labelledby="widgetGuideTitle">
+    <div class="gemini-modal-head">
+      <div>
+        <div class="gemini-modal-kicker">📲 Attrack home screen widgets</div>
+        <h3 id="widgetGuideTitle" style="margin:4px 0 0;">Your Attrack, at a glance</h3>
+      </div>
+      <button id="closeWidgetGuideBtn" class="btn small secondary" type="button" aria-label="Close widget guide">✕</button>
+    </div>
+    <p class="quiet-note" style="margin:0 0 10px;">On your Android home screen, press and hold an empty area, tap <strong>Widgets</strong>, find <strong>Attrack</strong>, then hold a widget and drag it onto the screen.</p>
+    <div class="widget-guide-preview">
+      <img id="widgetGuideImage" alt="Preview of an Attrack home screen widget" />
+      <div>
+        <div id="widgetGuideStep" class="widget-guide-step"></div>
+        <h4 id="widgetGuideSlideTitle"></h4>
+        <p id="widgetGuideSlideText"></p>
+      </div>
+    </div>
+    <div class="widget-guide-controls">
+      <button id="widgetGuideBackBtn" class="btn small secondary" type="button">← Back</button>
+      <span id="widgetGuideCount" class="quiet-note" aria-live="polite"></span>
+      <button id="widgetGuideNextBtn" class="btn small" type="button">Next →</button>
+    </div>
+    <div class="hint" style="margin-top:10px;">You can resize or move a widget later by pressing and holding it. Tap its Open button to jump straight to that part of Attrack.</div>
   </div>
 </div>
 
@@ -9215,6 +9247,73 @@ window.addEventListener('load', () => {
         </button>
     </div>
 </div>
+<script>
+(function () {
+  const isAndroidApp = !!window.AndroidBridge;
+  const seenKey = "attrack_widget_guide_seen_v1";
+  const guideButton = document.getElementById("widgetGuideBtn");
+  const backdrop = document.getElementById("widgetGuideBackdrop");
+  if (!isAndroidApp || !guideButton || !backdrop) return;
+
+  guideButton.style.display = "inline-flex";
+  const slides = [
+    { name: "Attendance", image: "./widget-guide/attendance-widget.jpeg", title: "Keep today's attendance in view", text: "See today's attended count and lecture list at a glance. Tap Open Daily to jump straight to the attendance screen." },
+    { name: "Study", image: "./widget-guide/study-widget.jpeg", title: "Keep your study goal visible", text: "The Study widget shows your active target. Tap Open Study to update or complete your target." },
+    { name: "Tasks", image: "./widget-guide/tasks-widget.jpeg", title: "Know what is still pending", text: "The Tasks widget gives you a quick view of assignments. Tap Open Tasks to manage them in Attrack." }
+  ];
+  let current = 0;
+  const image = document.getElementById("widgetGuideImage");
+  const step = document.getElementById("widgetGuideStep");
+  const title = document.getElementById("widgetGuideSlideTitle");
+  const text = document.getElementById("widgetGuideSlideText");
+  const count = document.getElementById("widgetGuideCount");
+  const back = document.getElementById("widgetGuideBackBtn");
+  const next = document.getElementById("widgetGuideNextBtn");
+
+  function renderSlide() {
+    const slide = slides[current];
+    image.src = slide.image;
+    image.alt = `${slide.name} Attrack widget preview`;
+    step.textContent = `Widget ${current + 1} of ${slides.length} · ${slide.name}`;
+    title.textContent = slide.title;
+    text.textContent = slide.text;
+    count.textContent = `${current + 1} / ${slides.length}`;
+    back.disabled = current === 0;
+    next.textContent = current === slides.length - 1 ? "Done ✓" : "Next →";
+  }
+
+  function closeGuide() {
+    backdrop.style.display = "none";
+    backdrop.setAttribute("aria-hidden", "true");
+  }
+
+  function openGuide() {
+    localStorage.setItem(seenKey, "1");
+    current = 0;
+    renderSlide();
+    backdrop.style.display = "flex";
+    backdrop.setAttribute("aria-hidden", "false");
+  }
+
+  guideButton.addEventListener("click", openGuide);
+  document.getElementById("closeWidgetGuideBtn").addEventListener("click", closeGuide);
+  backdrop.addEventListener("click", event => { if (event.target === backdrop) closeGuide(); });
+  back.addEventListener("click", () => { if (current > 0) { current--; renderSlide(); } });
+  next.addEventListener("click", () => { if (current < slides.length - 1) { current++; renderSlide(); } else closeGuide(); });
+
+  let checks = 0;
+  function maybeShowForReturningUser() {
+    if (localStorage.getItem(seenKey) || checks++ > 12) return;
+    const hasExistingSetup = typeof state !== "undefined" && state.isInitialized && state.subjects && state.subjects.length > 0;
+    if (!hasExistingSetup) { setTimeout(maybeShowForReturningUser, 1200); return; }
+    const anotherDialogOpen = ["#onboardingWizardBackdrop", "#versionModalBackdrop", "#shareInfoPopup", "#privacy-popup"]
+      .some(selector => { const el = document.querySelector(selector); return el && getComputedStyle(el).display !== "none"; });
+    if (anotherDialogOpen) { setTimeout(maybeShowForReturningUser, 1200); return; }
+    openGuide();
+  }
+  setTimeout(maybeShowForReturningUser, 1800);
+})();
+</script>
 <!-- ATTRACK SWIPE CONTROLLER -->
 <script>
 (function () {
