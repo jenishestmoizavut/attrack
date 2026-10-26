@@ -2207,6 +2207,109 @@ body.dark .study-target-card:hover {
   .mobile-timetable-row input[type="number"] { width: 64px; text-align: center; padding: 7px 6px; }
   .mobile-timetable-empty { padding: 16px 12px; text-align: center; border: 1px dashed var(--border); border-radius: 12px; color: var(--text-soft); font-size: 0.84rem; }
 }
+
+/* Daily attendance becomes a compact, one-line control on phones. */
+.lecture-note-toggle { display: none; }
+@media (max-width: 768px) {
+  #dayView #lecturesTableBody tr {
+    grid-template-columns: minmax(0, 1fr) 54px 30px 30px !important;
+    align-items: center;
+    gap: 6px !important;
+    padding: 8px 9px !important;
+    margin-bottom: 8px !important;
+    min-height: 50px;
+    overflow: visible !important;
+  }
+  #dayView #lecturesTableBody td[data-label="Date"] { display: none !important; }
+  #dayView #lecturesTableBody td[data-label="Subject"] {
+    grid-column: 1;
+    grid-row: 1;
+    display: block !important;
+    min-width: 0 !important;
+  }
+  #dayView #lecturesTableBody td[data-label="Subject"]::before,
+  #dayView #lecturesTableBody td[data-label="Topic"]::before,
+  #dayView #lecturesTableBody td[data-label="Present"]::before { display: none !important; }
+  #dayView #lecturesTableBody td[data-label="Subject"] select {
+    min-height: 38px !important;
+    padding: 4px 18px 4px 2px !important;
+    border: 0 !important;
+    background-color: transparent !important;
+    font-size: 0.9rem !important;
+    font-weight: 650;
+    color: var(--text);
+    text-overflow: ellipsis;
+  }
+  #dayView #lecturesTableBody td[data-label="Topic"] { display: contents !important; }
+  #dayView #lecturesTableBody .lecture-note-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    width: 50px;
+    min-height: 34px;
+    padding: 4px 5px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-soft);
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  #dayView #lecturesTableBody td[data-label="Topic"] input[type="text"] { display: none !important; }
+  #dayView #lecturesTableBody tr.note-open td[data-label="Topic"] input[type="text"] {
+    display: block !important;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-height: 40px !important;
+    margin-top: 2px;
+  }
+  #dayView #lecturesTableBody td[data-label="Present"] {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  #dayView #lecturesTableBody td[data-label="Present"] input[type="checkbox"] {
+    appearance: none;
+    display: grid;
+    place-content: center;
+    width: 26px !important;
+    height: 26px !important;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg-soft);
+    cursor: pointer;
+  }
+  #dayView #lecturesTableBody td[data-label="Present"] input[type="checkbox"]:checked {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  #dayView #lecturesTableBody td[data-label="Present"] input[type="checkbox"]:checked::after {
+    content: "✓";
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  #dayView #lecturesTableBody td[data-label="Action"] {
+    grid-column: 4;
+    grid-row: 1;
+    justify-content: center !important;
+  }
+  #dayView #lecturesTableBody td[data-label="Action"] .btn {
+    width: 30px !important;
+    height: 30px !important;
+    min-height: 30px;
+    padding: 0 !important;
+    border-radius: 9px !important;
+  }
+}
 </style>
 <script src="./pdf.min.js"></script>
 <script>
@@ -5351,8 +5454,27 @@ function renderLectures() {
     // REWRITE: Title
     const tdTitle = document.createElement("td"); tdTitle.setAttribute("data-label", "Topic");
     const tInput = document.createElement("input"); tInput.type = "text"; tInput.value = lec.title || "";
-    tInput.addEventListener("change", () => { lec.title = tInput.value; saveState(); }); // Fixes the closing issue
-    tdTitle.appendChild(tInput); tr.appendChild(tdTitle);
+    tInput.placeholder = "Add a note for this lecture";
+    tInput.addEventListener("change", () => {
+      lec.title = tInput.value;
+      noteBtn.textContent = lec.title ? "📝" : "+ Note";
+      noteBtn.title = lec.title ? "Edit lecture note" : "Add a note";
+      noteBtn.setAttribute("aria-label", noteBtn.title);
+      saveState();
+    }); // Keep the lecture note and its quick-action state in sync.
+    const noteBtn = document.createElement("button");
+    noteBtn.type = "button";
+    noteBtn.className = "lecture-note-toggle";
+    noteBtn.textContent = lec.title ? "📝" : "+ Note";
+    noteBtn.title = lec.title ? "Edit lecture note" : "Add a note";
+    noteBtn.setAttribute("aria-label", noteBtn.title);
+    noteBtn.setAttribute("aria-expanded", "false");
+    noteBtn.addEventListener("click", () => {
+      const isOpen = tr.classList.toggle("note-open");
+      noteBtn.setAttribute("aria-expanded", String(isOpen));
+      if (isOpen) tInput.focus();
+    });
+    tdTitle.append(noteBtn, tInput); tr.appendChild(tdTitle);
 
     // REWRITE: Attendance
     const tdAtt = document.createElement("td"); tdAtt.className = "center"; tdAtt.setAttribute("data-label", "Present");
