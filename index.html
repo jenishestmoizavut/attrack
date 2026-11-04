@@ -360,6 +360,7 @@ h1, h2, h3 { margin: 0 0 8px; }
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .field label { font-size: 0.8rem; color: var(--text-soft); }
@@ -369,6 +370,8 @@ input[type="date"],
 input[type="time"],
 input[type="number"],
 select {
+  width: 100%;
+  max-width: 100%;
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -380,6 +383,12 @@ select {
   box-sizing: border-box;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
+
+details.ass-reminder-details summary::-webkit-details-marker,
+details.ass-reminder-details summary::marker {
+  display: none;
+}
+
 
 input[type="time"],
 input[type="date"] {
@@ -2863,7 +2872,8 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
           <div id="syncChoiceBackdrop" class="sync-choice-backdrop" aria-hidden="true">
             <div class="sync-choice-card" role="dialog" aria-modal="true" aria-labelledby="syncChoiceTitle">
               <h3 id="syncChoiceTitle">Changes found on another device</h3>
-              <p id="syncChoiceText">Another device saved a newer version. Apply it here only if you want this device to switch to that copy.</p>
+              <p id="syncChoiceText">Another device saved a newer version. Review the differences below:</p>
+              <div id="syncChoiceDiff" class="sync-choice-diff" style="margin: 10px 0; padding: 10px 12px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; font-size: 0.83rem; line-height: 1.5; text-align: left; display: none;"></div>
               <div class="sync-choice-actions">
                 <button id="applyCloudChangeBtn" class="btn small" type="button">Apply cloud update</button>
                 <button id="keepThisDeviceBtn" class="btn small secondary" type="button">Keep this device</button>
@@ -2916,38 +2926,40 @@ When you add or load lectures, they’re marked attended by default.
       <div id="assSubjectChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
     </div>
 
-    <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:12px; gap:12px;">
-      <div class="field">
-        <label for="newAssTitle" style="font-weight:600;">Title</label>
-        <input type="text" id="newAssTitle" placeholder="e.g. Lab Report 3">
-      </div>
-      <div class="field">
-        <label for="newAssDate" style="font-weight:600;">Due Date</label>
-        <input type="date" id="newAssDate">
-      </div>
+    <div class="field" style="margin-top:12px;">
+      <label for="newAssTitle" style="font-weight:600;">Title</label>
+      <input type="text" id="newAssTitle" placeholder="e.g. Lab Report 3" style="width:100%; box-sizing:border-box;">
+    </div>
+    <div class="field" style="margin-top:8px;">
+      <label for="newAssDate" style="font-weight:600;">Due Date</label>
+      <input type="date" id="newAssDate" style="width:100%; box-sizing:border-box;">
     </div>
 
-    <div class="pro-option-box">
-      <div class="pro-option-header">
-        <span class="pro-option-title">🔔 Due Date Reminder</span>
-        <span class="pro-badge">Smart Alert</span>
+    <details id="assReminderBox" class="ass-reminder-details" style="margin-top:10px; border:1px solid var(--border); border-radius:12px; padding:10px 14px; background:var(--bg-soft);">
+      <summary style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; font-size:0.86rem; font-weight:600; list-style:none; user-select:none;">
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span>🔔</span>
+          <span>Due Date Reminder</span>
+        </span>
+        <span id="assReminderSummary" style="font-size:0.8rem; color:var(--accent); font-weight:500;">1 day before (7:00 PM) ▾</span>
+      </summary>
+      <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="field" style="min-width:0; margin-bottom:0;">
+          <label for="newAssReminder" style="font-size:0.78rem; font-weight:600; color:var(--text-soft);">Alert</label>
+          <select id="newAssReminder" style="width:100%; box-sizing:border-box; font-size:0.84rem; padding:6px 8px;">
+            <option value="1day" selected>1 day before</option>
+            <option value="sameDay">On due date</option>
+            <option value="2days">2 days before</option>
+            <option value="3days">3 days before</option>
+            <option value="none">No reminder</option>
+          </select>
+        </div>
+        <div class="field" style="min-width:0; margin-bottom:0;">
+          <label for="newAssReminderTime" style="font-size:0.78rem; font-weight:600; color:var(--text-soft);">Time</label>
+          <input type="time" id="newAssReminderTime" value="19:00" style="width:100%; box-sizing:border-box; font-size:0.84rem; padding:6px 8px;" onchange="window.AndroidBridge?.requestExactAlarmPermission?.()">
+        </div>
       </div>
-      <select id="newAssReminder" style="width:100%;">
-        <option value="1day" selected>1 day before (Default, 7:00 PM)</option>
-        <option value="sameDay">On due date</option>
-        <option value="2days">2 days before</option>
-        <option value="3days">3 days before</option>
-        <option value="none">No reminder</option>
-      </select>
-      <label for="newAssReminderTime" style="display:block; margin-top:10px; font-size:0.85rem; font-weight:600;">Notify me at</label>
-      <input type="time" id="newAssReminderTime" value="19:00" style="width:100%; margin-top:4px;" onchange="window.AndroidBridge?.requestExactAlarmPermission?.()">
-      <div class="quick-pill-row">
-        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('1day')">1d before</button>
-        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('sameDay')">Due date</button>
-        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('2days')">2d before</button>
-        <button type="button" class="quick-preset-pill" onclick="setAssReminderQuick('none')">None</button>
-      </div>
-    </div>
+    </details>
     
     <button id="addAssignmentBtn" class="btn" style="margin-top:14px; width:100%; justify-content:center; padding:10px 16px;">
       + Add Task(s)
@@ -2956,38 +2968,44 @@ When you add or load lectures, they’re marked attended by default.
 
   <div class="card" style="margin-top:12px; border-radius:16px;">
     <div class="setup-inline" style="align-items:center; justify-content:space-between; margin-bottom:10px;">
-      <div style="display:flex; align-items:center; gap:8px;">
+      <div id="pendingTasksHeader" style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; user-select:none;">
         <h3 style="margin:0;">Pending Tasks</h3>
         <span id="pendingCountBadge" class="pro-badge">⏳</span>
+        <span id="pendingCollapseChevron" style="margin-left:auto; margin-right:8px; font-size:0.75rem; color:var(--text-soft); transition:transform 0.2s ease;">▼</span>
       </div>
       <button id="editPendingTasksBtn" class="btn small secondary" type="button">Edit</button>
     </div>
-    <div id="pendingTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; padding:8px 12px; background:var(--bg-soft); border-radius:10px;">
-      <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
-        <input type="checkbox" id="selectAllPendingTasks"> Select all
-      </label>
-      <button id="deleteSelectedPendingBtn" class="btn small danger" type="button">Delete selected (<span id="pendingSelCount">0</span>)</button>
+    <div id="pendingTasksBody">
+      <div id="pendingTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; padding:8px 12px; background:var(--bg-soft); border-radius:10px;">
+        <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="selectAllPendingTasks"> Select all
+        </label>
+        <button id="deleteSelectedPendingBtn" class="btn small danger" type="button">Delete selected (<span id="pendingSelCount">0</span>)</button>
+      </div>
+      <div id="assignmentsListPending" style="max-height:none; overflow:visible;"></div>
+      <div id="noPendingMsg" class="hint" style="text-align:center; padding:18px;">No pending tasks! All caught up 🎉</div>
     </div>
-    <div id="assignmentsListPending" style="max-height:none; overflow:visible;"></div>
-    <div id="noPendingMsg" class="hint" style="text-align:center; padding:18px;">No pending tasks! All caught up 🎉</div>
   </div>
 
   <div class="card" style="margin-top:12px; border-radius:16px;">
     <div class="setup-inline" style="align-items:center; justify-content:space-between; margin-bottom:10px;">
-      <div style="display:flex; align-items:center; gap:8px;">
+      <div id="doneTasksHeader" style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; user-select:none;">
         <h3 style="margin:0;">Completed Tasks</h3>
         <span id="doneCountBadge" class="pro-badge" style="background:rgba(16,185,129,0.12); color:#059669; border-color:rgba(16,185,129,0.25);">✅</span>
+        <span id="doneCollapseChevron" style="margin-left:auto; margin-right:8px; font-size:0.75rem; color:var(--text-soft); transition:transform 0.2s ease;">▼</span>
       </div>
       <button id="editDoneTasksBtn" class="btn small secondary" type="button">Edit</button>
     </div>
-    <div id="doneTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; padding:8px 12px; background:var(--bg-soft); border-radius:10px;">
-      <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
-        <input type="checkbox" id="selectAllDoneTasks"> Select all
-      </label>
-      <button id="deleteSelectedDoneBtn" class="btn small danger" type="button">Delete selected (<span id="doneSelCount">0</span>)</button>
+    <div id="doneTasksBody">
+      <div id="doneTasksBulkBar" style="display:none; align-items:center; justify-content:space-between; gap:8px; margin:10px 0; padding:8px 12px; background:var(--bg-soft); border-radius:10px;">
+        <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="selectAllDoneTasks"> Select all
+        </label>
+        <button id="deleteSelectedDoneBtn" class="btn small danger" type="button">Delete selected (<span id="doneSelCount">0</span>)</button>
+      </div>
+      <div id="assignmentsListDone" style="max-height:none; overflow:visible;"></div>
+      <div id="noDoneMsg" class="hint" style="text-align:center; padding:14px; font-size:0.85rem; display:none;">No completed tasks yet.</div>
     </div>
-    <div id="assignmentsListDone" style="max-height:none; overflow:visible;"></div>
-    <div id="noDoneMsg" class="hint" style="text-align:center; padding:14px; font-size:0.85rem; display:none;">No completed tasks yet.</div>
   </div>
 </div>
 
@@ -2996,10 +3014,6 @@ When you add or load lectures, they’re marked attended by default.
     <div class="card view-hero-card">
       <div class="setup-inline" style="align-items:flex-start;">
         <div>
-          <div class="gemini-modal-kicker">
-            <span class="ai-spark" aria-hidden="true">✦</span>
-            Study Focus Hub
-          </div>
           <h3 style="margin:2px 0 4px;">Daily Study Targets</h3>
           <div class="quiet-note">Set focused study goals &amp; stay on track</div>
           <div class="pill" id="studyStreakPill" style="display:none; margin-top:6px; font-weight:700;">🔥 <span id="studyStreakCount">0</span>-day streak</div>
@@ -3012,36 +3026,12 @@ When you add or load lectures, they’re marked attended by default.
 
       <div class="field" style="margin-top:14px;">
         <label for="studyTargetTitle" style="font-weight:600;">Goal / Target</label>
-        <input id="studyTargetTitle" type="text" placeholder="e.g. Finish 20 Calculus problems" />
+        <input id="studyTargetTitle" type="text" placeholder="e.g. Finish 20 Calculus problems" style="width:100%; box-sizing:border-box;" />
       </div>
 
-      <div class="grid" style="grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
-        <div class="field">
-          <label for="studyTargetDate" style="font-weight:600;">Target Date</label>
-          <input id="studyTargetDate" type="date" />
-        </div>
-        <div class="field">
-          <label for="studyTargetMinutes" style="font-weight:600;">Duration (min)</label>
-          <input id="studyTargetMinutes" type="number" min="5" max="600" step="5" value="45" />
-        </div>
-      </div>
-
-      <div class="quick-pill-row" style="margin-top:-2px; margin-bottom:8px;">
-        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(25)">25m (Pomodoro)</button>
-        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(45)">45m</button>
-        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(60)">1 hour</button>
-        <button type="button" class="quick-preset-pill" onclick="setStudyMinutesQuick(90)">1.5 hr</button>
-      </div>
-
-      <div class="field">
-        <label for="studyTargetCategory" style="font-weight:600;">Activity Type</label>
-        <select id="studyTargetCategory">
-          <option value="Study">📖 Study</option>
-          <option value="Revision">🔄 Revision</option>
-          <option value="Practice">✍️ Practice</option>
-          <option value="Reading">📚 Reading</option>
-          <option value="Project">💡 Project</option>
-        </select>
+      <div class="field" style="margin-top:8px; margin-bottom:8px;">
+        <label for="studyTargetDate" style="font-weight:600;">Target Date</label>
+        <input id="studyTargetDate" type="date" style="width:100%; box-sizing:border-box;" />
       </div>
 
       <button id="addStudyTargetBtn" class="btn" type="button" style="width:100%; justify-content:center; margin-top:14px; padding:10px 16px;">
@@ -3056,7 +3046,7 @@ When you add or load lectures, they’re marked attended by default.
           <div class="quiet-note" id="studyProgressText" style="font-weight:600; color:var(--accent);">0 of 0 complete</div>
         </div>
         <div style="display:flex; gap:6px;">
-          <button id="viewDailyMemeBtn" class="btn small secondary" type="button" title="View today's daily meme">🎁 Daily meme</button>
+          <button id="viewDailyMemeBtn" class="btn small secondary" type="button" style="display:none;" title="View today's daily meme">🎁 Daily meme</button>
           <button id="showAllStudyTargetsBtn" class="btn small secondary" type="button">All</button>
         </div>
       </div>
@@ -3530,14 +3520,54 @@ function hideSyncChoice() {
   backdrop.setAttribute("aria-hidden", "true");
 }
 
+function describeStateDiff(localState, cloudState) {
+  const calcStats = (s) => {
+    const lecs = (s && s.lectures) || [];
+    const attended = lecs.filter(l => l.attended && !l.isCancelled).length;
+    const total = lecs.filter(l => !l.isCancelled).length;
+    const pct = total ? Math.round((attended / total) * 100) : 0;
+    const subjects = ((s && s.subjects) || []).map(sub => sub.name);
+    const tasks = ((s && s.assignments) || []).filter(a => !a.completed).length;
+    return { attended, total, pct, subjects, tasks };
+  };
+  const local = calcStats(localState);
+  const cloud = calcStats(cloudState);
+
+  const diffItems = [];
+  if (local.pct !== cloud.pct || local.attended !== cloud.attended || local.total !== cloud.total) {
+    diffItems.push(`<div style="margin-bottom:4px;">📊 <strong>Attendance:</strong> Cloud has <b>${cloud.pct}%</b> (${cloud.attended}/${cloud.total} attended) vs this device at <b>${local.pct}%</b> (${local.attended}/${local.total}).</div>`);
+  }
+  if (local.subjects.length !== cloud.subjects.length) {
+    diffItems.push(`<div style="margin-bottom:4px;">📚 <strong>Subjects:</strong> Cloud has <b>${cloud.subjects.length}</b> subjects vs this device (${local.subjects.length}).</div>`);
+  } else {
+    const localNames = new Set(local.subjects);
+    const newInCloud = cloud.subjects.filter(name => !localNames.has(name));
+    if (newInCloud.length) {
+      diffItems.push(`<div style="margin-bottom:4px;">📚 <strong>Subjects:</strong> Cloud includes <em>${newInCloud.join(", ")}</em>.</div>`);
+    }
+  }
+  if (local.tasks !== cloud.tasks) {
+    diffItems.push(`<div style="margin-bottom:4px;">📝 <strong>Pending Tasks:</strong> Cloud has <b>${cloud.tasks}</b> vs this device (${local.tasks}).</div>`);
+  }
+  if (!diffItems.length) {
+    diffItems.push(`<div>🔄 <strong>Changes:</strong> Daily lecture attendance or notes were updated on another device.</div>`);
+  }
+  return diffItems.join("");
+}
+
 function showSyncChoice(cloudState) {
   pendingCloudState = cloudState;
   const backdrop = document.getElementById("syncChoiceBackdrop");
   const text = document.getElementById("syncChoiceText");
+  const diffEl = document.getElementById("syncChoiceDiff");
   if (!backdrop) return;
   const updatedAt = Number(cloudState.__sync?.updatedAt || 0);
   const when = updatedAt ? new Date(updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "recently";
-  if (text) text.textContent = `Another device saved a newer version ${when}. Apply it here only if you want this device to switch to that copy.`;
+  if (text) text.textContent = `Another device saved a newer version ${when}. Here is what's different:`;
+  if (diffEl) {
+    diffEl.innerHTML = describeStateDiff(state, cloudState);
+    diffEl.style.display = "block";
+  }
   backdrop.style.display = "flex";
   backdrop.setAttribute("aria-hidden", "false");
   playUiSound("soft");
@@ -4952,21 +4982,24 @@ let isEditingTt = false;
         }
       }
 
-      // Only update if it's actually different (prevents infinite loops)
-      if (JSON.stringify(state) !== JSON.stringify(cloudState)) {
-        if (!localHasData || isIncomingCloudNewer(state, cloudState)) {
-          applyAcceptedCloudState(cloudState);
-          const onboarding = document.getElementById("onboardingWizardBackdrop");
-          if (onboarding && cloudHasData) onboarding.style.display = "none";
-          if (cloudHasData && typeof switchView === "function") switchView("homeView");
-          return;
-        } else if (localHasData && !isIncomingCloudNewer(state, cloudState)) {
-          // Local state is newer than incoming cloudState! Sync local UP to cloud
-          if (window.syncToFirebase) window.syncToFirebase(state);
-          return;
-        }
+      // If cloud has no real data yet, push local up
+      if (!cloudHasData && localHasData) {
+        if (window.syncToFirebase) window.syncToFirebase(state);
+        return;
+      }
+
+      // Only prompt/update if data is actually different (prevents infinite loops)
+      const localClean = cloneStateForHistory(state);
+      delete localClean.__sync;
+      const cloudClean = cloneStateForHistory(cloudState);
+      delete cloudClean.__sync;
+
+      if (JSON.stringify(localClean) !== JSON.stringify(cloudClean)) {
+        pendingCloudState = cloudState;
         const revisionKey = cloudRevisionKey(cloudState);
-        if (revisionKey !== ignoredCloudRevisionKey) showSyncChoice(cloudState);
+        if (revisionKey !== ignoredCloudRevisionKey) {
+          showSyncChoice(cloudState);
+        }
       }
     };
     function setTheme(theme) {
@@ -5062,7 +5095,7 @@ function regenerateFromSchedules(fromIsoDate) {
       const semInputProfile = document.getElementById("semEndDateInputProfile");
       if (semInputProfile) semInputProfile.value = state.semEndDate || "";
       cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, Attrack is coming on Play Store! Send me an email or contact on Instagram @jenishdotone for BETA access!`
+        ? `Hey <span>${escapeHtml(state.studentName)}</span>, Attrack is coming on Play Store VERY SOON!`
         : "Welcome! Tell me your name below (Profile) and you can stay updated with Attrack! 😊";
     }
 
@@ -5188,7 +5221,7 @@ async function showStudyMeme() {
   if (!studyMemeBackdrop || !studyMemeText) return;
   
   const studyMemeTitle = document.getElementById("studyMemeTitle");
-  if (studyMemeTitle) studyMemeTitle.textContent = "Daily Meme Blessing 🎉";
+  if (studyMemeTitle) studyMemeTitle.textContent = "Target Complete! Daily Meme Reward 🎉";
 
   // Show a quick loading state
   studyMemeText.innerHTML = "<em>Fetching today's blessing... ⏳</em>";
@@ -5197,19 +5230,12 @@ async function showStudyMeme() {
 
   // Fetch the meme
   const meme = await fetchDailyMeme();
-  const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
-  const blessing = (typeof STUDY_MEMES !== "undefined" && STUDY_MEMES.length)
-    ? STUDY_MEMES[Math.abs(daysSinceEpoch) % STUDY_MEMES.length]
-    : "";
-  const blessingHtml = blessing
-    ? `<div style="margin-top:12px; padding:10px 14px; background:rgba(99,102,241,0.12); border-radius:8px; border:1px solid rgba(99,102,241,0.25); font-style:italic; font-size:0.9rem; line-height:1.45; text-align:center;">"${blessing}"</div>`
-    : "";
 
-  // Display Image and Fallback Text
+  // Display Image and Fallback Text (Math blessing text removed to save space, array preserved in code)
   if (meme.url) {
-    studyMemeText.innerHTML = `<strong>${meme.title}</strong><br><img src="${meme.url}" style="max-width:100%; border-radius:8px; margin-top:10px; max-height: 400px; object-fit: contain; display:block; margin-left:auto; margin-right:auto;" alt="Daily Meme" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='../memes/${meme.filename||''}';}else{this.style.display='none';}">${blessingHtml}`;
+    studyMemeText.innerHTML = `<strong>${meme.title}</strong><br><img src="${meme.url}" style="max-width:100%; border-radius:8px; margin-top:10px; max-height: 400px; object-fit: contain; display:block; margin-left:auto; margin-right:auto;" alt="Daily Meme" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='../memes/${meme.filename||''}';}else{this.style.display='none';}">`;
   } else {
-    studyMemeText.innerHTML = `<strong>Today's Blessing</strong>${blessingHtml}`;
+    studyMemeText.innerHTML = `<strong>${meme.title || "Daily Study Meme"}</strong><p style="margin-top:10px; color:var(--text-soft); font-size:0.9rem;">No image for today's meme yet. Check back tomorrow!</p>`;
   }
   if (window.loadMemeRating) window.loadMemeRating(meme.id || "daily-text");
 }
@@ -5221,10 +5247,10 @@ function addStudyTarget() {
     alert("Add a study target first.");
     return;
   }
-  const minutes = Math.max(5, Math.min(600, parseInt(studyTargetMinutes.value, 10) || 45));
+  const minutes = studyTargetMinutes ? Math.max(5, Math.min(600, parseInt(studyTargetMinutes.value, 10) || 45)) : 0;
   const date = studyTargetDate.value || toISODate(new Date());
 if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
-  const categoryVal = studyTargetCategory.value || "Study";
+  const categoryVal = (studyTargetCategory && studyTargetCategory.value) || "";
   const studyRemTime = state.studyRemindersEnabled === false
     ? "none"
     : (state.studyReminderTime || "21:00");
@@ -5244,7 +5270,7 @@ if (!Array.isArray(state.studyTargets)) state.studyTargets = [];
     });
   }
   studyTargetTitle.value = "";
-  studyTargetMinutes.value = minutes;
+  if (studyTargetMinutes) studyTargetMinutes.value = minutes;
   showAllStudyTargets = false;
   saveState();
   renderStudyTargets();
@@ -5324,15 +5350,8 @@ function renderStudyTargets() {
         target.completedAt = new Date().toISOString();
         if (wasIncomplete) recentlyCompletedStudyIds.add(target.id);
         
-        // 1. Get all targets for today
-        const todayIso = toISODate(new Date());
-        const todaysTargets = state.studyTargets.filter(t => t.date === todayIso);
-        
-        // 2. Check if every single one is marked complete
-        const allDone = todaysTargets.length > 0 && todaysTargets.every(t => t.completedAt);
-        
-        // 3. Only trigger the meme if the board is cleared
-        if (wasIncomplete && allDone) {
+        // Trigger daily meme reward when a study target is completed
+        if (wasIncomplete) {
           showStudyMeme(); 
         }
       } else {
@@ -5366,6 +5385,12 @@ function renderStudyTargets() {
   const pct = targets.length > 0 ? (completedCount / targets.length) * 100 : 0;
   studyProgressFill.style.width = pct + "%";
   studyProgressFill.classList.toggle("just-completed", targets.length > 0 && completedCount === targets.length);
+
+  // Daily meme button appears only when users add and complete a study target
+  const memeBtn = document.getElementById("viewDailyMemeBtn");
+  if (memeBtn) {
+    memeBtn.style.display = (targets.length > 0 && completedCount > 0) ? "inline-flex" : "none";
+  }
 }
 function renderAssignmentChips() {
   const container = document.getElementById("assSubjectChips");
@@ -6000,6 +6025,9 @@ function switchView(viewId) {
     currentMonthDate = new Date(selectedDate);
     currentMonthDate.setDate(1);
     subjectFilterEl.value = "";
+    if (pendingCloudState) {
+      showSyncChoice(pendingCloudState);
+    }
    const didGenerate = autoLoadTodayLectures();
 
 renderCalendar();
@@ -6397,7 +6425,9 @@ if (keepThisDeviceBtn) {
     if (pendingCloudState) ignoredCloudRevisionKey = cloudRevisionKey(pendingCloudState);
     pendingCloudState = null;
     hideSyncChoice();
+    if (window.syncToFirebase) window.syncToFirebase(state);
     saveState({ skipUndo: true, label: "Kept this device" });
+    if (typeof showUndoToast === "function") showUndoToast("Kept this device · Synced to cloud ☁️");
   });
 }
 if (dismissCloudChangeBtn) {
@@ -6434,6 +6464,35 @@ if (quickStudyBtn) quickStudyBtn.addEventListener("click", () => switchView("stu
 if (startTourBtn) startTourBtn.addEventListener("click", () => startGuidedTour(true));
     navButtons.forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
 if (addStudyTargetBtn) addStudyTargetBtn.addEventListener("click", addStudyTarget);
+
+// Collapsible Pending and Completed Tasks menus
+const pTasksHeader = document.getElementById("pendingTasksHeader");
+if (pTasksHeader) {
+  pTasksHeader.addEventListener("click", () => togglePendingTasksCollapse());
+}
+const dTasksHeader = document.getElementById("doneTasksHeader");
+if (dTasksHeader) {
+  dTasksHeader.addEventListener("click", () => toggleDoneTasksCollapse());
+}
+const editPTasksBtn = document.getElementById("editPendingTasksBtn");
+if (editPTasksBtn) {
+  editPTasksBtn.addEventListener("click", () => {
+    if (pendingTasksCollapsed) togglePendingTasksCollapse(false);
+  });
+}
+const editDTasksBtn = document.getElementById("editDoneTasksBtn");
+if (editDTasksBtn) {
+  editDTasksBtn.addEventListener("click", () => {
+    if (doneTasksCollapsed) toggleDoneTasksCollapse(false);
+  });
+}
+
+// Due Date Reminder live summary
+const newAssRemSelect = document.getElementById("newAssReminder");
+if (newAssRemSelect) newAssRemSelect.addEventListener("change", updateAssReminderSummary);
+const newAssRemTimeInput = document.getElementById("newAssReminderTime");
+if (newAssRemTimeInput) newAssRemTimeInput.addEventListener("change", updateAssReminderSummary);
+if (typeof updateAssReminderSummary === "function") updateAssReminderSummary();
 if (studyTargetTitle) {
   studyTargetTitle.addEventListener("keydown", event => {
     if (event.key === "Enter") addStudyTarget();
@@ -7634,8 +7693,57 @@ window.setStudyReminderQuick = function(time) {
 };
 window.setAssReminderQuick = function(val) {
   const r = document.getElementById("newAssReminder");
-  if (r) r.value = val;
+  if (r) {
+    r.value = val;
+    if (typeof updateAssReminderSummary === "function") updateAssReminderSummary();
+  }
 };
+
+let pendingTasksCollapsed = false;
+let doneTasksCollapsed = false;
+
+function togglePendingTasksCollapse(force) {
+  pendingTasksCollapsed = (typeof force === "boolean") ? force : !pendingTasksCollapsed;
+  const body = document.getElementById("pendingTasksBody");
+  const chevron = document.getElementById("pendingCollapseChevron");
+  if (body) body.style.display = pendingTasksCollapsed ? "none" : "block";
+  if (chevron) chevron.style.transform = pendingTasksCollapsed ? "rotate(-90deg)" : "rotate(0deg)";
+}
+
+function toggleDoneTasksCollapse(force) {
+  doneTasksCollapsed = (typeof force === "boolean") ? force : !doneTasksCollapsed;
+  const body = document.getElementById("doneTasksBody");
+  const chevron = document.getElementById("doneCollapseChevron");
+  if (body) body.style.display = doneTasksCollapsed ? "none" : "block";
+  if (chevron) chevron.style.transform = doneTasksCollapsed ? "rotate(-90deg)" : "rotate(0deg)";
+}
+
+function updateAssReminderSummary() {
+  const rem = document.getElementById("newAssReminder")?.value || "1day";
+  const time = document.getElementById("newAssReminderTime")?.value || "19:00";
+  const sumEl = document.getElementById("assReminderSummary");
+  if (!sumEl) return;
+  if (rem === "none") {
+    sumEl.textContent = "None ▾";
+  } else {
+    const labels = {
+      "1day": "1 day before",
+      "sameDay": "On due date",
+      "2days": "2 days before",
+      "3days": "3 days before"
+    };
+    let timeStr = time;
+    try {
+      const parts = time.split(":");
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const ampm = h >= 12 ? "PM" : "AM";
+      const h12 = h % 12 || 12;
+      timeStr = `${h12}:${m.toString().padStart(2, "0")} ${ampm}`;
+    } catch (e) {}
+    sumEl.textContent = `${labels[rem] || rem} (${timeStr}) ▾`;
+  }
+}
 window.setLectureReminderQuick = function(time) {
   const el = document.getElementById("lectureReminderTime");
   if (el) {
@@ -8725,6 +8833,11 @@ const firebaseConfig = {
             } catch (error) {
                 console.warn("Analytics event skipped:", eventName, error);
             }
+            try {
+                if (window.AndroidBridge && typeof window.AndroidBridge.logAnalyticsEvent === "function") {
+                    window.AndroidBridge.logAnalyticsEvent(eventName, JSON.stringify(params));
+                }
+            } catch (error) {}
         };
 
         enableIndexedDbPersistence(db).catch((err) => console.warn("Offline sync issue:", err.code));
@@ -9073,6 +9186,13 @@ const firebaseConfig = {
 	    const syncAlert = document.getElementById('syncAlertCard'); // Grab the alert element
 
             if (user) {
+                // Record activity so Firebase Console immediately registers Android & Web app activity
+                setDoc(doc(db, "users", user.uid), {
+                    lastActiveAt: serverTimestamp(),
+                    lastPlatform: window.AndroidBridge ? "android" : "web",
+                    appVersion: "0.7.0"
+                }, { merge: true }).catch(() => {});
+
                 if (authTitle) authTitle.textContent = "Synced with Google";
                 if (authSub) authSub.textContent = user.email;
 		if (authArrow) authArrow.textContent = "Sign Out"; // Changed 
