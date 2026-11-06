@@ -2865,22 +2865,11 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
       <button class="btn small secondary" id="markAllAbsentBtn" type="button">❌ Absent all</button>
       <button class="btn small danger" id="markHolidayBtn" type="button">🏖️ No lectures</button>
       <button class="btn small secondary" id="findNotesBtn" type="button">🔍 Notes</button>
+      <button class="btn small secondary" id="checkCloudSyncBtn" type="button">☁️ Cloud updates</button>
       <button class="btn small danger" id="findAbsentBtn" type="button" style="outline:1px solid var(--danger); background:transparent; color:var(--danger);">❌ Absent log</button>
     </div>
   </details>
 </div>
-          <div id="syncChoiceBackdrop" class="sync-choice-backdrop" aria-hidden="true">
-            <div class="sync-choice-card" role="dialog" aria-modal="true" aria-labelledby="syncChoiceTitle">
-              <h3 id="syncChoiceTitle">Changes found on another device</h3>
-              <p id="syncChoiceText">Another device saved a newer version. Review the differences below:</p>
-              <div id="syncChoiceDiff" class="sync-choice-diff" style="margin: 10px 0; padding: 10px 12px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; font-size: 0.83rem; line-height: 1.5; text-align: left; display: none;"></div>
-              <div class="sync-choice-actions">
-                <button id="applyCloudChangeBtn" class="btn small" type="button">Apply cloud update</button>
-                <button id="keepThisDeviceBtn" class="btn small secondary" type="button">Keep this device</button>
-                <button id="dismissCloudChangeBtn" class="btn small secondary" type="button">Later</button>
-              </div>
-            </div>
-          </div>
           <table>
             <thead>
               <tr>
@@ -2935,7 +2924,7 @@ When you add or load lectures, they’re marked attended by default.
       <input type="date" id="newAssDate" style="width:100%; box-sizing:border-box;">
     </div>
 
-    <details id="assReminderBox" class="ass-reminder-details" style="margin-top:10px; border:1px solid var(--border); border-radius:12px; padding:10px 14px; background:var(--bg-soft);">
+    <details id="assReminderBox" class="ass-reminder-details" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:12px; padding:10px 14px; background:var(--bg-soft);">
       <summary style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; font-size:0.86rem; font-weight:600; list-style:none; user-select:none;">
         <span style="display:flex; align-items:center; gap:6px;">
           <span>🔔</span>
@@ -3016,7 +3005,7 @@ When you add or load lectures, they’re marked attended by default.
         <div>
           <h3 style="margin:2px 0 4px;">Daily Study Targets</h3>
           <div class="quiet-note">Set focused study goals &amp; stay on track</div>
-          <div class="pill" id="studyStreakPill" style="display:none; margin-top:6px; font-weight:700;">🔥 <span id="studyStreakCount">0</span>-day streak</div>
+          <div class="study-streak-badge" id="studyStreakPill" style="display:inline-flex; align-items:center; gap:6px; margin-top:6px; padding:5px 12px; border-radius:999px; background:linear-gradient(135deg, rgba(255,107,0,0.14) 0%, rgba(255,61,0,0.2) 100%); border:1.5px solid rgba(255,107,0,0.45); color:#ea580c; font-weight:700; font-size:0.85rem; box-shadow:0 2px 8px rgba(255,107,0,0.15);">🔥 <span id="studyStreakCount">0</span>-day streak <span id="studyStreakSub" style="font-size:0.75rem; opacity:0.85;">⚡</span></div>
         </div>
         <button class="gemini-plan-btn" type="button" onclick="triggerGemini()" aria-label="Plan with AI">
           <span class="ai-spark" aria-hidden="true">✦</span>
@@ -3181,9 +3170,7 @@ When you add or load lectures, they’re marked attended by default.
 <button id="feedbackBtn" class="share-btn">
   💬 Feedback
 </button>
-<a href="disclaimer.html" target="_blank" class="share-btn" style="text-decoration: none;">
-  📢 Ad Disclaimer
-</a>
+
 <a href="privacy.html" target="_blank" class="share-btn" style="text-decoration: none;">
   🔒 Privacy Policy
 </a>
@@ -3278,6 +3265,19 @@ When you add or load lectures, they’re marked attended by default.
     <div id="absentList" class="subject-stats-list" style="overflow-y:auto; flex:1;"></div>
   </div>
 </div>
+
+	          <div id="syncChoiceBackdrop" class="sync-choice-backdrop" aria-hidden="true">
+            <div class="sync-choice-card" role="dialog" aria-modal="true" aria-labelledby="syncChoiceTitle">
+              <h3 id="syncChoiceTitle">Changes found on another device</h3>
+              <p id="syncChoiceText">Another device saved a newer version. Review the differences below:</p>
+              <div id="syncChoiceDiff" class="sync-choice-diff" style="margin: 10px 0; padding: 10px 12px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; font-size: 0.83rem; line-height: 1.5; text-align: left; max-height: 240px; overflow-y: auto; display: none;"></div>
+              <div class="sync-choice-actions">
+                <button id="applyCloudChangeBtn" class="btn small" type="button">Apply cloud update</button>
+                <button id="keepThisDeviceBtn" class="btn small secondary" type="button">Keep this device</button>
+                <button id="dismissCloudChangeBtn" class="btn small secondary" type="button">Later</button>
+              </div>
+            </div>
+          </div>
 
 	<div id="versionModalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
   <div class="card" style="width:min(440px,90%); padding:24px; animation: slideUp 0.3s ease-out;">
@@ -3506,6 +3506,7 @@ function applyAcceptedCloudState(cloudState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   lastSavedStateJson = JSON.stringify(state);
   applyingRemoteState = false;
+  ignoredCloudRevisionKey = cloudRevisionKey(cloudState);
   pendingCloudState = null;
   hideSyncChoice();
   refreshAllViewsAfterStateChange();
@@ -3521,46 +3522,194 @@ function hideSyncChoice() {
 }
 
 function describeStateDiff(localState, cloudState) {
+  const localLecs = (localState && localState.lectures) || [];
+  const cloudLecs = (cloudState && cloudState.lectures) || [];
+
+  const subjectMap = {};
+  [...(localState?.subjects || []), ...(cloudState?.subjects || [])].forEach(s => {
+    if (s && s.id) subjectMap[s.id] = s.name;
+  });
+
+  const formatDate = (iso) => {
+    if (!iso) return "";
+    try {
+      const parts = iso.split("-");
+      if (parts.length === 3) {
+        const d = parseInt(parts[2], 10);
+        const m = parseInt(parts[1], 10);
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${d} ${monthNames[m - 1]}`;
+      }
+    } catch(e) {}
+    return iso;
+  };
+
+  const getStatus = (lec) => {
+    if (!lec) return "None";
+    if (lec.isCancelled) return "Cancelled";
+    return lec.attended ? "Attended" : "Absent";
+  };
+
+  const getStatusBadge = (status) => {
+    if (status === "Attended") return `<span style="color:#10b981; font-weight:600;">Attended</span>`;
+    if (status === "Absent") return `<span style="color:#ef4444; font-weight:600;">Absent</span>`;
+    if (status === "Cancelled") return `<span style="color:#f59e0b; font-weight:600;">Cancelled</span>`;
+    return `<span>${status}</span>`;
+  };
+
+  const localById = new Map();
+  const localByDateSubj = new Map();
+  localLecs.forEach(l => {
+    if (l && l.id) localById.set(String(l.id), l);
+    if (l && l.date) {
+      const key = `${l.date}_${l.subjectId || ""}`;
+      if (!localByDateSubj.has(key)) localByDateSubj.set(key, []);
+      localByDateSubj.get(key).push(l);
+    }
+  });
+
+  const matchedLocalIds = new Set();
+  const matchedCloudIds = new Set();
+  const lectureDiffs = [];
+
+  cloudLecs.forEach(cLec => {
+    if (!cLec || !cLec.id) return;
+    const cid = String(cLec.id);
+    if (localById.has(cid)) {
+      matchedLocalIds.add(cid);
+      matchedCloudIds.add(cid);
+      const lLec = localById.get(cid);
+      const cStat = getStatus(cLec);
+      const lStat = getStatus(lLec);
+      const subName = subjectMap[cLec.subjectId] || cLec.title || "Lecture";
+      const dateStr = formatDate(cLec.date);
+
+      if (cStat !== lStat) {
+        lectureDiffs.push({
+          date: cLec.date,
+          html: `<b>${dateStr} · ${subName}</b>: Cloud has ${getStatusBadge(cStat)} vs This device ${getStatusBadge(lStat)}`
+        });
+      } else if (cLec.title && cLec.title !== lLec.title) {
+        lectureDiffs.push({
+          date: cLec.date,
+          html: `<b>${dateStr} · ${subName}</b>: Note updated to "<em>${escapeHtml(cLec.title)}</em>"`
+        });
+      }
+    }
+  });
+
+  cloudLecs.forEach(cLec => {
+    if (!cLec) return;
+    const cid = String(cLec.id || "");
+    if (cid && matchedCloudIds.has(cid)) return;
+
+    const key = `${cLec.date}_${cLec.subjectId || ""}`;
+    const unvisitedLocals = (localByDateSubj.get(key) || []).filter(l => !matchedLocalIds.has(String(l.id)));
+    const subName = subjectMap[cLec.subjectId] || cLec.title || "Lecture";
+    const dateStr = formatDate(cLec.date);
+
+    if (unvisitedLocals.length > 0) {
+      const lLec = unvisitedLocals[0];
+      matchedLocalIds.add(String(lLec.id));
+      if (cid) matchedCloudIds.add(cid);
+      const cStat = getStatus(cLec);
+      const lStat = getStatus(lLec);
+      if (cStat !== lStat) {
+        lectureDiffs.push({
+          date: cLec.date,
+          html: `<b>${dateStr} · ${subName}</b>: Cloud has ${getStatusBadge(cStat)} vs This device ${getStatusBadge(lStat)}`
+        });
+      }
+    } else {
+      const cStat = getStatus(cLec);
+      lectureDiffs.push({
+        date: cLec.date,
+        html: `<b>${dateStr} · ${subName}</b>: Added in Cloud (${getStatusBadge(cStat)})`
+      });
+    }
+  });
+
+  localLecs.forEach(lLec => {
+    if (!lLec) return;
+    const lid = String(lLec.id || "");
+    if (lid && matchedLocalIds.has(lid)) return;
+    const lStat = getStatus(lLec);
+    const subName = subjectMap[lLec.subjectId] || lLec.title || "Lecture";
+    const dateStr = formatDate(lLec.date);
+    lectureDiffs.push({
+      date: lLec.date,
+      html: `<b>${dateStr} · ${subName}</b>: Only on this device (${getStatusBadge(lStat)})`
+    });
+  });
+
+  lectureDiffs.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+  const diffItems = [];
   const calcStats = (s) => {
     const lecs = (s && s.lectures) || [];
     const attended = lecs.filter(l => l.attended && !l.isCancelled).length;
     const total = lecs.filter(l => !l.isCancelled).length;
     const pct = total ? Math.round((attended / total) * 100) : 0;
-    const subjects = ((s && s.subjects) || []).map(sub => sub.name);
-    const tasks = ((s && s.assignments) || []).filter(a => !a.completed).length;
-    return { attended, total, pct, subjects, tasks };
+    return { attended, total, pct };
   };
   const local = calcStats(localState);
   const cloud = calcStats(cloudState);
-
-  const diffItems = [];
-  if (local.pct !== cloud.pct || local.attended !== cloud.attended || local.total !== cloud.total) {
-    diffItems.push(`<div style="margin-bottom:4px;">📊 <strong>Attendance:</strong> Cloud has <b>${cloud.pct}%</b> (${cloud.attended}/${cloud.total} attended) vs this device at <b>${local.pct}%</b> (${local.attended}/${local.total}).</div>`);
+  if (local.pct !== cloud.pct || local.attended !== cloud.attended) {
+    diffItems.push(`<div style="margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">📊 <strong>Overall Attendance:</strong> Cloud is <b>${cloud.pct}%</b> (${cloud.attended}/${cloud.total}) vs This device at <b>${local.pct}%</b> (${local.attended}/${local.total}).</div>`);
   }
-  if (local.subjects.length !== cloud.subjects.length) {
-    diffItems.push(`<div style="margin-bottom:4px;">📚 <strong>Subjects:</strong> Cloud has <b>${cloud.subjects.length}</b> subjects vs this device (${local.subjects.length}).</div>`);
-  } else {
-    const localNames = new Set(local.subjects);
-    const newInCloud = cloud.subjects.filter(name => !localNames.has(name));
-    if (newInCloud.length) {
-      diffItems.push(`<div style="margin-bottom:4px;">📚 <strong>Subjects:</strong> Cloud includes <em>${newInCloud.join(", ")}</em>.</div>`);
+
+  if (lectureDiffs.length > 0) {
+    diffItems.push(`<div style="margin-bottom:6px; font-weight:600; color:var(--text);">📅 Different Lectures (${lectureDiffs.length}):</div>`);
+    const limit = 8;
+    const itemsToShow = lectureDiffs.slice(0, limit);
+    itemsToShow.forEach(item => {
+      diffItems.push(`<div style="margin-left:6px; margin-bottom:4px; font-size:0.82rem; line-height:1.4;">• ${item.html}</div>`);
+    });
+    if (lectureDiffs.length > limit) {
+      diffItems.push(`<div style="margin-left:6px; margin-top:4px; color:var(--text-soft); font-size:0.78rem;"><em>...and ${lectureDiffs.length - limit} more lecture differences</em></div>`);
     }
   }
-  if (local.tasks !== cloud.tasks) {
-    diffItems.push(`<div style="margin-bottom:4px;">📝 <strong>Pending Tasks:</strong> Cloud has <b>${cloud.tasks}</b> vs this device (${local.tasks}).</div>`);
+
+  const localSubjNames = (localState?.subjects || []).map(s => s.name);
+  const cloudSubjNames = (cloudState?.subjects || []).map(s => s.name);
+  const newInCloud = cloudSubjNames.filter(n => !localSubjNames.includes(n));
+  if (newInCloud.length > 0) {
+    diffItems.push(`<div style="margin-top:6px;">📚 <strong>New Subjects in Cloud:</strong> ${newInCloud.join(", ")}</div>`);
   }
+
   if (!diffItems.length) {
-    diffItems.push(`<div>🔄 <strong>Changes:</strong> Daily lecture attendance or notes were updated on another device.</div>`);
+    diffItems.push(`<div>🔄 <strong>Changes:</strong> Timetable or preferences were updated on another device.</div>`);
   }
+
   return diffItems.join("");
 }
 
-function showSyncChoice(cloudState) {
+function showSyncChoice(cloudState, isManual = false) {
+  pendingCloudState = cloudState;
+  const backdrop = document.getElementById("syncChoiceBackdrop");
+  if (!backdrop) return;
+  if (!isManual && backdrop.style.display === "flex") return;
+  const text = document.getElementById("syncChoiceText");
+  const diffEl = document.getElementById("syncChoiceDiff");
+  const updatedAt = Number(cloudState.__sync?.updatedAt || 0);
+  const when = updatedAt ? new Date(updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "recently";
+  if (text) text.textContent = `Cloud version was saved ${when}. Review differences below:`;
+  if (diffEl) {
+    const diffHtml = describeStateDiff(state, cloudState);
+    diffEl.innerHTML = diffHtml || '<div style="color:var(--accent);">✅ <strong>In sync:</strong> Your device and cloud have identical attendance and subjects!</div>';
+    diffEl.style.display = "block";
+  }
+  backdrop.style.display = "flex";
+  backdrop.setAttribute("aria-hidden", "false");
+  playUiSound("soft");
+}
+function _orig_showSyncChoice_unused(cloudState) {
   pendingCloudState = cloudState;
   const backdrop = document.getElementById("syncChoiceBackdrop");
   const text = document.getElementById("syncChoiceText");
   const diffEl = document.getElementById("syncChoiceDiff");
   if (!backdrop) return;
+  if (backdrop.style.display === "flex") return;
   const updatedAt = Number(cloudState.__sync?.updatedAt || 0);
   const when = updatedAt ? new Date(updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "recently";
   if (text) text.textContent = `Another device saved a newer version ${when}. Here is what's different:`;
@@ -3598,6 +3747,13 @@ function openSetupSection(labelText) {
 function buildTourSteps() {
   const hasSubjects = Array.isArray(state.subjects) && state.subjects.length > 0;
   const steps = [
+    {
+      target: ".nav",
+      fallback: ".dashboard-card",
+      title: "Swipe between pages 📲",
+      body: "You can tap the bottom navigation or swipe left and right anywhere on your screen to effortlessly glide between Home, Day, Timetable, Tasks, Study, and Setup!",
+      before: () => switchView("homeView")
+    },
     {
       target: ".dashboard-card",
       title: "Dashboard first",
@@ -4996,9 +5152,17 @@ let isEditingTt = false;
 
       if (JSON.stringify(localClean) !== JSON.stringify(cloudClean)) {
         pendingCloudState = cloudState;
-        const revisionKey = cloudRevisionKey(cloudState);
-        if (revisionKey !== ignoredCloudRevisionKey) {
-          showSyncChoice(cloudState);
+        window.__latestCloudState = cloudState;
+        
+        // If incoming cloud is strictly newer, apply it quietly without interrupting
+        if (isIncomingCloudNewer(state, cloudState)) {
+          applyAcceptedCloudState(cloudState);
+          showUndoToast("Synced latest version from cloud ☁️");
+          return;
+        } else {
+          // Local is newer or concurrent: quietly record pending state and update Cloud button badge
+          const cloudBtn = document.getElementById("checkCloudSyncBtn");
+          if (cloudBtn) cloudBtn.textContent = "☁️ Cloud updates (1)";
         }
       }
     };
@@ -5094,9 +5258,9 @@ function regenerateFromSchedules(fromIsoDate) {
       if (semInput) semInput.value = state.semEndDate || "";
       const semInputProfile = document.getElementById("semEndDateInputProfile");
       if (semInputProfile) semInputProfile.value = state.semEndDate || "";
-      cheerMessageEl.innerHTML = state.studentName 
-        ? `Hey <span>${escapeHtml(state.studentName)}</span>, Attrack is coming on Play Store VERY SOON!`
-        : "Welcome! Tell me your name below (Profile) and you can stay updated with Attrack! 😊";
+      cheerMessageEl.innerHTML = state.studentName
+        ? `Hi <span>${escapeHtml(state.studentName)}</span>, you can share your schedule with someone else from the Setup menu!`
+        : "Welcome! Tell me your name below (Profile) to personalize your experience. 😊";
     }
 
     function renderSubjectsList() {
@@ -5177,13 +5341,21 @@ function computeStudyStreak() {
 function updateStudyStreakDisplay() {
   const pill = document.getElementById("studyStreakPill");
   const countEl = document.getElementById("studyStreakCount");
+  const subEl = document.getElementById("studyStreakSub");
   if (!pill || !countEl) return;
   const streak = computeStudyStreak();
   if (streak > 0) {
     countEl.textContent = streak;
+    if (subEl) subEl.textContent = "⚡ On fire!";
     pill.style.display = "inline-flex";
+    pill.style.opacity = "1";
+    pill.style.border = "1.5px solid rgba(255, 107, 0, 0.5)";
   } else {
-    pill.style.display = "none";
+    countEl.textContent = "0";
+    if (subEl) subEl.textContent = "• Complete a goal today!";
+    pill.style.display = "inline-flex";
+    pill.style.opacity = "0.78";
+    pill.style.border = "1px solid var(--border)";
   }
 }
 
@@ -6025,9 +6197,6 @@ function switchView(viewId) {
     currentMonthDate = new Date(selectedDate);
     currentMonthDate.setDate(1);
     subjectFilterEl.value = "";
-    if (pendingCloudState) {
-      showSyncChoice(pendingCloudState);
-    }
    const didGenerate = autoLoadTodayLectures();
 
 renderCalendar();
@@ -6417,6 +6586,21 @@ if (timetableBodyEl) {
 
 if (undoLastChangeBtn) undoLastChangeBtn.addEventListener("click", restoreLastChange);
 if (undoToastBtn) undoToastBtn.addEventListener("click", restoreLastChange);
+
+// Handle manual Cloud Updates check from More Actions menu
+const checkCloudSyncBtnEl = document.getElementById("checkCloudSyncBtn");
+if (checkCloudSyncBtnEl) {
+  checkCloudSyncBtnEl.addEventListener("click", () => {
+    closeActionsMenu();
+    const cloudToCompare = pendingCloudState || window.__latestCloudState || null;
+    if (cloudToCompare) {
+      showSyncChoice(cloudToCompare, true);
+    } else {
+      showUndoToast("Cloud is in sync with this device! ☁️");
+    }
+  });
+}
+
 if (applyCloudChangeBtn) {
   applyCloudChangeBtn.addEventListener("click", () => applyAcceptedCloudState(pendingCloudState));
 }
@@ -7816,6 +8000,20 @@ if (deleteSelectedPendingBtnEl) deleteSelectedPendingBtnEl.addEventListener("cli
 const deleteSelectedDoneBtnEl = document.getElementById("deleteSelectedDoneBtn");
 if (deleteSelectedDoneBtnEl) deleteSelectedDoneBtnEl.addEventListener("click", () => deleteSelectedTasks("done"));
 
+
+// Dynamically toggle Assignment Reminder visibility when Due Date is set
+const newAssDateEl = document.getElementById("newAssDate");
+const assReminderBoxEl = document.getElementById("assReminderBox");
+function updateAssReminderVisibility() {
+  if (assReminderBoxEl && newAssDateEl) {
+    assReminderBoxEl.style.display = (newAssDateEl.value && newAssDateEl.value.trim() !== "") ? "block" : "none";
+  }
+}
+if (newAssDateEl) {
+  newAssDateEl.addEventListener("input", updateAssReminderVisibility);
+  newAssDateEl.addEventListener("change", updateAssReminderVisibility);
+}
+
 if (addAssignmentBtn) {
   addAssignmentBtn.addEventListener("click", () => {
     if (selectedAssSubjects.size === 0) {
@@ -7850,6 +8048,8 @@ if (addAssignmentBtn) {
     }
 
     newAssTitle.value = "";
+    newAssDate.value = "";
+    updateAssReminderVisibility();
     selectedAssSubjects.clear(); 
     renderAssignmentChips();     
     renderAssignments();         
@@ -9346,7 +9546,7 @@ window.addEventListener('load', () => {
         if (!localStorage.getItem('privacyPolicyAgreed')) {
             showPrivacyPopup();
         } else if (!localStorage.getItem('adDisclaimerAcknowledged')) {
-            showAdDisclaimerPopupIfNeeded();
+            // showAdDisclaimerPopupIfNeeded(); // Disabled: currently no ads
         }
     }, 800);
 });
