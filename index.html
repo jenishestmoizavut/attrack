@@ -2344,7 +2344,7 @@ Attrack by<a href="https://jenishestmoizavut.github.io/jenish.one" target="_blan
          <span class="badge">Student-first UI</span>
         </div>
         <div id="cheerMessage" class="cheer">
-          Welcome! Tell me your name below and we'll keep your attendance happy and healthy.
+          Welcome! Download on Play Store from <a href="https://play.google.com/store/apps/details?id=com.jenish.attrack" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline; font-weight:600;">here</a>.
         </div>
       </div>
 
@@ -5258,9 +5258,15 @@ function regenerateFromSchedules(fromIsoDate) {
       if (semInput) semInput.value = state.semEndDate || "";
       const semInputProfile = document.getElementById("semEndDateInputProfile");
       if (semInputProfile) semInputProfile.value = state.semEndDate || "";
-      cheerMessageEl.innerHTML = state.studentName
-        ? `Hi <span>${escapeHtml(state.studentName)}</span>, you can share your schedule with someone else from the Setup menu!`
-        : "Welcome! Tell me your name below (Profile) to personalize your experience. 😊";
+      if (window.AndroidBridge) {
+        cheerMessageEl.innerHTML = state.studentName
+          ? `Hi <span>${escapeHtml(state.studentName)}</span>, you can share your schedule with someone else from the Setup menu!`
+          : "Welcome! Tell me your name below (Profile) to personalize your experience. 😊";
+      } else {
+        cheerMessageEl.innerHTML = state.studentName
+          ? `Hi <span>${escapeHtml(state.studentName)}</span>! Download on Play Store from <a href="https://play.google.com/store/apps/details?id=com.jenish.attrack" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;">here</a>.`
+          : `Welcome! Download on Play Store from <a href="https://play.google.com/store/apps/details?id=com.jenish.attrack" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:underline; font-weight:600;">here</a>.`;
+      }
     }
 
     function renderSubjectsList() {
