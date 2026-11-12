@@ -7368,15 +7368,6 @@ if (openGeminiBtn) {
   }
   window.openOnboardingWizard = openWizard;
 
-  // Only show the wizard if the user is brand new (no subjects)
-  if (state.isInitialized && state.subjects && state.subjects.length > 0) {
-    backdrop.style.display = "none";
-    return;
-  }
-
-  // Lock the screen and show the wizard
-  openWizard();
-
   // --- STEP 1: Name & Date ---
   btn1.addEventListener("click", () => {
     localStorage.setItem('hasSeenPrivacyPopup', 'true');
@@ -7600,6 +7591,13 @@ refreshSoundToggle();
       backdrop.style.display = "none";
       document.getElementById("triggerImportBtn")?.click();
     });
+  }
+
+  // Only show on initial startup if the user is brand new (no subjects yet)
+  if (!state.isInitialized || !Array.isArray(state.subjects) || state.subjects.length === 0) {
+    openWizard();
+  } else {
+    backdrop.style.display = "none";
   }
 })();
 // --- ASSIGNMENT TRACKER LOGIC ---
