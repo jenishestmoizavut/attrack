@@ -4109,19 +4109,41 @@ function generateReminderEvent() {
   return icsLines.join('\r\n');
 }
 
+function sanitizeDownloadFileName(fileName, fallbackName = "Attrack_Export") {
+  const cleaned = String(fileName || fallbackName)
+    .replace(/[\\/:*?"<>|\x00-\x1f]/g, "_")
+    .trim();
+  return cleaned || fallbackName;
+}
+
+function triggerFileDownload(content, fileName, mimeType = "text/plain;charset=utf-8") {
+  const safeName = sanitizeDownloadFileName(fileName);
+  const textContent = typeof content === "string" ? content : String(content ?? "");
+  if (window.AndroidBridge && typeof window.AndroidBridge.saveFile === "function") {
+    try {
+      if (window.AndroidBridge.saveFile(textContent, safeName, mimeType)) {
+        return true;
+      }
+    } catch (e) {
+      console.warn("AndroidBridge.saveFile failed, falling back to browser download:", e);
+    }
+  }
+  const blob = new Blob([textContent], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = safeName;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return true;
+}
+
 function downloadIcsFile() {
   const icsData = generateReminderEvent();
-  const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'Attrack_Smart_Reminder.ics');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  triggerFileDownload(icsData, 'Attrack_Smart_Reminder.ics', 'text/calendar;charset=utf-8');
 }
 
 function openGoogleCalendar() {
@@ -4173,13 +4195,7 @@ function openGoogleCalendar() {
         }))
       };
 
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(shareState));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "Attrack_Schedule_Config.json");
-      document.body.appendChild(downloadAnchorNode); // required for firefox
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
+      triggerFileDownload(JSON.stringify(shareState), "Attrack_Schedule_Config.json", "application/json;charset=utf-8");
     }
 
     // 2. Import Function (Read JSON)
@@ -4541,15 +4557,12 @@ async function checkUrlForImport() {
       let csv = headers.join(",") + "\n";
       rows.forEach(r => { csv += r.map(v => `"${v}"`).join(",") + "\n"; });
 
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Attrack_Attendance_${state.studentName || "Student"}_${toISODate(new Date())}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const nameSlug = (state.studentName || "Student").trim().replace(/[^a-zA-Z0-9_-]/g, "_") || "Student";
+      triggerFileDownload(
+        csv,
+        `Attrack_Attendance_${nameSlug}_${toISODate(new Date())}.csv`,
+        "text/csv;charset=utf-8;"
+      );
     }
 // Target attendance UI handlers
 const saveTargetBtn = document.getElementById("saveTargetAttendanceBtn");
@@ -7111,14 +7124,12 @@ if (openGeminiBtn) {
 
     function exportSemesterBackup() {
       const backup = JSON.parse(JSON.stringify(state));
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
-      const dlNode = document.createElement("a");
-      const nameSlug = (state.studentName || "Student").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
-      dlNode.setAttribute("href", dataStr);
-      dlNode.setAttribute("download", `Attrack_Backup_${nameSlug}_${toISODate(new Date())}.json`);
-      document.body.appendChild(dlNode);
-      dlNode.click();
-      dlNode.remove();
+      const nameSlug = (state.studentName || "Student").trim().replace(/[^a-zA-Z0-9_-]/g, "_") || "Student";
+      triggerFileDownload(
+        JSON.stringify(backup, null, 2),
+        `Attrack_Backup_${nameSlug}_${toISODate(new Date())}.json`,
+        "application/json;charset=utf-8"
+      );
       if (endSemDownloadBackupBtn) {
         endSemDownloadBackupBtn.textContent = "✅ Backup Downloaded!";
         setTimeout(() => {
