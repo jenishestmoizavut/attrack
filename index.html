@@ -936,6 +936,31 @@ td .btn.small:hover { opacity: 1; }
   opacity: 0.3;
   cursor: not-allowed;
 }
+.tt-step-input {
+  width: 46px;
+  height: 34px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 4px;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tt-step-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+.tt-step-input::-webkit-outer-spin-button,
+.tt-step-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 .tt-step-val {
   min-width: 26px;
   text-align: center;
@@ -6380,9 +6405,13 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
           minusBtn.setAttribute("aria-label", `Decrease ${subject.name} lectures on ${days[selectedMobileTimetableDay]}`);
           minusBtn.disabled = count <= 0;
 
-          const valSpan = document.createElement("span");
-          valSpan.className = "tt-step-val" + (count > 0 ? " has-count" : "");
-          valSpan.textContent = String(count);
+          const numInput = document.createElement("input");
+          numInput.type = "number";
+          numInput.min = "0";
+          numInput.max = "6";
+          numInput.className = "tt-step-input";
+          numInput.value = String(count);
+          numInput.setAttribute("aria-label", `${subject.name} lectures on ${days[selectedMobileTimetableDay]}`);
 
           const plusBtn = document.createElement("button");
           plusBtn.type = "button";
@@ -6401,10 +6430,7 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
             else if (newCount > 0) pattern[index].count = newCount;
             saveState();
 
-            valSpan.textContent = String(newCount);
-            if (newCount > 0) valSpan.classList.add("has-count");
-            else valSpan.classList.remove("has-count");
-
+            numInput.value = String(newCount);
             minusBtn.disabled = newCount <= 0;
             plusBtn.disabled = newCount >= 6;
 
@@ -6420,17 +6446,22 @@ const all = state.lectures.filter(lec => lec.date && lec.date >= start && !lec.i
           };
 
           minusBtn.addEventListener("click", () => {
-            const current = Number(valSpan.textContent) || 0;
+            const current = parseInt(numInput.value, 10) || 0;
             updateCount(current - 1);
           });
 
           plusBtn.addEventListener("click", () => {
-            const current = Number(valSpan.textContent) || 0;
+            const current = parseInt(numInput.value, 10) || 0;
             updateCount(current + 1);
           });
 
+          numInput.addEventListener("change", () => {
+            const val = parseInt(numInput.value, 10) || 0;
+            updateCount(val);
+          });
+
           stepper.appendChild(minusBtn);
-          stepper.appendChild(valSpan);
+          stepper.appendChild(numInput);
           stepper.appendChild(plusBtn);
           row.appendChild(stepper);
         } else {
@@ -6642,7 +6673,6 @@ function openSubjectModal(subjId = null) {
   renderSubjectModalDays();
   subjectModalBackdrop.style.display = "flex";
   subjectModalBackdrop.setAttribute("aria-hidden", "false");
-  setTimeout(() => subjectModalName && subjectModalName.focus(), 80);
 }
 function closeSubjectModal() {
   if (!subjectModalBackdrop) return;
