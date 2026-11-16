@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.2.5"; // Fix view hierarchy tag nesting and page navigation
+const CACHE_VERSION = "v2.2.6"; // Streamline subjects menu and touch steppers for timetable editing
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
