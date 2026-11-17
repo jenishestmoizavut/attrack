@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.2.6"; // Streamline subjects menu and touch steppers for timetable editing
+const CACHE_VERSION = "v2.2.7"; // Protect past attendance on timetable edit and fix semester start calendar filtering
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
