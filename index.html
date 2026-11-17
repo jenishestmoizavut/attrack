@@ -4695,6 +4695,9 @@ function shouldSendDailyReminder() {
   const now = new Date();
   const isoDate = toISODate(now);
 
+  // If user has opened the app today, do not fire reminder
+  if (localStorage.getItem("attrack_last_opened_date") === isoDate) return false;
+
   // 3. Check Time (Change '20' to '0' while testing to see it immediately!)
   if (now.getHours() < 20) return false; 
 
@@ -8634,9 +8637,19 @@ if (addAssignmentBtn) {
         lastSavedStateJson = json;
       }
 
+      // Record that user opened the app today
+      localStorage.setItem("attrack_last_opened_date", todayIso);
+      if (window.AndroidBridge && typeof window.AndroidBridge.recordAppOpen === "function") {
+        try { window.AndroidBridge.recordAppOpen(); } catch(e) {}
+      }
+
       // Keep web/PWA and long-lived Android sessions caught up across midnight
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
+          localStorage.setItem("attrack_last_opened_date", toISODate(new Date()));
+          if (window.AndroidBridge && typeof window.AndroidBridge.recordAppOpen === "function") {
+            try { window.AndroidBridge.recordAppOpen(); } catch(e) {}
+          }
           catchUpMissedLectures({ refreshUi: true });
         }
       });
@@ -9201,6 +9214,8 @@ window.shouldSendDailyReminder = function () {
 
   const now = new Date();
   const isoDate = attrackToISODate(now);
+
+  if (localStorage.getItem("attrack_last_opened_date") === isoDate) return false;
 
   if (now.getHours() < 20) return false; // change 20 -> 0 to test immediately
 
