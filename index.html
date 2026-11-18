@@ -3352,6 +3352,64 @@ When you add or load lectures, they’re marked attended by default.
             </div>
           </div>
 
+    <!-- Cloud Sign-In Conflict Modal (asks user before overwriting local attendance with cloud data) -->
+    <div id="cloudSignInConflictModalBackdrop" class="gemini-modal-backdrop" style="display:none; z-index:3500;" aria-hidden="true">
+      <div class="gemini-modal" role="dialog" aria-modal="true" aria-labelledby="cloudSignInConflictTitle" style="max-width:480px;">
+        <div class="gemini-modal-head">
+          <div>
+            <div class="gemini-modal-kicker">
+              <span>☁️</span>
+              Cloud Backup Found
+            </div>
+            <h3 id="cloudSignInConflictTitle" style="margin-bottom:4px;">Google Account Attendance</h3>
+            <div class="quiet-note">We found existing attendance data saved in your Google Account.</div>
+          </div>
+          <button id="closeCloudSignInConflictBtn" class="btn small secondary" type="button" aria-label="Close modal">✕</button>
+        </div>
+
+        <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:14px; margin:10px 0 16px;">
+          <p style="margin:0 0 12px; font-size:0.9rem; line-height:1.5; color:var(--text);">
+            You have existing attendance records on this device. Would you like to load your cloud data or keep this device's data?
+          </p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+            <!-- Cloud Backup Card -->
+            <div style="background:var(--card-bg); border:1.5px solid var(--accent); border-radius:10px; padding:10px;">
+              <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--accent); margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                ☁️ Cloud Data
+              </div>
+              <div id="cloudModalSubjects" style="font-size:0.88rem; font-weight:600; margin-bottom:2px;">0 subjects</div>
+              <div id="cloudModalLectures" style="font-size:0.8rem; color:var(--text-soft); margin-bottom:4px;">0 lectures</div>
+              <div id="cloudModalDate" style="font-size:0.72rem; color:var(--muted);">Saved: --</div>
+            </div>
+
+            <!-- Local Device Card -->
+            <div style="background:var(--card-bg); border:1.5px solid var(--border); border-radius:10px; padding:10px;">
+              <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                📱 This Device
+              </div>
+              <div id="localModalSubjects" style="font-size:0.88rem; font-weight:600; margin-bottom:2px;">0 subjects</div>
+              <div id="localModalLectures" style="font-size:0.8rem; color:var(--text-soft); margin-bottom:4px;">0 lectures</div>
+              <div id="localModalAttendance" style="font-size:0.72rem; color:var(--muted);">Attendance: --</div>
+            </div>
+          </div>
+
+          <div style="font-size:0.78rem; line-height:1.45; color:var(--text-soft); background:rgba(239, 68, 68, 0.08); border-left:3px solid #ef4444; padding:8px 10px; border-radius:4px;">
+            ⚠️ <strong>Notice:</strong> Taking data from the cloud will replace the timetable and attendance records on this device.
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button id="acceptCloudDataBtn" class="btn" type="button" style="justify-content:center; padding:11px; font-weight:600;">
+            📥 Take Data from Cloud
+          </button>
+          <button id="keepLocalDataBtn" class="btn secondary" type="button" style="justify-content:center; padding:10px;">
+            📱 Keep This Device's Data (Upload to Cloud)
+          </button>
+        </div>
+      </div>
+    </div>
+
 	<div id="versionModalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
   <div class="card" style="width:min(440px,90%); padding:24px; animation: slideUp 0.3s ease-out;">
 
@@ -3388,6 +3446,7 @@ let undoTimer = null;
 let applyingRemoteState = false;
 window.suppressNextCloudEcho = false;
 let pendingCloudState = null;
+let pendingCloudSignInState = null;
 let ignoredCloudRevisionKey = "";
 const recentlyCompletedStudyIds = new Set();
 const STUDY_MEMES = [
@@ -3786,24 +3845,52 @@ function showSyncChoice(cloudState, isManual = false) {
   backdrop.setAttribute("aria-hidden", "false");
   playUiSound("soft");
 }
-function _orig_showSyncChoice_unused(cloudState) {
-  pendingCloudState = cloudState;
-  const backdrop = document.getElementById("syncChoiceBackdrop");
-  const text = document.getElementById("syncChoiceText");
-  const diffEl = document.getElementById("syncChoiceDiff");
+function showCloudSignInModal(cloudState) {
+  pendingCloudSignInState = cloudState;
+  const backdrop = document.getElementById("cloudSignInConflictModalBackdrop");
   if (!backdrop) return;
-  if (backdrop.style.display === "flex") return;
-  const updatedAt = Number(cloudState.__sync?.updatedAt || 0);
-  const when = updatedAt ? new Date(updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "recently";
-  if (text) text.textContent = `Another device saved a newer version ${when}. Here is what's different:`;
-  if (diffEl) {
-    diffEl.innerHTML = describeStateDiff(state, cloudState);
-    diffEl.style.display = "block";
+
+  const cloudSubjects = Array.isArray(cloudState.subjects) ? cloudState.subjects.length : 0;
+  const cloudLectures = Array.isArray(cloudState.lectures) ? cloudState.lectures.length : 0;
+  const cloudUpdated = Number(cloudState.__sync?.updatedAt || 0);
+  const cloudDateStr = cloudUpdated 
+    ? new Date(cloudUpdated).toLocaleDateString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) 
+    : "Previous backup";
+
+  const cloudSubjEl = document.getElementById("cloudModalSubjects");
+  const cloudLecEl = document.getElementById("cloudModalLectures");
+  const cloudDateEl = document.getElementById("cloudModalDate");
+  if (cloudSubjEl) cloudSubjEl.textContent = `${cloudSubjects} subject${cloudSubjects === 1 ? "" : "s"}`;
+  if (cloudLecEl) cloudLecEl.textContent = `${cloudLectures} lecture${cloudLectures === 1 ? "" : "s"}`;
+  if (cloudDateEl) cloudDateEl.textContent = `Saved: ${cloudDateStr}`;
+
+  const localSubjects = Array.isArray(state.subjects) ? state.subjects.length : 0;
+  const localLectures = Array.isArray(state.lectures) ? state.lectures.length : 0;
+  let localPct = "--";
+  if (localLectures > 0) {
+    const attended = state.lectures.filter(l => l.attended).length;
+    localPct = `${((attended / localLectures) * 100).toFixed(1)}%`;
   }
+  const localSubjEl = document.getElementById("localModalSubjects");
+  const localLecEl = document.getElementById("localModalLectures");
+  const localAttEl = document.getElementById("localModalAttendance");
+  if (localSubjEl) localSubjEl.textContent = `${localSubjects} subject${localSubjects === 1 ? "" : "s"}`;
+  if (localLecEl) localLecEl.textContent = `${localLectures} lecture${localLectures === 1 ? "" : "s"}`;
+  if (localAttEl) localAttEl.textContent = `Attendance: ${localPct}`;
+
   backdrop.style.display = "flex";
   backdrop.setAttribute("aria-hidden", "false");
-  playUiSound("soft");
+  if (typeof playUiSound === "function") playUiSound("soft");
 }
+
+function hideCloudSignInModal() {
+  const backdrop = document.getElementById("cloudSignInConflictModalBackdrop");
+  if (!backdrop) return;
+  backdrop.style.display = "none";
+  backdrop.setAttribute("aria-hidden", "true");
+}
+window.showCloudSignInModal = showCloudSignInModal;
+window.hideCloudSignInModal = hideCloudSignInModal;
 
 document.addEventListener("click", (event) => {
   const target = event.target && event.target.closest ? event.target.closest("button, summary") : null;
@@ -5176,6 +5263,10 @@ const undoToastBtn = document.getElementById("undoToastBtn");
 const applyCloudChangeBtn = document.getElementById("applyCloudChangeBtn");
 const keepThisDeviceBtn = document.getElementById("keepThisDeviceBtn");
 const dismissCloudChangeBtn = document.getElementById("dismissCloudChangeBtn");
+const acceptCloudDataBtn = document.getElementById("acceptCloudDataBtn");
+const keepLocalDataBtn = document.getElementById("keepLocalDataBtn");
+const closeCloudSignInConflictBtn = document.getElementById("closeCloudSignInConflictBtn");
+const cloudSignInConflictModalBackdrop = document.getElementById("cloudSignInConflictModalBackdrop");
     const lecturesTableBodyEl = document.getElementById("lecturesTableBody");
     const lecturesEmptyEl = document.getElementById("lecturesEmpty");
     const timetableBodyEl = document.getElementById("timetableBody");
@@ -5229,21 +5320,24 @@ let timetableSnapshot = null;
       if (!Array.isArray(cloudState.assignments)) cloudState.assignments = [];
       if (!Array.isArray(cloudState.studyTargets)) cloudState.studyTargets = [];
 
-      // When user explicitly just logged in or forced: ALWAYS apply cloud data if cloud has data
-      if (force || window.__justLoggedInToGoogle) {
+      const justLoggedIn = window.__justLoggedInToGoogle || (sessionStorage.getItem("attrack_just_logged_in") === "1");
+
+      // When explicitly forced (e.g. user confirmed from modal): ALWAYS apply
+      if (force) {
         window.__justLoggedInToGoogle = false;
-        if (cloudHasData || !localHasData) {
-          applyAcceptedCloudState(cloudState);
-          const onboarding = document.getElementById("onboardingWizardBackdrop");
-          if (onboarding && cloudHasData) onboarding.style.display = "none";
-          if (cloudHasData && typeof switchView === "function") switchView("homeView");
-          showUndoToast("Cloud data synced! ☁️");
-          return;
-        }
+        sessionStorage.removeItem("attrack_just_logged_in");
+        applyAcceptedCloudState(cloudState);
+        const onboarding = document.getElementById("onboardingWizardBackdrop");
+        if (onboarding && cloudHasData) onboarding.style.display = "none";
+        if (cloudHasData && typeof switchView === "function") switchView("homeView");
+        showUndoToast("Cloud data synced! ☁️");
+        return;
       }
 
       // If local has no data but cloud DOES have data, only pull if cloud is newer or local is untouched
       if ((!localHasData || !state.isInitialized) && cloudHasData) {
+        window.__justLoggedInToGoogle = false;
+        sessionStorage.removeItem("attrack_just_logged_in");
         const localSyncTime = Number(state.__sync?.updatedAt || 0);
         if (!localSyncTime || isIncomingCloudNewer(state, cloudState)) {
           applyAcceptedCloudState(cloudState);
@@ -5261,6 +5355,8 @@ let timetableSnapshot = null;
 
       // If cloud has no real data yet, push local up
       if (!cloudHasData && localHasData) {
+        window.__justLoggedInToGoogle = false;
+        sessionStorage.removeItem("attrack_just_logged_in");
         if (window.syncToFirebase) window.syncToFirebase(state);
         return;
       }
@@ -5272,6 +5368,24 @@ let timetableSnapshot = null;
       const cloudClean = cloneStateForHistory(cloudState);
       delete cloudClean.__sync;
       delete cloudClean.lastAutoGeneratedDate;
+
+      const isDifferent = (JSON.stringify(localClean) !== JSON.stringify(cloudClean));
+
+      // User just logged in and has local data AND cloud data exists:
+      // Show confirmation popup asking user to accept taking data from the cloud!
+      if (justLoggedIn || (!Number(state.__sync?.updatedAt || 0) && localHasData && cloudHasData)) {
+        window.__justLoggedInToGoogle = false;
+        sessionStorage.removeItem("attrack_just_logged_in");
+        if (isDifferent) {
+          pendingCloudState = cloudState;
+          window.__latestCloudState = cloudState;
+          showCloudSignInModal(cloudState);
+          return;
+        } else {
+          showUndoToast("Signed in · Cloud in sync! ☁️");
+          return;
+        }
+      }
 
       if (JSON.stringify(localClean) !== JSON.stringify(cloudClean)) {
         // If incoming cloud is strictly newer, apply it quietly without interrupting
@@ -7111,6 +7225,48 @@ if (dismissCloudChangeBtn) {
     if (pendingCloudState) ignoredCloudRevisionKey = cloudRevisionKey(pendingCloudState);
     pendingCloudState = null;
     hideSyncChoice();
+  });
+}
+
+if (acceptCloudDataBtn) {
+  acceptCloudDataBtn.addEventListener("click", () => {
+    const cloudToApply = pendingCloudSignInState || pendingCloudState;
+    if (cloudToApply) {
+      applyAcceptedCloudState(cloudToApply);
+      const onboarding = document.getElementById("onboardingWizardBackdrop");
+      if (onboarding) onboarding.style.display = "none";
+      if (typeof switchView === "function") switchView("homeView");
+      showUndoToast("Cloud data synced! ☁️");
+    }
+    pendingCloudSignInState = null;
+    hideCloudSignInModal();
+  });
+}
+if (keepLocalDataBtn) {
+  keepLocalDataBtn.addEventListener("click", () => {
+    pendingCloudSignInState = null;
+    hideCloudSignInModal();
+    if (window.syncToFirebase) window.syncToFirebase(state);
+    saveState({ skipUndo: true, label: "Kept this device data" });
+    showUndoToast("Kept this device · Synced to cloud ☁️");
+  });
+}
+if (closeCloudSignInConflictBtn) {
+  closeCloudSignInConflictBtn.addEventListener("click", () => {
+    pendingCloudSignInState = null;
+    hideCloudSignInModal();
+    const cloudBtn = document.getElementById("checkCloudSyncBtn");
+    if (cloudBtn) cloudBtn.textContent = "☁️ Cloud updates (1)";
+  });
+}
+if (cloudSignInConflictModalBackdrop) {
+  cloudSignInConflictModalBackdrop.addEventListener("click", (e) => {
+    if (e.target === cloudSignInConflictModalBackdrop) {
+      pendingCloudSignInState = null;
+      hideCloudSignInModal();
+      const cloudBtn = document.getElementById("checkCloudSyncBtn");
+      if (cloudBtn) cloudBtn.textContent = "☁️ Cloud updates (1)";
+    }
   });
 }
 
@@ -9647,14 +9803,17 @@ const firebaseConfig = {
 
             if (window.AndroidBridge && typeof window.AndroidBridge.startGoogleSignIn === 'function') {
                 window.__justLoggedInToGoogle = true;
+                sessionStorage.setItem("attrack_just_logged_in", "1");
                 window.AndroidBridge.startGoogleSignIn();
                 return;
             }
             try { 
                 window.__justLoggedInToGoogle = true;
+                sessionStorage.setItem("attrack_just_logged_in", "1");
                 await signInWithPopup(auth, provider); 
             } catch (error) { 
                 window.__justLoggedInToGoogle = false;
+                sessionStorage.removeItem("attrack_just_logged_in");
                 setAuthLoadingUi(false);
                 alert("Login failed. Check console."); 
                 console.error(error); 
@@ -9664,10 +9823,12 @@ const firebaseConfig = {
         window.loginWithIdToken = async (idToken) => {
             try {
                 window.__justLoggedInToGoogle = true;
+                sessionStorage.setItem("attrack_just_logged_in", "1");
                 const credential = GoogleAuthProvider.credential(idToken);
                 await signInWithCredential(auth, credential);
             } catch (error) {
                 window.__justLoggedInToGoogle = false;
+                sessionStorage.removeItem("attrack_just_logged_in");
                 console.error("Native Google login failed:", error);
                 alert("Login error: " + (error.message || error));
             } finally {
@@ -9957,7 +10118,7 @@ const firebaseConfig = {
                 setDoc(doc(db, "users", user.uid), {
                     lastActiveAt: serverTimestamp(),
                     lastPlatform: window.AndroidBridge ? "android" : "web",
-                    appVersion: "0.7.0"
+                    appVersion: "1.0.7"
                 }, { merge: true }).catch(() => {});
 
                 if (authTitle) authTitle.textContent = "Synced with Google";

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.2.7"; // Protect past attendance on timetable edit and fix semester start calendar filtering
+const CACHE_VERSION = "v2.2.8"; // Prompt user before overwriting local attendance with Google Cloud backup
 const CACHE_NAME = `attrack-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
